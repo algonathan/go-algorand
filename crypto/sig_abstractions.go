@@ -7,7 +7,7 @@ type AlgorithmType uint64
 
 // all AlgorithmType enums
 const (
-	PlaceHolderType AlgorithmType = 1 + iota
+	PlaceHolderType AlgorithmType = iota
 )
 
 // ByteSignature is a cryptographic signature represented by bytes.
@@ -84,10 +84,8 @@ type PackedVerifyingKey struct {
 
 func (p *PackedVerifyingKey) getVerifier(t AlgorithmType) Verifier {
 	switch t {
-	case PlaceHolderType:
-		return &p.PlaceHolderPublicKey
 	default:
-		panic("unknown type")
+		return &p.PlaceHolderPublicKey
 	}
 }
 
@@ -100,10 +98,8 @@ type PackedSignatureAlgorithm struct {
 
 func (p *PackedSignatureAlgorithm) getSigner(t AlgorithmType) Signer {
 	switch t {
-	case PlaceHolderType:
-		return &p.PlaceHolderKey
 	default:
-		panic("unknown type")
+		return &p.PlaceHolderKey
 	}
 }
 
@@ -111,7 +107,7 @@ func (p *PackedSignatureAlgorithm) getSigner(t AlgorithmType) Signer {
 func NewSignerFromSeed(seed Seed, t AlgorithmType) *SignatureAlgorithm {
 	var p PackedSignatureAlgorithm
 	switch t {
-	case PlaceHolderType:
+	default:
 		key := GeneratePlaceHolderKey(seed)
 		p = PackedSignatureAlgorithm{
 			PlaceHolderKey: *key,

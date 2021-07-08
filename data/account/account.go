@@ -181,10 +181,11 @@ func RestoreParticipation(store db.Accessor) (acc PersistedParticipation, err er
 		return PersistedParticipation{}, err
 	}
 
+	acc.CompactCertKey = &crypto.SignatureAlgorithm{}
 	if len(rawCompactCert) == 0 {
 		return acc, nil
 	}
-	acc.CompactCertKey = &crypto.SignatureAlgorithm{}
+
 	if err = protocol.Decode(rawCompactCert, acc.CompactCertKey); err != nil {
 		return PersistedParticipation{}, err
 	}

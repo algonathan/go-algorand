@@ -7,7 +7,7 @@ func GeneratePlaceHolderKey(seed Seed) *PlaceHolderKey {
 	}
 }
 
-// PlaceHolderKey represents an unknown key
+// PlaceHolderKey represents an unknown key, can be used as default empty type of a key.
 // the struct implements Signer
 type PlaceHolderKey struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
