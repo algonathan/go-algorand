@@ -1181,8 +1181,8 @@ func (db *participationDB) deleteStateProofKeysInner(wr partDBWriteRecord) error
 		if err != nil {
 			return fmt.Errorf("unable to prepare state proof insert: %w", err)
 		}
-		result, err := stmt.Exec(pk, wr.deleteStateProofKeys.Round)
-		return verifyExecWithOneRowEffected(err, result, "delete stateproof key")
+		_, err = stmt.Exec(pk, wr.deleteStateProofKeys.Round)
+		return err
 	})
 
 	if err != nil {

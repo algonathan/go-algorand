@@ -870,3 +870,82 @@ func TestGetRoundSecretsWithoutStateProof(t *testing.T) {
 	a.NotNil(partPerRound.StateProofSecrets)
 	a.Equal(keys[CompactCertRounds], StateProofKey(*partPerRound.StateProofSecrets.SigningKey))
 }
+
+// Test the recording function.
+func TestDeleteStateProofKeys(t *testing.T) {
+	partitiontest.PartitionTest(t)
+	a := assert.New(t)
+	registry := getRegistry(t)
+	defer registryCloseTest(t, registry)
+
+	// Install a key to add StateProof keys.
+	maxRound := uint64(20)
+	p := makeTestParticipation(1, 0, basics.Round(maxRound), 3)
+	id, err := registry.Insert(p)
+	a.NoError(err)
+	a.Equal(p.ID(), id)
+
+	// Wait for async DB operations to finish.
+	a.NoError(registry.Flush(10 * time.Second))
+
+	//each round receives a stateproof key.
+	signer, err := merklekeystore.New(1, maxRound, 1, crypto.FalconType)
+	a.NoError(err)
+	// Initialize keys array.
+	keys := make(map[uint64]StateProofKey)
+	for i := uint64(1); i < maxRound; i++ {
+		k := signer.GetKey(i)
+		if k == nil {
+			continue
+		}
+		keys[i] = StateProofKey(*k)
+	}
+
+	a.NoError(registry.AppendKeys(id, keys))
+
+	// Wait for async DB operations to finish.
+	a.NoError(registry.Flush(10 * time.Second))
+
+	// Make sure we're able to fetch the same data that was put in.
+	for i := uint64(1); i < maxRound; i++ {
+		r, err := registry.GetForRound(id, basics.Round(i))
+		a.NoError(err)
+		a.Equal(keys[i], StateProofKey(*r.StateProofSecrets.SigningKey))
+	}
+
+	removeKeysRound := basics.Round(maxRound / 2)
+	a.NoError(registry.DeleteStateProofKeys(id, removeKeysRound))
+
+	a.NoError(registry.Flush(10 * time.Second))
+
+	// verify that the db does not contain any state proof key with round less than 10
+
+	registry.store.Rdb.Atomic(func(ctx context.Context, tx *sql.Tx) error {
+		var pk int
+		a.NoError(tx.QueryRow(selectPK, id[:]).Scan(&pk))
+
+		// make certain keys below the cutting round aren't existing in the db.
+		var num int
+		a.NoError(
+			tx.QueryRow(
+				"SELECT COUNT(*) FROM StateProofKeys where pk=? AND round <=?",
+				pk,
+				removeKeysRound,
+			).Scan(&num),
+		)
+		a.Zero(num)
+
+		// make certain keys above the cutting round are existing in the db.
+		a.NoError(
+			tx.QueryRow(
+				"SELECT COUNT(*) FROM StateProofKeys where pk=? AND round >?",
+				pk,
+				removeKeysRound,
+			).Scan(&num),
+		)
+
+		// includes removeKeysRound
+		a.Equal(int(maxRound)-(int(removeKeysRound)+1), num)
+		return nil
+	})
+}
