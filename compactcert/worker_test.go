@@ -128,6 +128,10 @@ func (s *testWorkerStubs) Keys(rnd basics.Round) (out []account.ParticipationRec
 	return
 }
 
+func (s *testWorkerStubs) DeleteStateProofKey(id account.ParticipationID, round basics.Round) error {
+	return nil
+}
+
 func (s *testWorkerStubs) BlockHdr(r basics.Round) (bookkeeping.BlockHeader, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

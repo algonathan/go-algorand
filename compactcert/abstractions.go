@@ -55,4 +55,5 @@ type Network interface {
 // this package.
 type Accounts interface {
 	Keys(basics.Round) []account.ParticipationRecordForRound
+	DeleteStateProofKey(id account.ParticipationID, round basics.Round) error // attempts to delete all keys prior to the rounds.
 }

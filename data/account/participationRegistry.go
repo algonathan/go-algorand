@@ -46,6 +46,11 @@ func (pid ParticipationID) IsZero() bool {
 	return (crypto.Digest(pid)).IsZero()
 }
 
+// IsEqual compares two ids and determines whether they are equal or not.
+func (pid ParticipationID) IsEqual(other ParticipationID) bool {
+	return pid == other
+}
+
 // String prints a b32 version of this ID.
 func (pid ParticipationID) String() string {
 	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(pid[:])
@@ -193,6 +198,9 @@ type ParticipationRegistry interface {
 	// once, an error will occur when the data is flushed when inserting a duplicate key.
 	AppendKeys(id ParticipationID, keys map[uint64]StateProofKey) error
 
+	// DeleteStateProofKeys deletes state proof keys to an existing participation record.
+	DeleteStateProofKeys(id ParticipationID, round basics.Round) error
+
 	// Delete removes a record from storage.
 	Delete(id ParticipationID) error
 
@@ -298,6 +306,7 @@ const (
 	insertKeysetQuery         = `INSERT INTO Keysets (participationID, account, firstValidRound, lastValidRound, keyDilution, vrf, stateProof) VALUES (?, ?, ?, ?, ?, ?, ?)`
 	insertRollingQuery        = `INSERT INTO Rolling (pk, voting) VALUES (?, ?)`
 	appendStateProofKeysQuery = `INSERT INTO StateProofKeys (pk, round, key) VALUES(?, ?, ?)`
+	deleteStateProofKeysQuery = `DELETE FROM StateProofKeys WHERE pk=? AND round<=?`
 
 	// SELECT pk FROM Keysets WHERE participationID = ?
 	selectPK      = `SELECT pk FROM Keysets WHERE participationID = ? LIMIT 1`
@@ -366,10 +375,34 @@ type participationDB struct {
 	flushTimeout time.Duration
 }
 
+// DeleteStateProofKeys is a non-blocking operation, responsible for removing state-proof keys from the DB.
+func (db *participationDB) DeleteStateProofKeys(id ParticipationID, round basics.Round) error {
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	if _, ok := db.cache[id]; !ok {
+		return ErrParticipationIDNotFound
+	}
+
+	// Update the DB asynchronously.
+	db.writeQueue <- partDBWriteRecord{
+		deleteStateProofKeys: &deleteStateProofKeys{
+			ParticipationID: id,
+			Round:           round,
+		},
+	}
+	return nil
+}
+
 type updatingParticipationRecord struct {
 	ParticipationRecord
 
 	required bool
+}
+
+type deleteStateProofKeys struct {
+	ParticipationID
+	basics.Round
 }
 
 // partDBWriteRecord event object sent to the writeThread to facilitate async
@@ -384,6 +417,7 @@ type partDBWriteRecord struct {
 	delete ParticipationID
 
 	flushResultChannel chan error
+	*deleteStateProofKeys
 }
 
 func (db *participationDB) initializeCache() error {
@@ -435,6 +469,8 @@ func (db *participationDB) writeThread() {
 			err = db.deleteInner(wr.delete)
 		} else if wr.flushResultChannel != nil {
 			err = db.flushInner()
+		} else if wr.deleteStateProofKeys != nil {
+			err = db.deleteStateProofKeysInner(wr)
 		}
 		if err != nil {
 			lastErr = err
@@ -1128,4 +1164,29 @@ func (db *participationDB) Close() {
 	case <-time.After(db.flushTimeout):
 		db.log.Warnf("Close(): timeout while waiting for WriteQueue to finish.")
 	}
+}
+
+func (db *participationDB) deleteStateProofKeysInner(wr partDBWriteRecord) error {
+	err := db.store.Wdb.Atomic(func(ctx context.Context, tx *sql.Tx) error {
+
+		// Fetch primary key
+		var pk int
+		row := tx.QueryRow(selectPK, wr.deleteStateProofKeys.ParticipationID[:])
+		err := row.Scan(&pk)
+		if err != nil {
+			return fmt.Errorf("unable to scan pk: %w", err)
+		}
+
+		stmt, err := tx.Prepare(deleteStateProofKeysQuery)
+		if err != nil {
+			return fmt.Errorf("unable to prepare state proof insert: %w", err)
+		}
+		result, err := stmt.Exec(pk, wr.deleteStateProofKeys.Round)
+		return verifyExecWithOneRowEffected(err, result, "delete stateproof key")
+	})
+
+	if err != nil {
+		db.log.Warnf("participationDB unable to delete stateProof key: %w", err)
+	}
+	return err
 }
