@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with go-algorand.  If not, see <https://www.gnu.org/licenses/>.
 
-package crypto
+package falcon
 
 import (
 	"github.com/algorand/falcon"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/test/partitiontest"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -27,8 +28,8 @@ func TestSignAndVerifyFalcon(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	var seed FalconSeed
-	SystemRNG.RandBytes(seed[:])
+	var seed Seed
+	cryptbase.SystemRNG.RandBytes(seed[:])
 	key, err := GenerateFalconSigner(seed)
 	a.NoError(err)
 
@@ -45,9 +46,9 @@ func TestSignAndVerifyFalconHashable(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	msg := TestingHashable{data: []byte("Neque porro quisquam est qui dolorem ipsum quia dolor sit amet")}
-	var seed FalconSeed
-	SystemRNG.RandBytes(seed[:])
+	msg := cryptbase.TestingHashable{Data: []byte("Neque porro quisquam est qui dolorem ipsum quia dolor sit amet")}
+	var seed Seed
+	cryptbase.SystemRNG.RandBytes(seed[:])
 	key, err := GenerateFalconSigner(seed)
 	a.NoError(err)
 
@@ -63,8 +64,8 @@ func TestFalconCanHandleNilSignature(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	var seed FalconSeed
-	SystemRNG.RandBytes(seed[:])
+	var seed Seed
+	cryptbase.SystemRNG.RandBytes(seed[:])
 	key, err := GenerateFalconSigner(seed)
 	a.NoError(err)
 
@@ -76,8 +77,8 @@ func TestVerificationBytes(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	var seed FalconSeed
-	SystemRNG.RandBytes(seed[:])
+	var seed Seed
+	cryptbase.SystemRNG.RandBytes(seed[:])
 	key, err := GenerateFalconSigner(seed)
 	a.NoError(err)
 
@@ -90,8 +91,8 @@ func TestFalconsFormatConversion(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	var seed FalconSeed
-	SystemRNG.RandBytes(seed[:])
+	var seed Seed
+	cryptbase.SystemRNG.RandBytes(seed[:])
 	key, err := GenerateFalconSigner(seed)
 	a.NoError(err)
 
@@ -113,9 +114,9 @@ func TestFalconSignature_ValidateVersion(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	msg := TestingHashable{data: []byte("Neque porro quisquam est qui dolorem ipsum quia dolor sit amet")}
-	var seed FalconSeed
-	SystemRNG.RandBytes(seed[:])
+	msg := cryptbase.TestingHashable{Data: []byte("Neque porro quisquam est qui dolorem ipsum quia dolor sit amet")}
+	var seed Seed
+	cryptbase.SystemRNG.RandBytes(seed[:])
 	key, err := GenerateFalconSigner(seed)
 	a.NoError(err)
 

@@ -18,6 +18,7 @@ package fixtures
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -31,7 +32,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	generatedV2 "github.com/algorand/go-algorand/daemon/algod/api/server/v2/generated"
 	"github.com/algorand/go-algorand/data/account"
@@ -504,7 +504,7 @@ func (f *LibGoalFixture) MinFeeAndBalance(round uint64) (minFee, minBalance uint
 }
 
 // TransactionProof returns a proof for usage in merkle array verification for the provided transaction.
-func (f *LibGoalFixture) TransactionProof(txid string, round uint64, hashType crypto.HashType) (generatedV2.ProofResponse, merklearray.SingleLeafProof, error) {
+func (f *LibGoalFixture) TransactionProof(txid string, round uint64, hashType cryptbase.HashType) (generatedV2.ProofResponse, merklearray.SingleLeafProof, error) {
 	proofResp, err := f.LibGoalClient.TransactionProof(txid, round, hashType)
 	if err != nil {
 		return generatedV2.ProofResponse{}, merklearray.SingleLeafProof{}, err
@@ -526,7 +526,7 @@ func (f *LibGoalFixture) LightBlockHeaderProof(round uint64) (generatedV2.LightB
 		return generatedV2.LightBlockHeaderProofResponse{}, merklearray.SingleLeafProof{}, err
 	}
 
-	proof, err := merklearray.ProofDataToSingleLeafProof(crypto.Sha256.String(), proofResp.Treedepth, proofResp.Proof)
+	proof, err := merklearray.ProofDataToSingleLeafProof(cryptbase.Sha256.String(), proofResp.Treedepth, proofResp.Proof)
 	if err != nil {
 		return generatedV2.LightBlockHeaderProofResponse{}, merklearray.SingleLeafProof{}, err
 	}

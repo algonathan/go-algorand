@@ -17,14 +17,14 @@
 package libgoal
 
 import (
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // Compile compiles the given program and returned the compiled program
-func (c *Client) Compile(program []byte) (compiledProgram []byte, compiledProgramHash crypto.Digest, err error) {
+func (c *Client) Compile(program []byte) (compiledProgram []byte, compiledProgramHash cryptbase.Digest, err error) {
 	algod, err2 := c.ensureAlgodClient()
 	if err2 != nil {
-		return nil, crypto.Digest{}, err2
+		return nil, cryptbase.Digest{}, err2
 	}
 	return algod.Compile(program)
 }

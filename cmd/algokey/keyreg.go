@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -54,7 +55,7 @@ const (
 	minFee  uint64 = 1000
 )
 
-var validNetworks map[string]crypto.Digest
+var validNetworks map[string]cryptbase.Digest
 var validNetworkList []string
 
 func init() {
@@ -85,7 +86,7 @@ func init() {
 	keyregCmd.Flags().StringVar(&params.addr, "account", "", "account address to bring offline; only specify when taking an account offline from voting in Algorand consensus")
 
 	// TODO: move 'bundleGenesisInject' into something that can be imported here instead of using constants.
-	validNetworks = map[string]crypto.Digest{
+	validNetworks = map[string]cryptbase.Digest{
 		"mainnet": mustConvertB64ToDigest("wGHE2Pwdvd7S12BL5FaOP20EGYesN73ktiC1qzkkit8="),
 		"testnet": mustConvertB64ToDigest("SGO1GKSzyE7IEPItTxCByw9x8FmnrCDexi9/cOUJOiI="),
 		"betanet": mustConvertB64ToDigest("mFgazF+2uRS1tMiL9dsj01hJGySEmPN28B/TjjvpVW0="),
@@ -97,7 +98,7 @@ func init() {
 	}
 }
 
-func mustConvertB64ToDigest(b64 string) (digest crypto.Digest) {
+func mustConvertB64ToDigest(b64 string) (digest cryptbase.Digest) {
 	data, err := base64.StdEncoding.DecodeString(b64)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to decode digest '%s': %s\n\n", b64, err)
@@ -111,7 +112,7 @@ func mustConvertB64ToDigest(b64 string) (digest crypto.Digest) {
 	return
 }
 
-func getGenesisInformation(network string) (crypto.Digest, error) {
+func getGenesisInformation(network string) (cryptbase.Digest, error) {
 	// For testing purposes, there is a secret option to override the genesis information.
 	hashOverride := os.Getenv("ALGOKEY_GENESIS_HASH")
 	if hashOverride != "" {
@@ -121,7 +122,7 @@ func getGenesisInformation(network string) (crypto.Digest, error) {
 	// Otherwise check that network matches one of the known networks.
 	gen, ok := validNetworks[strings.ToLower(network)]
 	if !ok {
-		return crypto.Digest{}, fmt.Errorf("unknown network '%s' provided. Supported networks: %s",
+		return cryptbase.Digest{}, fmt.Errorf("unknown network '%s' provided. Supported networks: %s",
 			network,
 			strings.Join(validNetworkList, ", "))
 	}

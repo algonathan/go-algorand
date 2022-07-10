@@ -23,6 +23,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"time"
 
@@ -4683,9 +4684,9 @@ type txTailRound struct {
 
 // encode the transaction tail data into a serialized form, and return the serialized data
 // as well as the hash of the data.
-func (t *txTailRound) encode() ([]byte, crypto.Digest) {
+func (t *txTailRound) encode() ([]byte, cryptbase.Digest) {
 	tailData := protocol.Encode(t)
-	hash := crypto.Hash(tailData)
+	hash := cryptbase.Hash(tailData)
 	return tailData, hash
 }
 
@@ -4733,7 +4734,7 @@ func txtailNewRound(ctx context.Context, tx *sql.Tx, baseRound basics.Round, rou
 	return err
 }
 
-func loadTxTail(ctx context.Context, tx *sql.Tx, dbRound basics.Round) (roundData []*txTailRound, roundHash []crypto.Digest, baseRound basics.Round, err error) {
+func loadTxTail(ctx context.Context, tx *sql.Tx, dbRound basics.Round) (roundData []*txTailRound, roundHash []cryptbase.Digest, baseRound basics.Round, err error) {
 	rows, err := tx.QueryContext(ctx, "SELECT rnd, data FROM txtail ORDER BY rnd DESC")
 	if err != nil {
 		return nil, nil, 0, err
@@ -4757,7 +4758,7 @@ func loadTxTail(ctx context.Context, tx *sql.Tx, dbRound basics.Round) (roundDat
 			return nil, nil, 0, err
 		}
 		roundData = append(roundData, tail)
-		roundHash = append(roundHash, crypto.Hash(data))
+		roundHash = append(roundHash, cryptbase.Hash(data))
 		expectedRound--
 	}
 	// reverse the array ordering in-place so that it would be incremental order.
@@ -4773,7 +4774,7 @@ type catchpointFirstStageInfo struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
 	Totals           ledgercore.AccountTotals `codec:"accountTotals"`
-	TrieBalancesHash crypto.Digest            `codec:"trieBalancesHash"`
+	TrieBalancesHash cryptbase.Digest         `codec:"trieBalancesHash"`
 	// Total number of accounts in the catchpoint data file. Only set when catchpoint
 	// data files are generated.
 	TotalAccounts uint64 `codec:"accountsCount"`
@@ -4863,7 +4864,7 @@ func deleteOldCatchpointFirstStageInfo(ctx context.Context, e db.Executable, max
 	return db.Retry(f)
 }
 
-func insertUnfinishedCatchpoint(ctx context.Context, e db.Executable, round basics.Round, blockHash crypto.Digest) error {
+func insertUnfinishedCatchpoint(ctx context.Context, e db.Executable, round basics.Round, blockHash cryptbase.Digest) error {
 	f := func() error {
 		query := "INSERT INTO unfinishedcatchpoints(round, blockhash) VALUES(?, ?)"
 		_, err := e.ExecContext(ctx, query, round, blockHash[:])
@@ -4874,7 +4875,7 @@ func insertUnfinishedCatchpoint(ctx context.Context, e db.Executable, round basi
 
 type unfinishedCatchpointRecord struct {
 	round     basics.Round
-	blockHash crypto.Digest
+	blockHash cryptbase.Digest
 }
 
 func selectUnfinishedCatchpoints(ctx context.Context, q db.Queryable) ([]unfinishedCatchpointRecord, error) {

@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"os"
 	"path/filepath"
@@ -286,7 +287,7 @@ func parseNoteField(cmd *cobra.Command) []byte {
 
 	// Make sure that back-to-back, similar transactions will have a different txid
 	noteBytes := make([]byte, 8)
-	crypto.RandBytes(noteBytes[:])
+	cryptbase.RandBytes(noteBytes[:])
 	return noteBytes
 }
 
@@ -775,8 +776,8 @@ var signCmd = &cobra.Command{
 		var outData []byte
 		dec := protocol.NewDecoderBytes(data)
 		// read the entire file and prepare in-memory copy of each signed transaction, with grouping.
-		txnGroups := make(map[crypto.Digest][]*transactions.SignedTxn)
-		var groupsOrder []crypto.Digest
+		txnGroups := make(map[cryptbase.Digest][]*transactions.SignedTxn)
+		var groupsOrder []cryptbase.Digest
 		txnIndex := make(map[*transactions.SignedTxn]int)
 		count := 0
 		for {
@@ -791,8 +792,8 @@ var signCmd = &cobra.Command{
 			group := uncheckedTxn.Txn.Group
 			if group.IsZero() {
 				// create a dummy group.
-				randGroupBytes := crypto.Digest{}
-				crypto.RandBytes(randGroupBytes[:])
+				randGroupBytes := cryptbase.Digest{}
+				cryptbase.RandBytes(randGroupBytes[:])
 				group = randGroupBytes
 			}
 			if _, hasGroup := txnGroups[group]; !hasGroup {
@@ -893,11 +894,11 @@ var groupCmd = &cobra.Command{
 			}
 
 			stxns = append(stxns, stxn)
-			group.TxGroupHashes = append(group.TxGroupHashes, crypto.Digest(stxn.ID()))
+			group.TxGroupHashes = append(group.TxGroupHashes, cryptbase.Digest(stxn.ID()))
 			transactionIdx++
 		}
 
-		groupHash := crypto.HashObj(group)
+		groupHash := cryptbase.HashObj(group)
 		for i := range stxns {
 			stxns[i].Txn.Group = groupHash
 		}

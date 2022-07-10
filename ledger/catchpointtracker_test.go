@@ -21,6 +21,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"path"
@@ -35,7 +36,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -319,7 +319,7 @@ func TestRecordCatchpointFile(t *testing.T) {
 			context.Background(), accountsRound, time.Second)
 		require.NoError(t, err)
 
-		err = ct.createCatchpoint(context.Background(), accountsRound, round, catchpointFirstStageInfo{BiggestChunkLen: biggestChunkLen}, crypto.Digest{})
+		err = ct.createCatchpoint(context.Background(), accountsRound, round, catchpointFirstStageInfo{BiggestChunkLen: biggestChunkLen}, cryptbase.Digest{})
 		require.NoError(t, err)
 	}
 
@@ -445,7 +445,7 @@ func TestReproducibleCatchpointLabels(t *testing.T) {
 	const testCatchpointLabelsCount = 5
 
 	// lastCreatableID stores asset or app max used index to get rid of conflicts
-	lastCreatableID := basics.CreatableIndex(crypto.RandUint64() % 512)
+	lastCreatableID := basics.CreatableIndex(cryptbase.RandUint64() % 512)
 	knownCreatables := make(map[basics.CreatableIndex]bool)
 	catchpointLabels := make(map[basics.Round]string)
 	ledgerHistory := make(map[basics.Round]*mockLedgerForTracker)
@@ -456,7 +456,7 @@ func TestReproducibleCatchpointLabels(t *testing.T) {
 
 	for numCatchpointsCreated < testCatchpointLabelsCount {
 		i++
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		var updates ledgercore.AccountDeltas
 		var totals map[basics.Address]ledgercore.AccountData
@@ -1168,7 +1168,7 @@ func TestSecondStagePersistence(t *testing.T) {
 
 	// Insert unfinished catchpoint record.
 	err = insertUnfinishedCatchpoint(
-		context.Background(), ml2.dbs.Wdb.Handle, secondStageRound, crypto.Digest{})
+		context.Background(), ml2.dbs.Wdb.Handle, secondStageRound, cryptbase.Digest{})
 	require.NoError(t, err)
 
 	// Delete the catchpoint file database record.
@@ -1363,7 +1363,7 @@ func TestSecondStageDeletesUnfinishedCatchpointRecordAfterRestart(t *testing.T) 
 
 	// Insert unfinished catchpoint record.
 	err = insertUnfinishedCatchpoint(
-		context.Background(), ml2.dbs.Wdb.Handle, secondStageRound, crypto.Digest{})
+		context.Background(), ml2.dbs.Wdb.Handle, secondStageRound, cryptbase.Digest{})
 	require.NoError(t, err)
 
 	// Create a catchpoint tracker and let it restart catchpoint's second stage.

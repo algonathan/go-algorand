@@ -18,6 +18,7 @@ package basics
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"testing"
 
@@ -110,7 +111,7 @@ func getSampleAccountData() AccountData {
 	oneTimeSecrets := crypto.GenerateOneTimeSignatureSecrets(0, 1)
 	vrfSecrets := crypto.GenerateVRFSecrets()
 	var stateProofID merklesignature.Commitment
-	crypto.RandBytes(stateProofID[:])
+	cryptbase.RandBytes(stateProofID[:])
 
 	return AccountData{
 		Status:             NotParticipating,
@@ -127,7 +128,7 @@ func getSampleAccountData() AccountData {
 		Assets:             make(map[AssetIndex]AssetHolding),
 		AppLocalStates:     make(map[AppIndex]AppLocalState),
 		AppParams:          make(map[AppIndex]AppParams),
-		AuthAddr:           Address(crypto.Hash([]byte{1, 2, 3, 4})),
+		AuthAddr:           Address(cryptbase.Hash([]byte{1, 2, 3, 4})),
 	}
 }
 
@@ -152,10 +153,10 @@ func TestEncodedAccountDataSize(t *testing.T) {
 			UnitName:      makeString(currentConsensusParams.MaxAssetUnitNameBytes),
 			AssetName:     makeString(currentConsensusParams.MaxAssetNameBytes),
 			URL:           makeString(currentConsensusParams.MaxAssetURLBytes),
-			Manager:       Address(crypto.Hash([]byte{1, byte(assetCreatorAssets)})),
-			Reserve:       Address(crypto.Hash([]byte{2, byte(assetCreatorAssets)})),
-			Freeze:        Address(crypto.Hash([]byte{3, byte(assetCreatorAssets)})),
-			Clawback:      Address(crypto.Hash([]byte{4, byte(assetCreatorAssets)})),
+			Manager:       Address(cryptbase.Hash([]byte{1, byte(assetCreatorAssets)})),
+			Reserve:       Address(cryptbase.Hash([]byte{2, byte(assetCreatorAssets)})),
+			Freeze:        Address(cryptbase.Hash([]byte{3, byte(assetCreatorAssets)})),
+			Clawback:      Address(cryptbase.Hash([]byte{4, byte(assetCreatorAssets)})),
 		}
 		copy(ap.MetadataHash[:], makeString(32))
 		ad.AssetParams[AssetIndex(0x1234123412341234-assetCreatorAssets)] = ap

@@ -20,6 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"strings"
 	"sync"
@@ -29,7 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/crypto/stateproof"
@@ -175,7 +175,7 @@ func (s *testWorkerStubs) VotersForStateProof(r basics.Round) (*ledgercore.Voter
 		})
 	}
 
-	tree, err := merklearray.BuildVectorCommitmentTree(voters.Participants, crypto.HashFactory{HashType: stateproof.HashType})
+	tree, err := merklearray.BuildVectorCommitmentTree(voters.Participants, cryptbase.HashFactory{HashType: stateproof.HashType})
 	if err != nil {
 		return nil, err
 	}
@@ -184,8 +184,8 @@ func (s *testWorkerStubs) VotersForStateProof(r basics.Round) (*ledgercore.Voter
 	return voters, nil
 }
 
-func (s *testWorkerStubs) GenesisHash() crypto.Digest {
-	return crypto.Digest{0x01, 0x02, 0x03, 0x04}
+func (s *testWorkerStubs) GenesisHash() cryptbase.Digest {
+	return cryptbase.Digest{0x01, 0x02, 0x03, 0x04}
 }
 
 func (s *testWorkerStubs) Latest() basics.Round {
@@ -262,7 +262,7 @@ func newTestWorker(t testing.TB, s *testWorkerStubs) *Worker {
 // You must call defer part.Close() after calling this function,
 // since it creates a DB accessor but the caller must close it (required for mss)
 func newPartKey(t testing.TB, parent basics.Address) account.PersistedParticipation {
-	fn := fmt.Sprintf("%s.%d", strings.ReplaceAll(t.Name(), "/", "."), crypto.RandUint64())
+	fn := fmt.Sprintf("%s.%d", strings.ReplaceAll(t.Name(), "/", "."), cryptbase.RandUint64())
 	partDB, err := db.MakeAccessor(fn, false, true)
 	require.NoError(t, err)
 
@@ -278,7 +278,7 @@ func TestWorkerAllSigs(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 10; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -346,7 +346,7 @@ func TestWorkerPartialSigs(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 7; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -410,7 +410,7 @@ func TestWorkerInsufficientSigs(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 2; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -444,7 +444,7 @@ func TestWorkerRestart(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 10; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -455,7 +455,7 @@ func TestWorkerRestart(t *testing.T) {
 	proto := config.Consensus[protocol.ConsensusFuture]
 	s.advanceLatest(3*proto.StateProofInterval - 1)
 
-	dbRand := crypto.RandUint64()
+	dbRand := cryptbase.RandUint64()
 
 	formedAt := -1
 	for i := 0; formedAt < 0 && i < len(keys); i++ {
@@ -487,7 +487,7 @@ func TestWorkerHandleSig(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 2; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -523,7 +523,7 @@ func TestSignerDeletesUnneededStateProofKeys(t *testing.T) {
 	nParticipants := 2
 	for i := 0; i < nParticipants; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -549,7 +549,7 @@ func TestSignerDoesntDeleteKeysWhenDBDoesntStoreSigs(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 2; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -589,7 +589,7 @@ func TestWorkerRemoveBuildersAndSignatures(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 10; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -647,7 +647,7 @@ func TestWorkerBuildersRecoveryLimit(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 10; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -727,7 +727,7 @@ func getSignaturesInDatabase(t *testing.T, numAddresses int, sigFrom sigOrigin) 
 	var keys []account.Participation
 	for i := 0; i < numAddresses; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -846,7 +846,7 @@ func TestBuilderGeneratesValidStateProofTXN(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 10; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -931,7 +931,7 @@ func setBlocksAndMessage(t *testing.T, sigRound basics.Round) (s *testWorkerStub
 	proto := config.Consensus[protocol.ConsensusFuture]
 
 	var address basics.Address
-	crypto.RandBytes(address[:])
+	cryptbase.RandBytes(address[:])
 	p := newPartKey(t, address)
 	defer p.Close()
 
@@ -1024,7 +1024,7 @@ func TestWorkerHandleSigAddrsNotInTopN(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 4; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		addresses = append(addresses, parent)
 
 		p := newPartKey(t, parent)
@@ -1143,7 +1143,7 @@ func TestWorkerHandleSigCantMakeBuilder(t *testing.T) {
 	config.Consensus[protocol.ConsensusFuture] = proto
 
 	var address basics.Address
-	crypto.RandBytes(address[:])
+	cryptbase.RandBytes(address[:])
 	p := newPartKey(t, address)
 	defer p.Close()
 
@@ -1229,7 +1229,7 @@ func TestWorkerHandleSigCorrupt(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	var address basics.Address
-	crypto.RandBytes(address[:])
+	cryptbase.RandBytes(address[:])
 	p := newPartKey(t, address)
 	defer p.Close()
 
@@ -1238,7 +1238,7 @@ func TestWorkerHandleSigCorrupt(t *testing.T) {
 
 	msg := sigFromAddr{}
 	msgBytes := protocol.Encode(&msg)
-	crypto.RandBytes(msgBytes[:])
+	cryptbase.RandBytes(msgBytes[:])
 
 	reply := w.handleSigMessage(network.IncomingMessage{
 		Data: msgBytes,

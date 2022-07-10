@@ -18,10 +18,10 @@ package bookkeeping
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"time"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/committee"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -31,7 +31,7 @@ import (
 
 type (
 	// BlockHash represents the hash of a block
-	BlockHash crypto.Digest
+	BlockHash cryptbase.Digest
 
 	// A BlockHeader represents the metadata and commitments to the state of a Block.
 	// The Algorand Ledger may be defined minimally as a cryptographically authenticated series of BlockHeader objects.
@@ -56,7 +56,7 @@ type (
 		GenesisID string `codec:"gen"`
 
 		// Genesis hash to which this block belongs.
-		GenesisHash crypto.Digest `codec:"gh"`
+		GenesisHash cryptbase.Digest `codec:"gh"`
 
 		// Rewards.
 		//
@@ -135,10 +135,10 @@ type (
 		_struct struct{} `codec:",omitempty,omitemptyarray"`
 		// Root of transaction merkle tree using SHA512_256 hash function.
 		// This commitment is computed based on the PaysetCommit type specified in the block's consensus protocol.
-		NativeSha512_256Commitment crypto.Digest `codec:"txn"`
+		NativeSha512_256Commitment cryptbase.Digest `codec:"txn"`
 
 		// Root of transaction vector commitment merkle tree using SHA256 hash function
-		Sha256Commitment crypto.Digest `codec:"txn256"`
+		Sha256Commitment cryptbase.Digest `codec:"txn256"`
 	}
 
 	// ParticipationUpdates represents participation account data that
@@ -224,7 +224,7 @@ type (
 		// are a multiple of ConsensusParams.StateProofRounds.  For blocks
 		// that are not a multiple of ConsensusParams.StateProofRounds,
 		// this value is zero.
-		StateProofVotersCommitment crypto.GenericDigest `codec:"v"`
+		StateProofVotersCommitment cryptbase.GenericDigest `codec:"v"`
 
 		// StateProofVotersTotalWeight is the total number of microalgos held by
 		// the accounts in StateProofVotersCommitment (or zero, if the merkle root is
@@ -247,7 +247,7 @@ type (
 // Hash returns the hash of a block header.
 // The hash of a block is the hash of its header.
 func (bh BlockHeader) Hash() BlockHash {
-	return BlockHash(crypto.HashObj(bh))
+	return BlockHash(cryptbase.HashObj(bh))
 }
 
 // ToBeHashed implements the crypto.Hashable interface
@@ -256,8 +256,8 @@ func (bh BlockHeader) ToBeHashed() (protocol.HashID, []byte) {
 }
 
 // Digest returns a cryptographic digest summarizing the Block.
-func (block Block) Digest() crypto.Digest {
-	return crypto.Digest(block.BlockHeader.Hash())
+func (block Block) Digest() cryptbase.Digest {
+	return cryptbase.Digest(block.BlockHeader.Hash())
 }
 
 // Round returns the Round for which the Block is relevant
@@ -276,7 +276,7 @@ func (block Block) GenesisID() string {
 }
 
 // GenesisHash returns the genesis hash from the block header
-func (block Block) GenesisHash() crypto.Digest {
+func (block Block) GenesisHash() cryptbase.Digest {
 	return block.BlockHeader.GenesisHash
 }
 
@@ -530,7 +530,7 @@ func (block Block) PaysetCommit() (TxnCommitments, error) {
 		return TxnCommitments{}, err
 	}
 
-	var digestSHA256 crypto.Digest
+	var digestSHA256 cryptbase.Digest
 	if params.EnableSHA256TxnCommitmentHeader {
 		digestSHA256, err = block.paysetCommitSHA256()
 		if err != nil {
@@ -544,36 +544,36 @@ func (block Block) PaysetCommit() (TxnCommitments, error) {
 	}, nil
 }
 
-func (block Block) paysetCommit(t config.PaysetCommitType) (crypto.Digest, error) {
+func (block Block) paysetCommit(t config.PaysetCommitType) (cryptbase.Digest, error) {
 	switch t {
 	case config.PaysetCommitFlat:
 		return block.Payset.CommitFlat(), nil
 	case config.PaysetCommitMerkle:
 		tree, err := block.TxnMerkleTree()
 		if err != nil {
-			return crypto.Digest{}, err
+			return cryptbase.Digest{}, err
 		}
 		// in case there are no leaves (e.g empty block with 0 txns) the merkle root is a slice with length of 0.
 		// Here we convert the empty slice to a 32-bytes of zeros. this conversion is okay because this merkle
 		// tree uses sha512_256 function. for this function the pre-image of [0x0...0x0] is not known
 		// (it might not be the cases for a different hash function)
 		rootSlice := tree.Root()
-		var rootAsByteArray crypto.Digest
+		var rootAsByteArray cryptbase.Digest
 		copy(rootAsByteArray[:], rootSlice)
 		return rootAsByteArray, nil
 	default:
-		return crypto.Digest{}, fmt.Errorf("unsupported payset commit type %d", t)
+		return cryptbase.Digest{}, fmt.Errorf("unsupported payset commit type %d", t)
 	}
 }
 
-func (block Block) paysetCommitSHA256() (crypto.Digest, error) {
+func (block Block) paysetCommitSHA256() (cryptbase.Digest, error) {
 	tree, err := block.TxnMerkleTreeSHA256()
 	if err != nil {
-		return crypto.Digest{}, err
+		return cryptbase.Digest{}, err
 	}
 
 	rootSlice := tree.Root()
-	var rootAsByteArray crypto.Digest
+	var rootAsByteArray cryptbase.Digest
 	copy(rootAsByteArray[:], rootSlice)
 	return rootAsByteArray, nil
 }
@@ -629,14 +629,14 @@ func (bh BlockHeader) PreCheck(prev BlockHeader) error {
 
 	// Check genesis hash value against previous block, if set
 	if params.SupportGenesisHash {
-		if bh.GenesisHash == (crypto.Digest{}) {
+		if bh.GenesisHash == (cryptbase.Digest{}) {
 			return fmt.Errorf("genesis hash missing")
 		}
-		if prev.GenesisHash != (crypto.Digest{}) && prev.GenesisHash != bh.GenesisHash {
+		if prev.GenesisHash != (cryptbase.Digest{}) && prev.GenesisHash != bh.GenesisHash {
 			return fmt.Errorf("genesis hash mismatch: %s != %s", bh.GenesisHash, prev.GenesisHash)
 		}
 	} else {
-		if bh.GenesisHash != (crypto.Digest{}) {
+		if bh.GenesisHash != (cryptbase.Digest{}) {
 			return fmt.Errorf("genesis hash not allowed: %s", bh.GenesisHash)
 		}
 	}
@@ -760,7 +760,7 @@ func (bh BlockHeader) DecodeSignedTxn(stb transactions.SignedTxnInBlock) (transa
 		st.Txn.GenesisID = bh.GenesisID
 	}
 
-	if st.Txn.GenesisHash != (crypto.Digest{}) {
+	if st.Txn.GenesisHash != (cryptbase.Digest{}) {
 		return transactions.SignedTxn{}, transactions.ApplyData{}, fmt.Errorf("GenesisHash <%v> not empty", st.Txn.GenesisHash)
 	}
 
@@ -802,9 +802,9 @@ func (bh BlockHeader) EncodeSignedTxn(st transactions.SignedTxn, ad transactions
 		}
 	}
 
-	if (st.Txn.GenesisHash != crypto.Digest{}) {
+	if (st.Txn.GenesisHash != cryptbase.Digest{}) {
 		if st.Txn.GenesisHash == bh.GenesisHash {
-			st.Txn.GenesisHash = crypto.Digest{}
+			st.Txn.GenesisHash = cryptbase.Digest{}
 			if !proto.RequireGenesisHash {
 				stb.HasGenesisHash = true
 			}

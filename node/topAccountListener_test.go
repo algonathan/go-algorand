@@ -18,9 +18,9 @@ package node
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -286,7 +286,7 @@ func TestInit(t *testing.T) {
 func makeBlockWithTxnFor(senders []byte, receivers []byte) bookkeeping.Block {
 	var blk bookkeeping.Block
 	blk.BlockHeader.GenesisID = "foo"
-	crypto.RandBytes(blk.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(blk.BlockHeader.GenesisHash[:])
 	blk.CurrentProtocol = protocol.ConsensusFuture
 
 	paysets := make([]transactions.SignedTxnInBlock, 0, len(receivers))

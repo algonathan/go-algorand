@@ -18,12 +18,12 @@ package passphrase
 
 import (
 	"crypto/rand"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -114,7 +114,7 @@ func TestUint11Array(t *testing.T) {
 
 	for i := 0; i < N; i++ {
 		a := make([]byte, i, i)
-		crypto.RandBytes(a)
+		cryptbase.RandBytes(a)
 		b := toUint11Array(a)
 		c := toByteArray(b)
 		require.True(t, len(c) == len(a) || len(c) == len(a)+1 || len(c) == len(a)+2)
@@ -140,7 +140,7 @@ func TestUint11Array(t *testing.T) {
 	for i := 0; i < N; i++ {
 		a := make([]uint32, i, i)
 		for j := 0; j < i; j++ {
-			a[j] = uint32(crypto.RandUint64() % ((1 << 11) - 1))
+			a[j] = uint32(cryptbase.RandUint64() % ((1 << 11) - 1))
 		}
 		b := toByteArray(a)
 		c := toUint11Array(b)

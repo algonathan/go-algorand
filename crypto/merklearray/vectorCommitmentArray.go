@@ -19,9 +19,9 @@ package merklearray
 import (
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/bits"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 )
 
@@ -57,7 +57,7 @@ func (vc *vectorCommitmentArray) Length() uint64 {
 	return vc.paddedLen
 }
 
-func (vc *vectorCommitmentArray) Marshal(pos uint64) (crypto.Hashable, error) {
+func (vc *vectorCommitmentArray) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	lsbIndex, err := merkleTreeToVectorCommitmentIndex(pos, vc.pathLen)
 	if err != nil {
 		return nil, err

@@ -18,6 +18,7 @@ package kmdapi
 
 import (
 	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // APIV1Request is the interface that all API V1 requests must satisfy
@@ -245,7 +246,7 @@ type APIV1POSTMultisigTransactionSignRequest struct {
 	PublicKey      crypto.PublicKey   `json:"public_key"`
 	PartialMsig    crypto.MultisigSig `json:"partial_multisig"`
 	WalletPassword string             `json:"wallet_password"`
-	AuthAddr       crypto.Digest      `json:"signer"`
+	AuthAddr       cryptbase.Digest   `json:"signer"`
 }
 
 // APIV1POSTMultisigProgramSignRequest is the request for `POST /v1/multisig/signprogram`

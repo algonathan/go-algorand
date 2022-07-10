@@ -14,35 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with go-algorand.  If not, see <https://www.gnu.org/licenses/>.
 
-package crypto
+package cryptbase
 
 import (
 	"testing"
-
-	"github.com/algorand/go-algorand/test/partitiontest"
-	"github.com/stretchr/testify/require"
 )
 
-func TestEncodeDecode(t *testing.T) {
-	partitiontest.PartitionTest(t)
-	toBeHashed := []byte("this is a test")
-	hashed := Hash(toBeHashed)
-	hashedStr := hashed.String()
-	recovered, err := DigestFromString(hashedStr)
-
-	require.Equal(t, nil, err)
-	require.Equal(t, recovered, hashed)
-}
-
-func TestDigest_IsZero(t *testing.T) {
-	partitiontest.PartitionTest(t)
-	d := Digest{}
-	require.True(t, d.IsZero())
-	require.Zero(t, d)
-
-	d2 := Digest{}
-	RandBytes(d2[:])
-	require.False(t, d2.IsZero())
-	require.NotZero(t, d2)
-
+func BenchmarkRandUint64(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		RandUint64()
+	}
 }

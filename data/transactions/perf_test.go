@@ -17,9 +17,9 @@
 package transactions
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -27,13 +27,13 @@ import (
 func BenchmarkEncoding(b *testing.B) {
 	var stxn SignedTxn
 	stxn.Txn.Type = protocol.PaymentTx
-	crypto.RandBytes(stxn.Sig[:])
-	crypto.RandBytes(stxn.Txn.Sender[:])
-	crypto.RandBytes(stxn.Txn.Receiver[:])
-	stxn.Txn.Amount.Raw = crypto.RandUint64()
-	stxn.Txn.Fee.Raw = crypto.RandUint64()
-	stxn.Txn.FirstValid = basics.Round(crypto.RandUint64())
-	stxn.Txn.LastValid = basics.Round(crypto.RandUint64())
+	cryptbase.RandBytes(stxn.Sig[:])
+	cryptbase.RandBytes(stxn.Txn.Sender[:])
+	cryptbase.RandBytes(stxn.Txn.Receiver[:])
+	stxn.Txn.Amount.Raw = cryptbase.RandUint64()
+	stxn.Txn.Fee.Raw = cryptbase.RandUint64()
+	stxn.Txn.FirstValid = basics.Round(cryptbase.RandUint64())
+	stxn.Txn.LastValid = basics.Round(cryptbase.RandUint64())
 
 	b.Run("Encode", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {

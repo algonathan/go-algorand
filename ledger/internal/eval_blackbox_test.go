@@ -19,6 +19,7 @@ package internal_test
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"reflect"
 	"strings"
 	"testing"
@@ -173,8 +174,8 @@ func TestBlockEvaluator(t *testing.T) {
 
 	// Test a group that should work
 	var group transactions.TxGroup
-	group.TxGroupHashes = []crypto.Digest{crypto.HashObj(t3), crypto.HashObj(t4)}
-	t3.Group = crypto.HashObj(group)
+	group.TxGroupHashes = []cryptbase.Digest{cryptbase.HashObj(t3), cryptbase.HashObj(t4)}
+	t3.Group = cryptbase.HashObj(group)
 	t4.Group = t3.Group
 	s3 = t3.Sign(keys[0])
 	s4 = t4.Sign(keys[2])

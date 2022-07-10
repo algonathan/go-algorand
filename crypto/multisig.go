@@ -18,6 +18,7 @@ package crypto
 
 import (
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // SecretKey is casted from SignatureSecrets
@@ -81,7 +82,7 @@ const maxMultisig = 255
 // MultisigAddrGen identifes the exact group, version,
 // and devices (Public keys) that it requires to sign
 // Hash("MultisigAddr" || version uint8 || threshold uint8 || PK1 || PK2 || ...)
-func MultisigAddrGen(version, threshold uint8, pk []PublicKey) (addr Digest, err error) {
+func MultisigAddrGen(version, threshold uint8, pk []PublicKey) (addr cryptbase.Digest, err error) {
 	if version != 1 {
 		err = errUnknownVersion
 		return
@@ -96,13 +97,13 @@ func MultisigAddrGen(version, threshold uint8, pk []PublicKey) (addr Digest, err
 	for _, pki := range pk {
 		buffer = append(buffer, pki[:]...)
 	}
-	return Hash(buffer), nil
+	return cryptbase.Hash(buffer), nil
 }
 
 // MultisigAddrGenWithSubsigs is similar to MultisigAddrGen
 // except the input is []Subsig rather than []PublicKey
 func MultisigAddrGenWithSubsigs(version uint8, threshold uint8,
-	subsigs []MultisigSubsig) (addr Digest, err error) {
+	subsigs []MultisigSubsig) (addr cryptbase.Digest, err error) {
 
 	if version != 1 {
 		err = errUnknownVersion
@@ -118,11 +119,11 @@ func MultisigAddrGenWithSubsigs(version uint8, threshold uint8,
 	for _, subsigsi := range subsigs {
 		buffer = append(buffer, subsigsi.Key[:]...)
 	}
-	return Hash(buffer), nil
+	return cryptbase.Hash(buffer), nil
 }
 
 // MultisigSign is for each device individually signs the digest
-func MultisigSign(msg Hashable, addr Digest, version, threshold uint8, pk []PublicKey, sk SecretKey) (sig MultisigSig, err error) {
+func MultisigSign(msg cryptbase.Hashable, addr cryptbase.Digest, version, threshold uint8, pk []PublicKey, sk SecretKey) (sig MultisigSig, err error) {
 	if version != 1 {
 		err = errUnknownVersion
 		return
@@ -216,7 +217,7 @@ func MultisigAssemble(unisig []MultisigSig) (msig MultisigSig, err error) {
 }
 
 // MultisigVerify verifies an assembled MultisigSig
-func MultisigVerify(msg Hashable, addr Digest, sig MultisigSig) (verified bool, err error) {
+func MultisigVerify(msg cryptbase.Hashable, addr cryptbase.Digest, sig MultisigSig) (verified bool, err error) {
 	batchVerifier := MakeBatchVerifier()
 
 	if verified, err = MultisigBatchVerify(msg, addr, sig, batchVerifier); err != nil {
@@ -236,7 +237,7 @@ func MultisigVerify(msg Hashable, addr Digest, sig MultisigSig) (verified bool, 
 
 // MultisigBatchVerify verifies an assembled MultisigSig.
 // it is the caller responsibility to call batchVerifier.verify()
-func MultisigBatchVerify(msg Hashable, addr Digest, sig MultisigSig, batchVerifier *BatchVerifier) (verified bool, err error) {
+func MultisigBatchVerify(msg cryptbase.Hashable, addr cryptbase.Digest, sig MultisigSig, batchVerifier *BatchVerifier) (verified bool, err error) {
 	verified = false
 	// short circuit: if msig doesn't have subsigs or if Subsigs are empty
 	// then terminate (the upper layer should now verify the unisig)

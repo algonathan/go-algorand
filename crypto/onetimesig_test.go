@@ -18,6 +18,7 @@ package crypto
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/algorand/go-algorand/test/partitiontest"
@@ -25,10 +26,10 @@ import (
 
 func randID() OneTimeSignatureIdentifier {
 	return OneTimeSignatureIdentifier{
-		Batch: RandUint64() % 256,
+		Batch: cryptbase.RandUint64() % 256,
 
 		// Avoid generating the last few offsets (in a batch size of 256), so we can increment correctly
-		Offset: RandUint64() % 250,
+		Offset: cryptbase.RandUint64() % 250,
 	}
 }
 

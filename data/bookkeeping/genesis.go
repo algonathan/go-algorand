@@ -18,11 +18,11 @@ package bookkeeping
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"time"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/committee"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -102,8 +102,8 @@ func (genesis Genesis) ID() string {
 }
 
 // Hash is the genesis hash.
-func (genesis Genesis) Hash() crypto.Digest {
-	return crypto.HashObj(genesis)
+func (genesis Genesis) Hash() cryptbase.Digest {
+	return cryptbase.HashObj(genesis)
 }
 
 // Balances returns the genesis account balances.
@@ -186,7 +186,7 @@ func MakeTimestampedGenesisBalances(balances map[basics.Address]basics.AccountDa
 }
 
 // MakeGenesisBlock creates a genesis block, including setup of RewardsState.
-func MakeGenesisBlock(proto protocol.ConsensusVersion, genesisBal GenesisBalances, genesisID string, genesisHash crypto.Digest) (Block, error) {
+func MakeGenesisBlock(proto protocol.ConsensusVersion, genesisBal GenesisBalances, genesisID string, genesisHash cryptbase.Digest) (Block, error) {
 	params, ok := config.Consensus[proto]
 	if !ok {
 		return Block{}, fmt.Errorf("unsupported protocol %s", proto)
@@ -212,7 +212,7 @@ func MakeGenesisBlock(proto protocol.ConsensusVersion, genesisBal GenesisBalance
 			Round:          0,
 			Branch:         BlockHash{},
 			Seed:           committee.Seed(genesisHash),
-			TxnCommitments: TxnCommitments{NativeSha512_256Commitment: transactions.Payset{}.CommitGenesis(), Sha256Commitment: crypto.Digest{}},
+			TxnCommitments: TxnCommitments{NativeSha512_256Commitment: transactions.Payset{}.CommitGenesis(), Sha256Commitment: cryptbase.Digest{}},
 			TimeStamp:      genesisBal.Timestamp,
 			GenesisID:      genesisID,
 			RewardsState:   genesisRewardsState,

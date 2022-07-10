@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"crypto/subtle"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -97,7 +98,7 @@ type SQLiteWallet struct {
 	masterEncryptionKey  []byte
 	masterDerivationKey  []byte
 	walletPasswordSalt   [saltLen]byte
-	walletPasswordHash   crypto.Digest
+	walletPasswordHash   cryptbase.Digest
 	walletPasswordHashed bool
 	dbPath               string
 	cfg                  config.SQLiteWalletDriverConfig
@@ -692,7 +693,7 @@ func (sw *SQLiteWallet) CheckPassword(pw []byte) error {
 }
 
 // ListKeys lists all the addresses in the wallet
-func (sw *SQLiteWallet) ListKeys() (addrs []crypto.Digest, err error) {
+func (sw *SQLiteWallet) ListKeys() (addrs []cryptbase.Digest, err error) {
 	// Connect to the database
 	db, err := sqlx.Connect("sqlite3", dbConnectionURL(sw.dbPath))
 	if err != nil {
@@ -701,7 +702,7 @@ func (sw *SQLiteWallet) ListKeys() (addrs []crypto.Digest, err error) {
 	defer db.Close()
 
 	var addrByteSlices [][]byte
-	var tmp crypto.Digest
+	var tmp cryptbase.Digest
 	// We can't select directly into a crypto.Digest array, unfortunately.
 	// Instead, we select into a slice of byte slices, and then convert each of
 	// those slices into a crypto.Digest.
@@ -734,7 +735,7 @@ func (sw *SQLiteWallet) ExportMasterDerivationKey(pw []byte) (mdk crypto.MasterD
 
 // ImportKey imports a keypair into the wallet, deriving the public key from
 // the passed secret key
-func (sw *SQLiteWallet) ImportKey(rawSK crypto.PrivateKey) (addr crypto.Digest, err error) {
+func (sw *SQLiteWallet) ImportKey(rawSK crypto.PrivateKey) (addr cryptbase.Digest, err error) {
 	// Extract the seed from the secret key so that we don't trust the public part
 	seed, err := crypto.SecretKeyToSeed(rawSK)
 	if err != nil {
@@ -772,7 +773,7 @@ func (sw *SQLiteWallet) ImportKey(rawSK crypto.PrivateKey) (addr crypto.Digest, 
 
 // ExportKey fetches the encrypted private key using the public key, decrypts
 // it, verifies that it matches the passed public key, and returns it
-func (sw *SQLiteWallet) ExportKey(addr crypto.Digest, pw []byte) (sk crypto.PrivateKey, err error) {
+func (sw *SQLiteWallet) ExportKey(addr cryptbase.Digest, pw []byte) (sk crypto.PrivateKey, err error) {
 	// Check the password
 	err = sw.CheckPassword(pw)
 	if err != nil {
@@ -784,7 +785,7 @@ func (sw *SQLiteWallet) ExportKey(addr crypto.Digest, pw []byte) (sk crypto.Priv
 }
 
 // fetchSecretKey retrieves the private key for a given public key
-func (sw *SQLiteWallet) fetchSecretKey(addr crypto.Digest) (sk crypto.PrivateKey, err error) {
+func (sw *SQLiteWallet) fetchSecretKey(addr cryptbase.Digest) (sk crypto.PrivateKey, err error) {
 	// Connect to the database
 	db, err := sqlx.Connect("sqlite3", dbConnectionURL(sw.dbPath))
 	if err != nil {
@@ -837,7 +838,7 @@ func (sw *SQLiteWallet) fetchSecretKey(addr crypto.Digest) (sk crypto.PrivateKey
 }
 
 // GenerateKey generates a key from system entropy and imports it
-func (sw *SQLiteWallet) GenerateKey(displayMnemonic bool) (addr crypto.Digest, err error) {
+func (sw *SQLiteWallet) GenerateKey(displayMnemonic bool) (addr cryptbase.Digest, err error) {
 	// Connect to the database
 	db, err := sqlx.Connect("sqlite3", dbConnectionURL(sw.dbPath))
 	if err != nil {
@@ -882,7 +883,7 @@ func (sw *SQLiteWallet) GenerateKey(displayMnemonic bool) (addr crypto.Digest, e
 // generateKeyTxLocked is a helper for GenerateKey that accepts a locked tx,
 // computes the next key that should be generated, inserts it, and returns
 // its address
-func (sw *SQLiteWallet) generateKeyTxLocked(tx *sqlx.Tx) (addr crypto.Digest, err error) {
+func (sw *SQLiteWallet) generateKeyTxLocked(tx *sqlx.Tx) (addr cryptbase.Digest, err error) {
 	// Fetch the encrypted highest index
 	var encryptedHighestIndexBlob []byte
 	err = tx.Get(&encryptedHighestIndexBlob, "SELECT max_key_idx_encrypted FROM metadata LIMIT 1")
@@ -909,7 +910,7 @@ func (sw *SQLiteWallet) generateKeyTxLocked(tx *sqlx.Tx) (addr crypto.Digest, er
 
 	var genPK crypto.PublicKey
 	var genSK crypto.PrivateKey
-	var genAddr crypto.Digest
+	var genAddr cryptbase.Digest
 
 	// We may have to bump nextIndex if the user has manually imported the next
 	// key we were going to generate (thus we didn't see it in the search for the
@@ -976,7 +977,7 @@ func (sw *SQLiteWallet) generateKeyTxLocked(tx *sqlx.Tx) (addr crypto.Digest, er
 }
 
 // DeleteKey deletes the key corresponding to the passed public key from the wallet
-func (sw *SQLiteWallet) DeleteKey(addr crypto.Digest, pw []byte) (err error) {
+func (sw *SQLiteWallet) DeleteKey(addr cryptbase.Digest, pw []byte) (err error) {
 	// Check the password
 	err = sw.CheckPassword(pw)
 	if err != nil {
@@ -1000,7 +1001,7 @@ func (sw *SQLiteWallet) DeleteKey(addr crypto.Digest, pw []byte) (err error) {
 
 // ImportMultisigAddr imports a multisig address, taking in version, threshold,
 // and public keys
-func (sw *SQLiteWallet) ImportMultisigAddr(version, threshold uint8, pks []crypto.PublicKey) (addr crypto.Digest, err error) {
+func (sw *SQLiteWallet) ImportMultisigAddr(version, threshold uint8, pks []crypto.PublicKey) (addr cryptbase.Digest, err error) {
 	addr, err = crypto.MultisigAddrGen(version, threshold, pks)
 	if err != nil {
 		return
@@ -1024,7 +1025,7 @@ func (sw *SQLiteWallet) ImportMultisigAddr(version, threshold uint8, pks []crypt
 
 // LookupMultisigPreimage exports the preimage of a multisig address: version,
 // threshold, public keys
-func (sw *SQLiteWallet) LookupMultisigPreimage(addr crypto.Digest) (version, threshold uint8, pks []crypto.PublicKey, err error) {
+func (sw *SQLiteWallet) LookupMultisigPreimage(addr cryptbase.Digest) (version, threshold uint8, pks []crypto.PublicKey, err error) {
 	// Connect to the database
 	db, err := sqlx.Connect("sqlite3", dbConnectionURL(sw.dbPath))
 	if err != nil {
@@ -1064,7 +1065,7 @@ func (sw *SQLiteWallet) LookupMultisigPreimage(addr crypto.Digest) (version, thr
 }
 
 // DeleteMultisigAddr deletes the multisig address and preimage from the database
-func (sw *SQLiteWallet) DeleteMultisigAddr(addr crypto.Digest, pw []byte) (err error) {
+func (sw *SQLiteWallet) DeleteMultisigAddr(addr cryptbase.Digest, pw []byte) (err error) {
 	// Check the password
 	err = sw.CheckPassword(pw)
 	if err != nil {
@@ -1086,7 +1087,7 @@ func (sw *SQLiteWallet) DeleteMultisigAddr(addr crypto.Digest, pw []byte) (err e
 }
 
 // ListMultisigAddrs lists the multisig addresses whose preimages we know
-func (sw *SQLiteWallet) ListMultisigAddrs() (addrs []crypto.Digest, err error) {
+func (sw *SQLiteWallet) ListMultisigAddrs() (addrs []cryptbase.Digest, err error) {
 	// Connect to the database
 	db, err := sqlx.Connect("sqlite3", dbConnectionURL(sw.dbPath))
 	if err != nil {
@@ -1096,7 +1097,7 @@ func (sw *SQLiteWallet) ListMultisigAddrs() (addrs []crypto.Digest, err error) {
 	defer db.Close()
 
 	var addrByteSlices [][]byte
-	var tmp crypto.Digest
+	var tmp cryptbase.Digest
 	err = db.Select(&addrByteSlices, "SELECT address FROM msig_addrs")
 	if err != nil {
 		err = errDatabase
@@ -1121,9 +1122,9 @@ func (sw *SQLiteWallet) SignTransaction(tx transactions.Transaction, pk crypto.P
 	// Fetch the required key
 	var sk crypto.PrivateKey
 	if (pk == crypto.PublicKey{}) {
-		sk, err = sw.fetchSecretKey(crypto.Digest(tx.Src()))
+		sk, err = sw.fetchSecretKey(cryptbase.Digest(tx.Src()))
 	} else {
-		sk, err = sw.fetchSecretKey(crypto.Digest(pk))
+		sk, err = sw.fetchSecretKey(cryptbase.Digest(pk))
 	}
 	if err != nil {
 		return
@@ -1143,7 +1144,7 @@ func (sw *SQLiteWallet) SignTransaction(tx transactions.Transaction, pk crypto.P
 }
 
 // SignProgram signs the passed data for the src address
-func (sw *SQLiteWallet) SignProgram(data []byte, src crypto.Digest, pw []byte) (stx []byte, err error) {
+func (sw *SQLiteWallet) SignProgram(data []byte, src cryptbase.Digest, pw []byte) (stx []byte, err error) {
 	// Check the password
 	err = sw.CheckPassword(pw)
 	if err != nil {
@@ -1151,7 +1152,7 @@ func (sw *SQLiteWallet) SignProgram(data []byte, src crypto.Digest, pw []byte) (
 	}
 
 	// Fetch the required key
-	sk, err := sw.fetchSecretKey(crypto.Digest(src))
+	sk, err := sw.fetchSecretKey(cryptbase.Digest(src))
 	if err != nil {
 		return
 	}
@@ -1173,7 +1174,7 @@ func (sw *SQLiteWallet) SignProgram(data []byte, src crypto.Digest, pw []byte) (
 // MultisigSignTransaction starts a multisig signature or adds a signature to a
 // partially signed multisig transaction signature of the passed transaction
 // using the key
-func (sw *SQLiteWallet) MultisigSignTransaction(tx transactions.Transaction, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte, signer crypto.Digest) (sig crypto.MultisigSig, err error) {
+func (sw *SQLiteWallet) MultisigSignTransaction(tx transactions.Transaction, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte, signer cryptbase.Digest) (sig crypto.MultisigSig, err error) {
 	// Check the password
 	err = sw.CheckPassword(pw)
 	if err != nil {
@@ -1186,7 +1187,7 @@ func (sw *SQLiteWallet) MultisigSignTransaction(tx transactions.Transaction, pk 
 		// Look up the preimage in the database
 		var pks []crypto.PublicKey
 		var version, threshold uint8
-		version, threshold, pks, err = sw.LookupMultisigPreimage(crypto.Digest(tx.Src()))
+		version, threshold, pks, err = sw.LookupMultisigPreimage(cryptbase.Digest(tx.Src()))
 		if err != nil {
 			return
 		}
@@ -1207,7 +1208,7 @@ func (sw *SQLiteWallet) MultisigSignTransaction(tx transactions.Transaction, pk 
 		}
 
 		// Sign the transaction
-		from := crypto.Digest(tx.Src())
+		from := cryptbase.Digest(tx.Src())
 		sig, err = crypto.MultisigSign(tx, from, version, threshold, pks, *secrets)
 		return
 	}
@@ -1215,14 +1216,14 @@ func (sw *SQLiteWallet) MultisigSignTransaction(tx transactions.Transaction, pk 
 	// We were given a partial multisig, so add to it
 
 	// Check preimage matches tx src address
-	var addr crypto.Digest
+	var addr cryptbase.Digest
 	addr, err = crypto.MultisigAddrGenWithSubsigs(partial.Version, partial.Threshold, partial.Subsigs)
 	if err != nil {
 		return
 	}
 
 	// Check that the multisig address equals to either sender or signer
-	if addr != crypto.Digest(tx.Src()) && addr != signer {
+	if addr != cryptbase.Digest(tx.Src()) && addr != signer {
 		err = errMsigWrongAddr
 		return
 	}
@@ -1264,7 +1265,7 @@ func (sw *SQLiteWallet) MultisigSignTransaction(tx transactions.Transaction, pk 
 // MultisigSignProgram starts a multisig signature or adds a signature to a
 // partially signed multisig transaction signature of the passed transaction
 // using the key
-func (sw *SQLiteWallet) MultisigSignProgram(data []byte, src crypto.Digest, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte) (sig crypto.MultisigSig, err error) {
+func (sw *SQLiteWallet) MultisigSignProgram(data []byte, src cryptbase.Digest, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte) (sig crypto.MultisigSig, err error) {
 	// Check the password
 	err = sw.CheckPassword(pw)
 	if err != nil {
@@ -1307,7 +1308,7 @@ func (sw *SQLiteWallet) MultisigSignProgram(data []byte, src crypto.Digest, pk c
 	// We were given a partial multisig, so add to it
 
 	// Check preimage matches tx src address
-	var addr crypto.Digest
+	var addr cryptbase.Digest
 	addr, err = crypto.MultisigAddrGenWithSubsigs(partial.Version, partial.Threshold, partial.Subsigs)
 	if err != nil {
 		return

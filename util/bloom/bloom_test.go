@@ -9,13 +9,13 @@ import (
 	"compress/flate"
 	"encoding/binary"
 	"encoding/json"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"log"
 	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -280,7 +280,7 @@ func TestBloomFilterMemoryConsumption(t *testing.T) {
 
 		dataset := make([][]byte, N)
 		for n := 0; n < N; n++ {
-			hash := crypto.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
+			hash := cryptbase.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
 			dataset[n] = hash[:]
 		}
 
@@ -308,7 +308,7 @@ func TestBloomFilterMemoryConsumption(t *testing.T) {
 
 		dataset := make([][]byte, N)
 		for n := 0; n < N; n++ {
-			hash := crypto.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
+			hash := cryptbase.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
 			dataset[n] = hash[:]
 		}
 
@@ -341,7 +341,7 @@ func BenchmarkBloomFilterSet(b *testing.B) {
 	bf := New(sizeBits, numHashes, prefix)
 	dataset := make([][]byte, bfElements)
 	for n := 0; n < bfElements; n++ {
-		hash := crypto.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
+		hash := cryptbase.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
 		dataset[n] = hash[:]
 	}
 
@@ -358,7 +358,7 @@ func BenchmarkBloomFilterTest(b *testing.B) {
 	bf := New(sizeBits, numHashes, prefix)
 	dataset := make([][]byte, bfElements)
 	for n := 0; n < bfElements; n++ {
-		hash := crypto.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
+		hash := cryptbase.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
 		dataset[n] = hash[:]
 	}
 	// set half of them.
@@ -383,7 +383,7 @@ func TestBloomFilterReferenceHash(t *testing.T) {
 	bf := New(sizeBits, numHashes, prefix)
 
 	for n := 0; n < N; n++ {
-		hash := crypto.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
+		hash := cryptbase.Hash([]byte{byte(n), byte(n >> 8), byte(n >> 16), byte(n >> 24)})
 		bf.Set(hash[:])
 	}
 	bytes, err := bf.MarshalBinary()

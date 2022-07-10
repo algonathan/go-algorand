@@ -18,6 +18,7 @@ package stateproof
 
 import (
 	"context"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 	"time"
 
@@ -26,7 +27,6 @@ import (
 	"github.com/algorand/go-deadlock"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/stateproof"
 	"github.com/algorand/go-algorand/data/account"
@@ -61,7 +61,7 @@ func (s *workerForStateProofMessageTests) Wait(round basics.Round) chan struct{}
 	return s.w.Wait(round)
 }
 
-func (s *workerForStateProofMessageTests) GenesisHash() crypto.Digest {
+func (s *workerForStateProofMessageTests) GenesisHash() cryptbase.Digest {
 	return s.w.GenesisHash()
 }
 
@@ -93,7 +93,7 @@ func (s *workerForStateProofMessageTests) VotersForStateProof(round basics.Round
 		wt += partWe
 	}
 
-	tree, err := merklearray.BuildVectorCommitmentTree(voters.Participants, crypto.HashFactory{HashType: stateproof.HashType})
+	tree, err := merklearray.BuildVectorCommitmentTree(voters.Participants, cryptbase.HashFactory{HashType: stateproof.HashType})
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func TestStateProofMessage(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 10; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -242,10 +242,10 @@ func verifySha256BlockHeadersCommitments(a *require.Assertions, message statepro
 		blkHdrArr[i] = hdr.ToLightBlockHeader()
 	}
 
-	tree, err := merklearray.BuildVectorCommitmentTree(blkHdrArr, crypto.HashFactory{HashType: crypto.Sha256})
+	tree, err := merklearray.BuildVectorCommitmentTree(blkHdrArr, cryptbase.HashFactory{HashType: cryptbase.Sha256})
 	a.NoError(err)
 
-	a.Equal(tree.Root(), crypto.GenericDigest(message.BlockHeadersCommitment))
+	a.Equal(tree.Root(), cryptbase.GenericDigest(message.BlockHeadersCommitment))
 }
 
 func TestGenerateStateProofMessageForSmallRound(t *testing.T) {
@@ -255,7 +255,7 @@ func TestGenerateStateProofMessageForSmallRound(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 2; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -276,7 +276,7 @@ func TestMessageLnApproxError(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 2; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -303,7 +303,7 @@ func TestMessageMissingHeaderOnInterval(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 2; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -327,7 +327,7 @@ func TestGenerateBlockProof(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 10; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)
@@ -368,7 +368,7 @@ func TestGenerateBlockProof(t *testing.T) {
 			lightheader := headers[headerIndex]
 			err = merklearray.VerifyVectorCommitment(
 				tx.Txn.Message.BlockHeadersCommitment,
-				map[uint64]crypto.Hashable{headerIndex: lightheader},
+				map[uint64]cryptbase.Hashable{headerIndex: lightheader},
 				proof.ToProof())
 
 			a.NoError(err)
@@ -383,7 +383,7 @@ func TestGenerateBlockProofOnSmallArray(t *testing.T) {
 	var keys []account.Participation
 	for i := 0; i < 10; i++ {
 		var parent basics.Address
-		crypto.RandBytes(parent[:])
+		cryptbase.RandBytes(parent[:])
 		p := newPartKey(t, parent)
 		defer p.Close()
 		keys = append(keys, p.Participation)

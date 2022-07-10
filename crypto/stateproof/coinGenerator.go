@@ -18,10 +18,10 @@ package stateproof
 
 import (
 	"encoding/binary"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"golang.org/x/crypto/sha3"
 	"math/big"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 )
 
@@ -30,9 +30,9 @@ import (
 type coinChoiceSeed struct {
 	// the ToBeHashed function should be updated when fields are added to this structure
 	version        byte
-	partCommitment crypto.GenericDigest
+	partCommitment cryptbase.GenericDigest
 	lnProvenWeight uint64
-	sigCommitment  crypto.GenericDigest
+	sigCommitment  cryptbase.GenericDigest
 	signedWeight   uint64
 	data           MessageHash
 }
@@ -73,7 +73,7 @@ type coinGenerator struct {
 // we extract 64 bits from shake for each coin flip and divide it by signedWeight
 func makeCoinGenerator(choice *coinChoiceSeed) coinGenerator {
 	choice.version = VersionForCoinGenerator
-	rep := crypto.HashRep(choice)
+	rep := cryptbase.HashRep(choice)
 	shk := sha3.NewShake256()
 	shk.Write(rep)
 

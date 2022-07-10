@@ -19,6 +19,7 @@ package agreement
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"time"
 
 	"github.com/algorand/go-algorand/crypto"
@@ -36,10 +37,10 @@ var bottom proposalValue
 type proposalValue struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-	OriginalPeriod   period         `codec:"oper"`
-	OriginalProposer basics.Address `codec:"oprop"`
-	BlockDigest      crypto.Digest  `codec:"dig"`    // = proposal.Block.Digest()
-	EncodingDigest   crypto.Digest  `codec:"encdig"` // = crypto.HashObj(proposal)
+	OriginalPeriod   period           `codec:"oper"`
+	OriginalProposer basics.Address   `codec:"oprop"`
+	BlockDigest      cryptbase.Digest `codec:"dig"`    // = proposal.Block.Digest()
+	EncodingDigest   cryptbase.Digest `codec:"encdig"` // = crypto.HashObj(proposal)
 }
 
 // A transmittedPayload is the representation of a proposal payload on the wire.
@@ -75,7 +76,7 @@ func (p unauthenticatedProposal) value() proposalValue {
 		OriginalPeriod:   p.OriginalPeriod,
 		OriginalProposer: p.OriginalProposer,
 		BlockDigest:      p.Digest(),
-		EncodingDigest:   crypto.HashObj(p),
+		EncodingDigest:   cryptbase.HashObj(p),
 	}
 }
 
@@ -127,8 +128,8 @@ func (s proposerSeed) ToBeHashed() (protocol.HashID, []byte) {
 type seedInput struct {
 	_struct struct{} `codec:""` // not omitempty
 
-	Alpha   crypto.Digest `codec:"alpha"`
-	History crypto.Digest `codec:"hist"`
+	Alpha   cryptbase.Digest `codec:"alpha"`
+	History cryptbase.Digest `codec:"hist"`
 }
 
 // ToBeHashed implements the Hashable interface.
@@ -145,7 +146,7 @@ func deriveNewSeed(address basics.Address, vrf *crypto.VRFSecrets, rnd round, pe
 		reterr = fmt.Errorf("failed to obtain consensus parameters in round %d: %v", ParamsRound(rnd), err)
 		return
 	}
-	var alpha crypto.Digest
+	var alpha cryptbase.Digest
 	prevSeed, err := ledger.Seed(seedRound(rnd, cparams))
 	if err != nil {
 		reterr = fmt.Errorf("failed read seed of round %d: %v", seedRound(rnd, cparams), err)
@@ -164,9 +165,9 @@ func deriveNewSeed(address basics.Address, vrf *crypto.VRFSecrets, rnd round, pe
 			// Panicking is the only safe thing to do.
 			logging.Base().Panicf("VrfProof.Hash() failed on a proof we ourselves generated; this indicates a bug in the VRF code: %v", seedProof)
 		}
-		alpha = crypto.HashObj(proposerSeed{Addr: address, VRF: vrfOut})
+		alpha = cryptbase.HashObj(proposerSeed{Addr: address, VRF: vrfOut})
 	} else {
-		alpha = crypto.HashObj(prevSeed)
+		alpha = cryptbase.HashObj(prevSeed)
 	}
 
 	input := seedInput{Alpha: alpha}
@@ -180,7 +181,7 @@ func deriveNewSeed(address basics.Address, vrf *crypto.VRFSecrets, rnd round, pe
 		}
 		input.History = oldDigest
 	}
-	newSeed = committee.Seed(crypto.HashObj(input))
+	newSeed = committee.Seed(cryptbase.HashObj(input))
 	return
 }
 
@@ -198,7 +199,7 @@ func verifyNewSeed(p unauthenticatedProposal, ledger LedgerReader) error {
 		return fmt.Errorf("failed to obtain balance record for address %v in round %d: %v", value.OriginalProposer, balanceRound, err)
 	}
 
-	var alpha crypto.Digest
+	var alpha cryptbase.Digest
 	prevSeed, err := ledger.Seed(seedRound(rnd, cparams))
 	if err != nil {
 		return fmt.Errorf("failed read seed of round %d: %v", seedRound(rnd, cparams), err)
@@ -218,9 +219,9 @@ func verifyNewSeed(p unauthenticatedProposal, ledger LedgerReader) error {
 			// Panicking is the only safe thing to do.
 			logging.Base().Panicf("VrfProof.Hash() failed on a proof we ourselves generated; this indicates a bug in the VRF code: %v", p.SeedProof)
 		}
-		alpha = crypto.HashObj(proposerSeed{Addr: value.OriginalProposer, VRF: vrfOut})
+		alpha = cryptbase.HashObj(proposerSeed{Addr: value.OriginalProposer, VRF: vrfOut})
 	} else {
-		alpha = crypto.HashObj(prevSeed)
+		alpha = cryptbase.HashObj(prevSeed)
 	}
 
 	input := seedInput{Alpha: alpha}
@@ -233,8 +234,8 @@ func verifyNewSeed(p unauthenticatedProposal, ledger LedgerReader) error {
 		}
 		input.History = oldDigest
 	}
-	if p.Seed() != committee.Seed(crypto.HashObj(input)) {
-		return fmt.Errorf("payload seed malformed (%v != %v)", committee.Seed(crypto.HashObj(input)), p.Seed())
+	if p.Seed() != committee.Seed(cryptbase.HashObj(input)) {
+		return fmt.Errorf("payload seed malformed (%v != %v)", committee.Seed(cryptbase.HashObj(input)), p.Seed())
 	}
 	return nil
 }
@@ -252,7 +253,7 @@ func proposalForBlock(address basics.Address, vrf *crypto.VRFSecrets, ve Validat
 		OriginalPeriod:   period,
 		OriginalProposer: address,
 		BlockDigest:      proposal.Block.Digest(),
-		EncodingDigest:   crypto.HashObj(proposal),
+		EncodingDigest:   cryptbase.HashObj(proposal),
 	}
 	return proposal, value, nil
 }

@@ -19,13 +19,13 @@ package ledger
 import (
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/agreement"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/logging"
@@ -35,7 +35,7 @@ import (
 )
 
 func dbOpenTest(t testing.TB, inMemory bool) (db.Pair, string) {
-	fn := fmt.Sprintf("%s.%d", strings.ReplaceAll(t.Name(), "/", "."), crypto.RandUint64())
+	fn := fmt.Sprintf("%s.%d", strings.ReplaceAll(t.Name(), "/", "."), cryptbase.RandUint64())
 	dbs, err := db.OpenPair(fn, inMemory)
 	require.NoErrorf(t, err, "Filename : %s\nInMemory: %v", fn, inMemory)
 	return dbs, fn
@@ -46,7 +46,7 @@ func randomBlock(r basics.Round) blockEntry {
 	c := agreement.Certificate{}
 
 	b.BlockHeader.Round = r
-	b.BlockHeader.TimeStamp = int64(crypto.RandUint64())
+	b.BlockHeader.TimeStamp = int64(cryptbase.RandUint64())
 	b.RewardsPool = testPoolAddr
 	b.FeeSink = testSinkAddr
 	c.Round = r

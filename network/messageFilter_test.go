@@ -17,15 +17,15 @@
 package network
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 )
 
 func BenchmarkGenerateMessageDigest(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		msgData := crypto.Hash([]byte{byte(i & 0xff), byte((i >> 8) & 0xff), byte((i >> 16) & 0xff), byte((i >> 24) & 0xff)})
+		msgData := cryptbase.Hash([]byte{byte(i & 0xff), byte((i >> 8) & 0xff), byte((i >> 16) & 0xff), byte((i >> 24) & 0xff)})
 		generateMessageDigest(protocol.AgreementVoteTag, msgData[:])
 	}
 }

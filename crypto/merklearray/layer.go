@@ -17,9 +17,9 @@
 package merklearray
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"hash"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 )
 
@@ -27,12 +27,12 @@ import (
 // level of the tree.  Hashes beyond the end of the array (e.g., if the
 // number of leaves is not an exact power of 2) are implicitly zero.
 //msgp:allocbound Layer MaxNumLeavesOnEncodedTree
-type Layer []crypto.GenericDigest
+type Layer []cryptbase.GenericDigest
 
 // A pair represents an internal node in the Merkle tree.
 type pair struct {
-	l              crypto.GenericDigest
-	r              crypto.GenericDigest
+	l              cryptbase.GenericDigest
+	r              cryptbase.GenericDigest
 	hashDigestSize int
 }
 
@@ -68,7 +68,7 @@ func upWorker(ws *workerState, in Layer, out Layer, h hash.Hash) {
 				p.r = in[i+1]
 			}
 
-			out[i/2] = crypto.GenericHashObj(h, &p)
+			out[i/2] = cryptbase.GenericHashObj(h, &p)
 		}
 
 		batchSize += 2

@@ -19,13 +19,13 @@ package transcode
 import (
 	"encoding/base32"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -91,35 +91,35 @@ func randomObjectOfType(randtype uint64, width int, depth int) interface{} {
 
 	switch objType {
 	case objectUint8:
-		return uint8(crypto.RandUint64())
+		return uint8(cryptbase.RandUint64())
 	case objectUint16:
-		return uint16(crypto.RandUint64())
+		return uint16(cryptbase.RandUint64())
 	case objectUint32:
-		return uint32(crypto.RandUint64())
+		return uint32(cryptbase.RandUint64())
 	case objectUint64:
-		return uint64(crypto.RandUint64())
+		return uint64(cryptbase.RandUint64())
 	case objectInt8:
-		return int8(crypto.RandUint64())
+		return int8(cryptbase.RandUint64())
 	case objectInt16:
-		return int16(crypto.RandUint64())
+		return int16(cryptbase.RandUint64())
 	case objectInt32:
-		return int32(crypto.RandUint64())
+		return int32(cryptbase.RandUint64())
 	case objectInt64:
-		return int64(crypto.RandUint64())
+		return int64(cryptbase.RandUint64())
 	case objectBool:
-		return crypto.RandUint64()%2 == 0
+		return cryptbase.RandUint64()%2 == 0
 	case objectBytes:
 		var buf [64]byte
-		crypto.RandBytes(buf[:])
+		cryptbase.RandBytes(buf[:])
 		return buf[:]
 	case objectString:
 		var buf [64]byte
-		crypto.RandBytes(buf[:])
+		cryptbase.RandBytes(buf[:])
 		return base32.StdEncoding.EncodeToString(buf[:])
 	case objectArray:
 		var arr [2]interface{}
 		for i := 0; i < len(arr); i++ {
-			t := crypto.RandUint64()
+			t := cryptbase.RandUint64()
 			if t%uint64(objectTypeMax) == uint64(objectBytes) {
 				// We cannot cleanly pass through an array of
 				// binary blobs.
@@ -130,9 +130,9 @@ func randomObjectOfType(randtype uint64, width int, depth int) interface{} {
 		return arr
 	case objectSlice:
 		slice := make([]interface{}, 0)
-		sz := crypto.RandUint64() % uint64(width)
+		sz := cryptbase.RandUint64() % uint64(width)
 		for i := 0; i < int(sz); i++ {
-			t := crypto.RandUint64()
+			t := cryptbase.RandUint64()
 			if t%uint64(objectTypeMax) == uint64(objectBytes) {
 				// We cannot cleanly pass through an array of
 				// binary blobs.
@@ -149,7 +149,7 @@ func randomObjectOfType(randtype uint64, width int, depth int) interface{} {
 }
 
 func randomObject(width int, depth int) interface{} {
-	return randomObjectOfType(crypto.RandUint64(), width, depth)
+	return randomObjectOfType(cryptbase.RandUint64(), width, depth)
 }
 
 func randomMap(width int, depth int) interface{} {
@@ -157,7 +157,7 @@ func randomMap(width int, depth int) interface{} {
 
 	for i := 0; i < width; i++ {
 		var k [8]byte
-		crypto.RandBytes(k[:])
+		cryptbase.RandBytes(k[:])
 		r[base32.StdEncoding.EncodeToString(k[:])] = randomObject(width, depth)
 	}
 
@@ -187,7 +187,7 @@ func TestIdempotenceMultiobject(t *testing.T) {
 	}
 
 	for i := 0; i < niter; i++ {
-		nobj := crypto.RandUint64() % 8
+		nobj := cryptbase.RandUint64() % 8
 		buf := []byte{}
 		for j := 0; j < int(nobj); j++ {
 			buf = append(buf, protocol.EncodeReflect(randomMap(6, 3))...)
@@ -226,25 +226,25 @@ func TestIdempotenceStruct(t *testing.T) {
 	for i := 0; i < niter; i++ {
 		var p parentStruct
 
-		p.A = make([]byte, int(crypto.RandUint64()%64))
-		crypto.RandBytes(p.A)
-		p.B = crypto.RandUint64()%2 == 0
-		p.S = fmt.Sprintf("S%dS", crypto.RandUint64())
-		p.U8 = uint8(crypto.RandUint64())
-		p.C.U = crypto.RandUint64()
-		p.C.I = int64(crypto.RandUint64())
+		p.A = make([]byte, int(cryptbase.RandUint64()%64))
+		cryptbase.RandBytes(p.A)
+		p.B = cryptbase.RandUint64()%2 == 0
+		p.S = fmt.Sprintf("S%dS", cryptbase.RandUint64())
+		p.U8 = uint8(cryptbase.RandUint64())
+		p.C.U = cryptbase.RandUint64()
+		p.C.I = int64(cryptbase.RandUint64())
 		p.D = make([]childStruct, 2)
 		for j := 0; j < 2; j++ {
-			p.D[j].U = crypto.RandUint64()
-			p.D[j].I = int64(crypto.RandUint64())
+			p.D[j].U = cryptbase.RandUint64()
+			p.D[j].I = int64(cryptbase.RandUint64())
 		}
 
-		mapKeys := crypto.RandUint64() % 4
+		mapKeys := cryptbase.RandUint64() % 4
 		for k := 0; k < int(mapKeys); k++ {
 			if p.M == nil {
 				p.M = make(map[string]string)
 			}
-			p.M[fmt.Sprintf("K%dK", crypto.RandUint64())] = fmt.Sprintf("V%dV", crypto.RandUint64())
+			p.M[fmt.Sprintf("K%dK", cryptbase.RandUint64())] = fmt.Sprintf("V%dV", cryptbase.RandUint64())
 		}
 
 		testIdempotentRoundtrip(t, protocol.EncodeReflect(&p))

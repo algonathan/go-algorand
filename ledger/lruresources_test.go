@@ -18,12 +18,12 @@ package ledger
 
 import (
 	"encoding/binary"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/test/partitiontest"
@@ -38,7 +38,7 @@ func TestLRUBasicResources(t *testing.T) {
 	resourcesNum := 50
 	// write 50 resources
 	for i := 0; i < resourcesNum; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		res := persistedResourcesData{
 			addrid: int64(i),
 			aidx:   basics.CreatableIndex(i),
@@ -50,7 +50,7 @@ func TestLRUBasicResources(t *testing.T) {
 
 	// verify that all these resources are truly there.
 	for i := 0; i < resourcesNum; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		res, has := baseRes.read(addr, basics.CreatableIndex(i))
 		require.True(t, has)
 		require.Equal(t, basics.Round(i), res.round)
@@ -61,7 +61,7 @@ func TestLRUBasicResources(t *testing.T) {
 
 	// verify expected missing entries
 	for i := resourcesNum; i < resourcesNum*2; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		res, has := baseRes.read(addr, basics.CreatableIndex(i%resourcesNum))
 		require.False(t, has)
 		require.Equal(t, persistedResourcesData{}, res)
@@ -71,7 +71,7 @@ func TestLRUBasicResources(t *testing.T) {
 
 	// verify expected (missing/existing) entries
 	for i := 0; i < resourcesNum*2; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		res, has := baseRes.read(addr, basics.CreatableIndex(i))
 
 		if i >= resourcesNum/2 && i < resourcesNum {
@@ -97,8 +97,8 @@ func TestLRUResourcesPendingWrites(t *testing.T) {
 
 	for i := 0; i < resourcesNum; i++ {
 		go func(i int) {
-			time.Sleep(time.Duration((crypto.RandUint64() % 50)) * time.Millisecond)
-			addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+			time.Sleep(time.Duration((cryptbase.RandUint64() % 50)) * time.Millisecond)
+			addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 			res := persistedResourcesData{
 				addrid: int64(i),
 				aidx:   basics.CreatableIndex(i),
@@ -114,7 +114,7 @@ func TestLRUResourcesPendingWrites(t *testing.T) {
 		// check if all resources were loaded into "main" cache.
 		allResourcesLoaded := true
 		for i := 0; i < resourcesNum; i++ {
-			addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+			addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 			_, has := baseRes.read(addr, basics.CreatableIndex(i))
 			if !has {
 				allResourcesLoaded = false
@@ -151,7 +151,7 @@ func TestLRUResourcesPendingWritesWarning(t *testing.T) {
 	baseRes.init(log, pendingWritesBuffer, pendingWritesThreshold)
 	for j := 0; j < 50; j++ {
 		for i := 0; i < j; i++ {
-			addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+			addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 			res := persistedResourcesData{
 				addrid: int64(i),
 				aidx:   basics.CreatableIndex(i),
@@ -178,7 +178,7 @@ func TestLRUResourcesOmittedPendingWrites(t *testing.T) {
 	baseRes.init(log, pendingWritesBuffer, pendingWritesThreshold)
 
 	for i := 0; i < pendingWritesBuffer*2; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		res := persistedResourcesData{
 			addrid: int64(i),
 			aidx:   basics.CreatableIndex(i),
@@ -192,7 +192,7 @@ func TestLRUResourcesOmittedPendingWrites(t *testing.T) {
 
 	// verify that all these accounts are truly there.
 	for i := 0; i < pendingWritesBuffer; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		res, has := baseRes.read(addr, basics.CreatableIndex(i))
 		require.True(t, has)
 		require.Equal(t, basics.Round(i), res.round)
@@ -203,7 +203,7 @@ func TestLRUResourcesOmittedPendingWrites(t *testing.T) {
 
 	// verify expected missing entries
 	for i := pendingWritesBuffer; i < pendingWritesBuffer*2; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		res, has := baseRes.read(addr, basics.CreatableIndex(i))
 		require.False(t, has)
 		require.Equal(t, persistedResourcesData{}, res)
@@ -248,7 +248,7 @@ func generatePersistedResourcesData(startRound, endRound int) []cachedResourceDa
 
 	for i := startRound; i < endRound; i++ {
 		binary.BigEndian.PutUint32(buffer, uint32(i))
-		digest := crypto.Hash(buffer)
+		digest := cryptbase.Hash(buffer)
 
 		accounts[i-startRound] = cachedResourceData{
 			persistedResourcesData: persistedResourcesData{

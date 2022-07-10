@@ -17,13 +17,13 @@
 package agreement
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
@@ -730,7 +730,7 @@ func TestProposalStoreRegressionBlockRedeliveryBug_b29ea57(t *testing.T) {
 		OriginalPeriod:   1,
 		OriginalProposer: proposer,
 		BlockDigest:      propPay.Digest(),
-		EncodingDigest:   crypto.HashObj(propPay),
+		EncodingDigest:   cryptbase.HashObj(propPay),
 	}
 	rv = rawVote{
 		Sender:   proposer,
@@ -759,7 +759,7 @@ func TestProposalStoreRegressionBlockRedeliveryBug_b29ea57(t *testing.T) {
 		OriginalPeriod:   2,
 		OriginalProposer: proposer,
 		BlockDigest:      propPay.Digest(),
-		EncodingDigest:   crypto.HashObj(propPay),
+		EncodingDigest:   cryptbase.HashObj(propPay),
 	}
 	rv = rawVote{
 		Sender:   proposer,
@@ -841,7 +841,7 @@ func TestProposalStoreRegressionWrongPipelinePeriodBug_39387501(t *testing.T) {
 		OriginalPeriod:   1,
 		OriginalProposer: proposer,
 		BlockDigest:      propPay.Digest(),
-		EncodingDigest:   crypto.HashObj(propPay),
+		EncodingDigest:   cryptbase.HashObj(propPay),
 	}
 	rv = rawVote{
 		Sender:   proposer,
@@ -870,7 +870,7 @@ func TestProposalStoreRegressionWrongPipelinePeriodBug_39387501(t *testing.T) {
 		OriginalPeriod:   2,
 		OriginalProposer: proposer,
 		BlockDigest:      propPay.Digest(),
-		EncodingDigest:   crypto.HashObj(propPay),
+		EncodingDigest:   cryptbase.HashObj(propPay),
 	}
 	rv = rawVote{
 		Sender:   proposer,

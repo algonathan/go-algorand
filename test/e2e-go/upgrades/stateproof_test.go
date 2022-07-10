@@ -18,7 +18,7 @@ package upgrades
 
 import (
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/libgoal"
 	"github.com/algorand/go-algorand/protocol"
@@ -126,7 +126,7 @@ func registerKeyInto(client *libgoal.Client, a *require.Assertions, lastValid ui
 		prms, err := client.SuggestedParams()
 		a.NoError(err)
 
-		var genHash crypto.Digest
+		var genHash cryptbase.Digest
 		copy(genHash[:], prms.GenesisHash)
 		tx.GenesisHash = genHash
 	}

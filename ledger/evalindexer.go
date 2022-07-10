@@ -19,9 +19,9 @@ package ledger
 import (
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -70,7 +70,7 @@ type Creatable struct {
 // Converter between indexerLedgerForEval and ledgerForEvaluator interfaces.
 type indexerLedgerConnector struct {
 	il             indexerLedgerForEval
-	genesisHash    crypto.Digest
+	genesisHash    cryptbase.Digest
 	genesisProto   config.ConsensusParams
 	latestRound    basics.Round
 	roundResources EvalForIndexerResources
@@ -174,7 +174,7 @@ func (l indexerLedgerConnector) GetCreatorForRound(_ basics.Round, cindex basics
 }
 
 // GenesisHash is part of LedgerForEvaluator interface.
-func (l indexerLedgerConnector) GenesisHash() crypto.Digest {
+func (l indexerLedgerConnector) GenesisHash() cryptbase.Digest {
 	return l.genesisHash
 }
 
@@ -196,7 +196,7 @@ func (l indexerLedgerConnector) VotersForStateProof(_ basics.Round) (*ledgercore
 	return nil, errors.New("VotersForStateProof() not implemented")
 }
 
-func makeIndexerLedgerConnector(il indexerLedgerForEval, genesisHash crypto.Digest, genesisProto config.ConsensusParams, latestRound basics.Round, roundResources EvalForIndexerResources) indexerLedgerConnector {
+func makeIndexerLedgerConnector(il indexerLedgerForEval, genesisHash cryptbase.Digest, genesisProto config.ConsensusParams, latestRound basics.Round, roundResources EvalForIndexerResources) indexerLedgerConnector {
 	return indexerLedgerConnector{
 		il:             il,
 		genesisHash:    genesisHash,

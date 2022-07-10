@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
@@ -229,7 +230,7 @@ func stxnVerifyCore(s *transactions.SignedTxn, txnIdx int, groupCtx *GroupContex
 	}
 	if hasMsig {
 		if ok, _ := crypto.MultisigBatchVerify(s.Txn,
-			crypto.Digest(s.Authorizer()),
+			cryptbase.Digest(s.Authorizer()),
 			s.Msig,
 			batchVerifier); ok {
 			return nil
@@ -311,8 +312,8 @@ func LogicSigSanityCheckBatchVerify(txn *transactions.SignedTxn, groupIndex int,
 	if numSigs == 0 {
 		// if the txn.Authorizer() == hash(Logic) then this is a (potentially) valid operation on a contract-only account
 		program := logic.Program(lsig.Logic)
-		lhash := crypto.HashObj(&program)
-		if crypto.Digest(txn.Authorizer()) == lhash {
+		lhash := cryptbase.HashObj(&program)
+		if cryptbase.Digest(txn.Authorizer()) == lhash {
 			return nil
 		}
 		return errors.New("LogicNot signed and not a Logic-only account")
@@ -326,7 +327,7 @@ func LogicSigSanityCheckBatchVerify(txn *transactions.SignedTxn, groupIndex int,
 		batchVerifier.EnqueueSignature(crypto.PublicKey(txn.Authorizer()), &program, lsig.Sig)
 	} else {
 		program := logic.Program(lsig.Logic)
-		if ok, _ := crypto.MultisigBatchVerify(&program, crypto.Digest(txn.Authorizer()), lsig.Msig, batchVerifier); !ok {
+		if ok, _ := crypto.MultisigBatchVerify(&program, cryptbase.Digest(txn.Authorizer()), lsig.Msig, batchVerifier); !ok {
 			return errors.New("logic multisig validation failed")
 		}
 	}

@@ -18,6 +18,7 @@ package crypto
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -53,7 +54,7 @@ func TestMultisigAddr(t *testing.T) {
 	secrets = make([]*SecretKey, 4)
 
 	for i := 0; i < 4; i++ {
-		RandBytes(s[:])
+		cryptbase.RandBytes(s[:])
 		secrets[i] = GenerateSignatureSecrets(s)
 	}
 
@@ -88,15 +89,15 @@ func TestMultisig(t *testing.T) {
 	var pks []PublicKey
 
 	var err error
-	var addr Digest
+	var addr cryptbase.Digest
 
 	version := uint8(1)
 	threshold := uint8(3)
-	txid := TestingHashable{[]byte("test: txid 1000")}
+	txid := cryptbase.TestingHashable{Data: []byte("test: txid 1000")}
 
 	secrets = make([]*SecretKey, 5)
 	for i := 0; i < 5; i++ {
-		RandBytes(s[:])
+		cryptbase.RandBytes(s[:])
 		secrets[i] = GenerateSignatureSecrets(s)
 	}
 
@@ -166,15 +167,15 @@ func TestMultisigAddAndMerge(t *testing.T) {
 	var pks []PublicKey
 
 	var err error
-	var addr Digest
+	var addr cryptbase.Digest
 
 	version := uint8(1)
 	threshold := uint8(3)
-	txid := TestingHashable{[]byte("test: txid 1000")}
+	txid := cryptbase.TestingHashable{Data: []byte("test: txid 1000")}
 
 	secrets = make([]*SecretKey, 5)
 
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 
 	pks = make([]PublicKey, 5)
 	for i := 0; i < 5; i++ {
@@ -243,10 +244,10 @@ func TestEmptyMultisig(t *testing.T) {
 	var secrets *SecretKey
 	var pks []PublicKey
 
-	txid := TestingHashable{[]byte("test: txid 1000")}
+	txid := cryptbase.TestingHashable{Data: []byte("test: txid 1000")}
 	version := uint8(1)
 	threshold := uint8(1)
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	secrets = GenerateSignatureSecrets(s)
 	pks = make([]PublicKey, 1)
 	pks[0] = secrets.SignatureVerifier
@@ -269,10 +270,10 @@ func TestIncorrectAddrresInMultisig(t *testing.T) {
 	var secrets *SecretKey
 	var pks []PublicKey
 
-	txid := TestingHashable{[]byte("test: txid 1000")}
+	txid := cryptbase.TestingHashable{Data: []byte("test: txid 1000")}
 	version := uint8(1)
 	threshold := uint8(1)
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	secrets = GenerateSignatureSecrets(s)
 	pks = make([]PublicKey, 1)
 	pks[0] = secrets.SignatureVerifier
@@ -298,13 +299,13 @@ func TestMoreThanMaxSigsInMultisig(t *testing.T) {
 	var secrets []*SecretKey
 	var pks []PublicKey
 	multiSigLen := maxMultisig + 1
-	txid := TestingHashable{[]byte("test: txid 1000")}
+	txid := cryptbase.TestingHashable{Data: []byte("test: txid 1000")}
 	version := uint8(1)
 	threshold := uint8(1)
 	pks = make([]PublicKey, multiSigLen)
 	secrets = make([]*SecretKey, multiSigLen)
 	for i := 0; i < multiSigLen; i++ {
-		RandBytes(s[:])
+		cryptbase.RandBytes(s[:])
 		secrets[i] = GenerateSignatureSecrets(s)
 		pks[i] = secrets[i].SignatureVerifier
 	}
@@ -336,13 +337,13 @@ func TestOneSignatureIsEmpty(t *testing.T) {
 	var secrets []*SecretKey
 	var pks []PublicKey
 	multiSigLen := 6
-	txid := TestingHashable{[]byte("test: txid 1000")}
+	txid := cryptbase.TestingHashable{Data: []byte("test: txid 1000")}
 	version := uint8(1)
 	threshold := uint8(multiSigLen)
 	pks = make([]PublicKey, multiSigLen)
 	secrets = make([]*SecretKey, multiSigLen)
 	for i := 0; i < multiSigLen; i++ {
-		RandBytes(s[:])
+		cryptbase.RandBytes(s[:])
 		secrets[i] = GenerateSignatureSecrets(s)
 		pks[i] = secrets[i].SignatureVerifier
 	}
@@ -377,13 +378,13 @@ func TestOneSignatureIsInvalid(t *testing.T) {
 	var userkeypair []*SecretKey
 	var pks []PublicKey
 	multiSigLen := 6
-	txid := TestingHashable{[]byte("test: txid 1000")}
+	txid := cryptbase.TestingHashable{Data: []byte("test: txid 1000")}
 	version := uint8(1)
 	threshold := uint8(3)
 	pks = make([]PublicKey, multiSigLen)
 	userkeypair = make([]*SecretKey, multiSigLen)
 	for i := 0; i < multiSigLen; i++ {
-		RandBytes(s[:])
+		cryptbase.RandBytes(s[:])
 		userkeypair[i] = GenerateSignatureSecrets(s)
 		pks[i] = userkeypair[i].SignatureVerifier
 	}
@@ -423,15 +424,15 @@ func TestMultisigLessThanTrashold(t *testing.T) {
 	var pks []PublicKey
 
 	var err error
-	var addr Digest
+	var addr cryptbase.Digest
 
 	version := uint8(1)
 	threshold := uint8(3)
-	txid := TestingHashable{[]byte("test: txid 1000")}
+	txid := cryptbase.TestingHashable{Data: []byte("test: txid 1000")}
 
 	secrets = make([]*SecretKey, 4)
 	for i := 0; i < 4; i++ {
-		RandBytes(s[:])
+		cryptbase.RandBytes(s[:])
 		secrets[i] = GenerateSignatureSecrets(s)
 	}
 

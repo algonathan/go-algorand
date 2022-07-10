@@ -20,10 +20,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"hash"
 	"sort"
-
-	"github.com/algorand/go-algorand/crypto"
 )
 
 const (
@@ -61,7 +60,7 @@ type Tree struct {
 	NumOfElements uint64 `codec:"nl"`
 
 	// Hash represents the hash function which is being used on elements in this tree.
-	Hash crypto.HashFactory `codec:"hsh"`
+	Hash cryptbase.HashFactory `codec:"hsh"`
 
 	// IsVectorCommitment determines whether the tree was built as a vector commitment
 	IsVectorCommitment bool `codec:"vc"`
@@ -80,7 +79,7 @@ func (ch errorChannel) nonBlockingSend(e error) {
 	}
 }
 
-func buildWorker(ws *workerState, array Array, leaves Layer, h crypto.HashFactory, errs errorChannel) {
+func buildWorker(ws *workerState, array Array, leaves Layer, h cryptbase.HashFactory, errs errorChannel) {
 	defer ws.wg.Done()
 
 	ws.started()
@@ -99,7 +98,7 @@ func buildWorker(ws *workerState, array Array, leaves Layer, h crypto.HashFactor
 				errs.nonBlockingSend(err)
 				return
 			}
-			leaves[i] = crypto.GenericHashObj(hash, m)
+			leaves[i] = cryptbase.GenericHashObj(hash, m)
 		}
 
 		batchSize++
@@ -113,7 +112,7 @@ func buildWorker(ws *workerState, array Array, leaves Layer, h crypto.HashFactor
 //
 // In addition, the tree will also extend the array to have a length of 2^X leaves.
 // i.e we always create a full tree
-func BuildVectorCommitmentTree(array Array, factory crypto.HashFactory) (*Tree, error) {
+func BuildVectorCommitmentTree(array Array, factory cryptbase.HashFactory) (*Tree, error) {
 	t, err := Build(generateVectorCommitmentArray(array), factory)
 	if err != nil {
 		return nil, err
@@ -126,7 +125,7 @@ func BuildVectorCommitmentTree(array Array, factory crypto.HashFactory) (*Tree, 
 // Build constructs a Merkle tree given an array. The tree can be used to generate
 // proofs of membership on element. If a proof of position is require, a Vector Commitments
 // is required
-func Build(array Array, factory crypto.HashFactory) (*Tree, error) {
+func Build(array Array, factory cryptbase.HashFactory) (*Tree, error) {
 	arraylen := array.Length()
 	leaves := make(Layer, arraylen)
 	errs := make(chan error, 1)
@@ -166,10 +165,10 @@ func (tree *Tree) buildLayers(leaves Layer) {
 
 // Root returns the root hash of the tree.
 // In case the tree is empty, the return value is an empty GenericDigest.
-func (tree *Tree) Root() crypto.GenericDigest {
+func (tree *Tree) Root() cryptbase.GenericDigest {
 	// Special case: commitment to zero-length array
 	if len(tree.Levels) == 0 {
-		return crypto.GenericDigest{}
+		return cryptbase.GenericDigest{}
 	}
 
 	return tree.topLayer()[0]
@@ -310,7 +309,7 @@ func (tree *Tree) buildNextLayer() {
 }
 
 // VerifyVectorCommitment verifies a vector commitment proof against a given root.
-func VerifyVectorCommitment(root crypto.GenericDigest, elems map[uint64]crypto.Hashable, proof *Proof) error {
+func VerifyVectorCommitment(root cryptbase.GenericDigest, elems map[uint64]cryptbase.Hashable, proof *Proof) error {
 	if proof == nil {
 		return ErrProofIsNil
 	}
@@ -326,7 +325,7 @@ func VerifyVectorCommitment(root crypto.GenericDigest, elems map[uint64]crypto.H
 // Verify ensures that the positions in elems correspond to the respective hashes
 // in a tree with the given root hash.  The proof is expected to be the proof
 // returned by Prove().
-func Verify(root crypto.GenericDigest, elems map[uint64]crypto.Hashable, proof *Proof) error {
+func Verify(root cryptbase.GenericDigest, elems map[uint64]cryptbase.Hashable, proof *Proof) error {
 	if proof == nil {
 		return ErrProofIsNil
 	}
@@ -347,7 +346,7 @@ func Verify(root crypto.GenericDigest, elems map[uint64]crypto.Hashable, proof *
 	return verifyPath(root, proof, pl)
 }
 
-func verifyPath(root crypto.GenericDigest, proof *Proof, pl partialLayer) error {
+func verifyPath(root cryptbase.GenericDigest, proof *Proof, pl partialLayer) error {
 	hints := proof.Path
 
 	s := &siblings{
@@ -365,20 +364,20 @@ func verifyPath(root crypto.GenericDigest, proof *Proof, pl partialLayer) error 
 	return inspectRoot(root, pl)
 }
 
-func hashLeaves(elems map[uint64]crypto.Hashable, treeDepth uint8, hash hash.Hash) (map[uint64]crypto.GenericDigest, error) {
-	hashedLeaves := make(map[uint64]crypto.GenericDigest, len(elems))
+func hashLeaves(elems map[uint64]cryptbase.Hashable, treeDepth uint8, hash hash.Hash) (map[uint64]cryptbase.GenericDigest, error) {
+	hashedLeaves := make(map[uint64]cryptbase.GenericDigest, len(elems))
 	for i, element := range elems {
 		if i >= (1 << treeDepth) {
 			return nil, fmt.Errorf("pos %d >= 1^treeDepth %d: %w", i, 1<<treeDepth, ErrPosOutOfBound)
 		}
-		hashedLeaves[i] = crypto.GenericHashObj(hash, element)
+		hashedLeaves[i] = cryptbase.GenericHashObj(hash, element)
 	}
 
 	return hashedLeaves, nil
 }
 
-func convertIndexes(elems map[uint64]crypto.Hashable, treeDepth uint8) (map[uint64]crypto.Hashable, error) {
-	msbIndexedElements := make(map[uint64]crypto.Hashable, len(elems))
+func convertIndexes(elems map[uint64]cryptbase.Hashable, treeDepth uint8) (map[uint64]cryptbase.Hashable, error) {
+	msbIndexedElements := make(map[uint64]cryptbase.Hashable, len(elems))
 	for i, e := range elems {
 		idx, err := merkleTreeToVectorCommitmentIndex(i, treeDepth)
 		if err != nil {
@@ -389,7 +388,7 @@ func convertIndexes(elems map[uint64]crypto.Hashable, treeDepth uint8) (map[uint
 	return msbIndexedElements, nil
 }
 
-func buildFirstPartialLayer(elems map[uint64]crypto.GenericDigest) partialLayer {
+func buildFirstPartialLayer(elems map[uint64]cryptbase.GenericDigest) partialLayer {
 	pl := make(partialLayer, 0, len(elems))
 	for pos, elem := range elems {
 		pl = append(pl, layerItem{
@@ -402,7 +401,7 @@ func buildFirstPartialLayer(elems map[uint64]crypto.GenericDigest) partialLayer 
 	return pl
 }
 
-func inspectRoot(root crypto.GenericDigest, pl partialLayer) error {
+func inspectRoot(root cryptbase.GenericDigest, pl partialLayer) error {
 	computedroot := pl[0]
 	if computedroot.pos != 0 || !bytes.Equal(computedroot.hash, root) {
 		return ErrRootMismatch

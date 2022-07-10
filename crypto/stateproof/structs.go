@@ -17,7 +17,7 @@
 package stateproof
 
 import (
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/data/basics"
@@ -27,7 +27,7 @@ import (
 type MessageHash [32]byte
 
 // MessageHashType is the type of hash used to generate MessageHash
-const MessageHashType = crypto.Sha256
+const MessageHashType = cryptbase.Sha256
 
 //msgp:ignore sigslot
 type sigslot struct {
@@ -69,11 +69,11 @@ type Reveal struct {
 type StateProof struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-	SigCommit                  crypto.GenericDigest `codec:"c"`
-	SignedWeight               uint64               `codec:"w"`
-	SigProofs                  merklearray.Proof    `codec:"S"`
-	PartProofs                 merklearray.Proof    `codec:"P"`
-	MerkleSignatureSaltVersion byte                 `codec:"v"`
+	SigCommit                  cryptbase.GenericDigest `codec:"c"`
+	SignedWeight               uint64                  `codec:"w"`
+	SigProofs                  merklearray.Proof       `codec:"S"`
+	PartProofs                 merklearray.Proof       `codec:"P"`
+	MerkleSignatureSaltVersion byte                    `codec:"v"`
 	// Reveals is a sparse map from the position being revealed
 	// to the corresponding elements from the sigs and participants
 	// arrays.

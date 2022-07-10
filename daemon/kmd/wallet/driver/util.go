@@ -18,9 +18,10 @@ package driver
 
 import (
 	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
-func publicKeyToAddress(pk crypto.PublicKey) (addr crypto.Digest) {
+func publicKeyToAddress(pk crypto.PublicKey) (addr cryptbase.Digest) {
 	copy(addr[:], pk[:])
 	return
 }

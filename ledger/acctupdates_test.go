@@ -22,6 +22,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"runtime"
@@ -33,7 +34,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/internal"
@@ -116,7 +116,7 @@ func (ml *mockLedgerForTracker) fork(t testing.TB) *mockLedgerForTracker {
 		return nil
 	}
 	// create a new random file name.
-	fn := fmt.Sprintf("%s.%d", strings.ReplaceAll(t.Name(), "/", "."), crypto.RandUint64())
+	fn := fmt.Sprintf("%s.%d", strings.ReplaceAll(t.Name(), "/", "."), cryptbase.RandUint64())
 
 	dblogger := logging.TestingLog(t)
 	dblogger.SetLevel(logging.Info)
@@ -213,11 +213,11 @@ func (ml *mockLedgerForTracker) trackerLog() logging.Logger {
 	return ml.log
 }
 
-func (ml *mockLedgerForTracker) GenesisHash() crypto.Digest {
+func (ml *mockLedgerForTracker) GenesisHash() cryptbase.Digest {
 	if len(ml.blocks) > 0 {
 		return ml.blocks[0].block.GenesisHash()
 	}
-	return crypto.Digest{}
+	return cryptbase.Digest{}
 }
 
 func (ml *mockLedgerForTracker) GenesisProto() config.ConsensusParams {
@@ -500,7 +500,7 @@ func TestAcctUpdates(t *testing.T) {
 			checkAcctUpdates(t, au, ao, 0, basics.Round(initialBlocksCount-1), accts, rewardsLevels, proto)
 
 			// lastCreatableID stores asset or app max used index to get rid of conflicts
-			lastCreatableID := basics.CreatableIndex(crypto.RandUint64() % 512)
+			lastCreatableID := basics.CreatableIndex(cryptbase.RandUint64() % 512)
 			knownCreatables := make(map[basics.CreatableIndex]bool)
 
 			maxLookback := conf.MaxAcctLookback
@@ -508,7 +508,7 @@ func TestAcctUpdates(t *testing.T) {
 			start := basics.Round(initialBlocksCount)
 			end := basics.Round(maxLookback + 15)
 			for i := start; i < end; i++ {
-				rewardLevelDelta := crypto.RandUint64() % 5
+				rewardLevelDelta := cryptbase.RandUint64() % 5
 				rewardLevel += rewardLevelDelta
 				var updates ledgercore.AccountDeltas
 				var totals map[basics.Address]ledgercore.AccountData
@@ -543,7 +543,7 @@ func TestAcctUpdates(t *testing.T) {
 
 				// checkAcctUpdates is kind of slow because of amount of data it needs to compare
 				// instead, compare at start, end in between approx 10 rounds
-				if i == start || i == end-1 || crypto.RandUint64()%10 == 0 || lookback < 10 {
+				if i == start || i == end-1 || cryptbase.RandUint64()%10 == 0 || lookback < 10 {
 					checkAcctUpdates(t, au, ao, 0, i, accts, rewardsLevels, proto)
 				}
 			}
@@ -625,7 +625,7 @@ func TestAcctUpdatesFastUpdates(t *testing.T) {
 	wg := sync.WaitGroup{}
 
 	for i := basics.Round(initialBlocksCount); i < basics.Round(proto.CatchpointLookback+15); i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		updates, totals := ledgertesting.RandomDeltasBalanced(1, accts[i-1], rewardLevel)
 		prevRound, prevTotals, err := au.LatestTotals()
@@ -703,7 +703,7 @@ func BenchmarkBalancesChanges(b *testing.B) {
 	}
 
 	for i := basics.Round(initialRounds); i < basics.Round(maxAcctLookback+uint64(b.N)); i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		accountChanges := 0
 		if i <= basics.Round(initialRounds)+basics.Round(b.N) {
@@ -844,7 +844,7 @@ func TestLargeAccountCountCatchpointGeneration(t *testing.T) {
 	start := basics.Round(initialBlocksCount)
 	end := basics.Round(protoParams.MaxBalLookback + 5)
 	for i := start; i < end; i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		updates, totals := ledgertesting.RandomDeltasBalanced(1, accts[i-1], rewardLevel)
 
@@ -1339,7 +1339,7 @@ func BenchmarkCompactDeltas(b *testing.B) {
 		accountDeltas := make([]ledgercore.AccountDeltas, b.N)
 		addrs := make([]basics.Address, b.N*window)
 		for i := 0; i < len(addrs); i++ {
-			addrs[i] = basics.Address(crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)}))
+			addrs[i] = basics.Address(cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)}))
 		}
 		for rnd := 0; rnd < b.N; rnd++ {
 			m := make(map[basics.Address]basics.AccountData)
@@ -1365,7 +1365,7 @@ func TestCompactDeltas(t *testing.T) {
 
 	addrs := make([]basics.Address, 10)
 	for i := 0; i < len(addrs); i++ {
-		addrs[i] = basics.Address(crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)}))
+		addrs[i] = basics.Address(cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)}))
 	}
 
 	accountDeltas := make([]ledgercore.AccountDeltas, 1)
@@ -1437,7 +1437,7 @@ func TestCompactDeltasResources(t *testing.T) {
 
 	addrs := make([]basics.Address, 10)
 	for i := 0; i < len(addrs); i++ {
-		addrs[i] = basics.Address(crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)}))
+		addrs[i] = basics.Address(cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)}))
 	}
 
 	var baseAccounts lruAccounts
@@ -1646,7 +1646,7 @@ func TestAcctUpdatesCachesInitialization(t *testing.T) {
 	recoveredLedgerRound := basics.Round(initialRounds + initializeCachesRoundFlushInterval + conf.MaxAcctLookback + 1)
 
 	for i := basics.Round(initialRounds); i <= recoveredLedgerRound; i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		accountChanges := 2
 
@@ -1746,7 +1746,7 @@ func TestAcctUpdatesSplittingConsensusVersionCommits(t *testing.T) {
 
 	// write the extraRounds rounds so that we will fill up the queue.
 	for i := basics.Round(initialRounds); i < basics.Round(initialRounds+extraRounds); i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		accountChanges := 2
 
@@ -1784,7 +1784,7 @@ func TestAcctUpdatesSplittingConsensusVersionCommits(t *testing.T) {
 	// add 47 more rounds that contains blocks using a newer consensus version, and stuff it with maxAcctLookback
 	lastRoundToWrite := basics.Round(initialRounds + maxAcctLookback + extraRounds + newVersionBlocksCount)
 	for i := basics.Round(initialRounds + extraRounds); i < lastRoundToWrite; i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		accountChanges := 2
 
@@ -1864,7 +1864,7 @@ func TestAcctUpdatesSplittingConsensusVersionCommitsBoundary(t *testing.T) {
 
 	// write extraRounds rounds so that we will fill up the queue.
 	for i := basics.Round(initialRounds); i < basics.Round(initialRounds+extraRounds); i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		accountChanges := 2
 
@@ -1901,7 +1901,7 @@ func TestAcctUpdatesSplittingConsensusVersionCommitsBoundary(t *testing.T) {
 	// add maxAcctLockback-extraRounds more rounds that contains blocks using a newer consensus version.
 	endOfFirstNewProtocolSegment := basics.Round(initialRounds + extraRounds + maxAcctLockback)
 	for i := basics.Round(initialRounds + extraRounds); i <= endOfFirstNewProtocolSegment; i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		accountChanges := 2
 
@@ -1939,7 +1939,7 @@ func TestAcctUpdatesSplittingConsensusVersionCommitsBoundary(t *testing.T) {
 
 	// write additional extraRounds elements and verify these can be flushed.
 	for i := endOfFirstNewProtocolSegment + 1; i <= basics.Round(initialRounds+2*extraRounds+maxAcctLockback); i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		accountChanges := 2
 
@@ -2028,7 +2028,7 @@ func TestAcctUpdatesResources(t *testing.T) {
 	// the test 2 requires 2 more blocks
 	// the test 2 requires 2 more blocks
 	for i := basics.Round(1); i <= basics.Round(maxAcctLookback+3+2+2); i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		var updates ledgercore.AccountDeltas
 
@@ -2261,11 +2261,11 @@ func testAcctUpdatesLookupRetry(t *testing.T, assertFn func(au *accountUpdates, 
 	checkAcctUpdates(t, au, ao, 0, basics.Round(initialBlocksCount)-1, accts, rewardsLevels, proto)
 
 	// lastCreatableID stores asset or app max used index to get rid of conflicts
-	lastCreatableID := basics.CreatableIndex(crypto.RandUint64() % 512)
+	lastCreatableID := basics.CreatableIndex(cryptbase.RandUint64() % 512)
 	knownCreatables := make(map[basics.CreatableIndex]bool)
 
 	for i := basics.Round(initialBlocksCount); i < basics.Round(conf.MaxAcctLookback+15); i++ {
-		rewardLevelDelta := crypto.RandUint64() % 5
+		rewardLevelDelta := cryptbase.RandUint64() % 5
 		rewardLevel += rewardLevelDelta
 		var updates ledgercore.AccountDeltas
 		var totals map[basics.Address]ledgercore.AccountData

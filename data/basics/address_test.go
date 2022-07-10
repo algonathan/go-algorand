@@ -17,11 +17,11 @@
 package basics
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -29,7 +29,7 @@ import (
 func TestChecksumAddress_Unmarshal(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	address := crypto.Hash([]byte("randomString"))
+	address := cryptbase.Hash([]byte("randomString"))
 	shortAddress := Address(address)
 
 	addr, err := UnmarshalChecksumAddress(shortAddress.String())
@@ -42,7 +42,7 @@ func TestChecksumAddress_Unmarshal(t *testing.T) {
 func TestAddressChecksumMalformedWrongChecksum(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	address := crypto.Hash([]byte("randomString"))
+	address := cryptbase.Hash([]byte("randomString"))
 	shortAddress := Address(address)
 
 	// Change it slightly
@@ -62,7 +62,7 @@ func TestAddressChecksumShort(t *testing.T) {
 func TestAddressChecksumMalformedWrongChecksumSpace(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	address := crypto.Hash([]byte("randomString"))
+	address := cryptbase.Hash([]byte("randomString"))
 	shortAddress := Address(address)
 
 	// Flip a bit
@@ -74,7 +74,7 @@ func TestAddressChecksumMalformedWrongChecksumSpace(t *testing.T) {
 func TestAddressChecksumMalformedWrongAddress(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	address := crypto.Hash([]byte("randomString"))
+	address := cryptbase.Hash([]byte("randomString"))
 	shortAddress := Address(address)
 
 	// Flip a bit
@@ -86,7 +86,7 @@ func TestAddressChecksumMalformedWrongAddress(t *testing.T) {
 func TestAddressChecksumMalformedWrongAddressSpaces(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	address := crypto.Hash([]byte("randomString"))
+	address := cryptbase.Hash([]byte("randomString"))
 	shortAddress := Address(address)
 
 	// Flip a bit
@@ -116,7 +116,7 @@ func TestAddressMarshalUnmarshal(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	var addr Address
-	crypto.RandBytes(addr[:])
+	cryptbase.RandBytes(addr[:])
 	testob := TestOb{Aaaa: addr}
 	data := protocol.EncodeJSON(testob)
 	var nob TestOb

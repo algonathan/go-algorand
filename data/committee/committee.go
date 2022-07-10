@@ -18,7 +18,7 @@ package committee
 
 import (
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -29,7 +29,7 @@ import (
 type Selector interface {
 	// The hash of a struct which implements Selector is used as the input
 	// to the VRF.
-	crypto.Hashable
+	cryptbase.Hashable
 
 	// CommitteeSize returns the size of the committee determined by this
 	// Selector.

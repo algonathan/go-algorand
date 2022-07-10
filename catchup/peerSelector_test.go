@@ -20,13 +20,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"net/http"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/network"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
@@ -312,7 +312,7 @@ func TestHistoricData(t *testing.T) {
 }
 
 func peerSelectorTestRandVal(t *testing.T, seed int) float64 {
-	iterationDigest := crypto.Hash([]byte{byte(seed), byte(seed >> 8), byte(seed >> 16)})
+	iterationDigest := cryptbase.Hash([]byte{byte(seed), byte(seed >> 8), byte(seed >> 16)})
 	randUint64, err := binary.ReadUvarint(bytes.NewReader(append([]byte{0}, iterationDigest[:]...)))
 	require.NoError(t, err)
 	randVal := float64(randUint64%uint64(100)) / 100

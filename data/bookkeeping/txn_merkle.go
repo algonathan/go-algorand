@@ -18,8 +18,8 @@ package bookkeeping
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/protocol"
@@ -31,7 +31,7 @@ import (
 // header), or to generate proofs of membership for transactions that are
 // in this block.
 func (block Block) TxnMerkleTree() (*merklearray.Tree, error) {
-	return merklearray.Build(&txnMerkleArray{block: block, hashType: crypto.Sha512_256}, crypto.HashFactory{HashType: crypto.Sha512_256})
+	return merklearray.Build(&txnMerkleArray{block: block, hashType: cryptbase.Sha512_256}, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 }
 
 // TxnMerkleTreeSHA256 returns a cryptographic commitment to the transactions in the
@@ -40,14 +40,14 @@ func (block Block) TxnMerkleTree() (*merklearray.Tree, error) {
 // header), or to generate proofs of membership for transactions that are
 // in this block.
 func (block Block) TxnMerkleTreeSHA256() (*merklearray.Tree, error) {
-	return merklearray.BuildVectorCommitmentTree(&txnMerkleArray{block: block, hashType: crypto.Sha256}, crypto.HashFactory{HashType: crypto.Sha256})
+	return merklearray.BuildVectorCommitmentTree(&txnMerkleArray{block: block, hashType: cryptbase.Sha256}, cryptbase.HashFactory{HashType: cryptbase.Sha256})
 }
 
 // txnMerkleArray is a representation of the transactions in this block,
 // along with their ApplyData, as an array for the merklearray package.
 type txnMerkleArray struct {
 	block    Block
-	hashType crypto.HashType
+	hashType cryptbase.HashType
 }
 
 // Length implements the merklearray.Array interface.
@@ -56,7 +56,7 @@ func (tma *txnMerkleArray) Length() uint64 {
 }
 
 // Get implements the merklearray.Array interface.
-func (tma *txnMerkleArray) Marshal(pos uint64) (crypto.Hashable, error) {
+func (tma *txnMerkleArray) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	if pos >= uint64(len(tma.block.Payset)) {
 		return nil, fmt.Errorf("txnMerkleArray.Get(%d): out of bounds, payset size %d", pos, len(tma.block.Payset))
 	}
@@ -74,10 +74,10 @@ func (tma *txnMerkleArray) Marshal(pos uint64) (crypto.Hashable, error) {
 	return &elem, nil
 }
 
-func txnMerkleToRaw(txid [crypto.DigestSize]byte, stib [crypto.DigestSize]byte) (buf []byte) {
-	buf = make([]byte, 2*crypto.DigestSize)
+func txnMerkleToRaw(txid [cryptbase.DigestSize]byte, stib [cryptbase.DigestSize]byte) (buf []byte) {
+	buf = make([]byte, 2*cryptbase.DigestSize)
 	copy(buf[:], txid[:])
-	copy(buf[crypto.DigestSize:], stib[:])
+	copy(buf[cryptbase.DigestSize:], stib[:])
 	return
 }
 
@@ -86,11 +86,11 @@ func txnMerkleToRaw(txid [crypto.DigestSize]byte, stib [crypto.DigestSize]byte) 
 type txnMerkleElem struct {
 	txn      transactions.Transaction
 	stib     transactions.SignedTxnInBlock
-	hashType crypto.HashType
+	hashType cryptbase.HashType
 }
 
 func (tme *txnMerkleElem) RawLeaf() []byte {
-	if tme.hashType == crypto.Sha512_256 {
+	if tme.hashType == cryptbase.Sha512_256 {
 		return txnMerkleToRaw(tme.txn.ID(), tme.stib.Hash())
 	}
 	// else: hashType == crypto.Sha256
@@ -105,12 +105,12 @@ func (tme *txnMerkleElem) ToBeHashed() (protocol.HashID, []byte) {
 }
 
 // Hash implements an optimized version of crypto.HashObj(tme).
-func (tme *txnMerkleElem) Hash() crypto.Digest {
-	return crypto.Hash(tme.HashRepresentation())
+func (tme *txnMerkleElem) Hash() cryptbase.Digest {
+	return cryptbase.Hash(tme.HashRepresentation())
 }
 
 func (tme *txnMerkleElem) HashRepresentation() []byte {
-	var buf [len(protocol.TxnMerkleLeaf) + 2*crypto.DigestSize]byte
+	var buf [len(protocol.TxnMerkleLeaf) + 2*cryptbase.DigestSize]byte
 	s := buf[:0]
 	s = append(s, protocol.TxnMerkleLeaf...)
 	s = append(s, tme.RawLeaf()...)

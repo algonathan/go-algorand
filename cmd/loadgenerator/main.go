@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"runtime"
 	"strings"
@@ -155,7 +156,7 @@ func generateTransactions(restClient client.RestClient, cfg config, privateKey *
 		fmt.Fprintf(os.Stderr, "unable to get versions : %v", err)
 		return false
 	}
-	var genesisHash crypto.Digest
+	var genesisHash cryptbase.Digest
 	copy(genesisHash[:], vers.GenesisHash)
 	// create transactionBlockSize transaction to send.
 	txns := make([]transactions.SignedTxn, transactionBlockSize, transactionBlockSize)
@@ -176,7 +177,7 @@ func generateTransactions(restClient client.RestClient, cfg config, privateKey *
 			},
 			Type: protocol.PaymentTx,
 		}
-		crypto.RandBytes(tx.Note[:])
+		cryptbase.RandBytes(tx.Note[:])
 		txns[i] = tx.Sign(privateKey)
 	}
 

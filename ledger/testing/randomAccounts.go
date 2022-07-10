@@ -18,6 +18,7 @@ package testing
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math"
 
 	"github.com/algorand/go-algorand/config"
@@ -37,14 +38,14 @@ var testSinkAddr = basics.Address{0x2c, 0x2a, 0x6c, 0xe9, 0xa9, 0xa7, 0xc2, 0x8c
 // RandomAddress generates a random address
 func RandomAddress() basics.Address {
 	var addr basics.Address
-	crypto.RandBytes(addr[:])
+	cryptbase.RandBytes(addr[:])
 	return addr
 }
 
 // RandomNote generates a random notes data
 func RandomNote() []byte {
 	var note [16]byte
-	crypto.RandBytes(note[:])
+	cryptbase.RandBytes(note[:])
 	return note[:]
 }
 
@@ -53,9 +54,9 @@ func RandomAccountData(rewardsBase uint64) basics.AccountData {
 	var data basics.AccountData
 
 	// Avoid overflowing totals
-	data.MicroAlgos.Raw = crypto.RandUint64() % (1 << 32)
+	data.MicroAlgos.Raw = cryptbase.RandUint64() % (1 << 32)
 
-	switch crypto.RandUint64() % 3 {
+	switch cryptbase.RandUint64() % 3 {
 	case 0:
 		data.Status = basics.Online
 		data.VoteLastValid = 1000
@@ -74,7 +75,7 @@ func RandomAccountData(rewardsBase uint64) basics.AccountData {
 // RandomOnlineAccountData is similar to RandomAccountData but always creates online account
 func RandomOnlineAccountData(rewardsBase uint64) basics.AccountData {
 	var data basics.AccountData
-	data.MicroAlgos.Raw = crypto.RandUint64() % (1 << 32)
+	data.MicroAlgos.Raw = cryptbase.RandUint64() % (1 << 32)
 	data.Status = basics.Online
 	data.VoteLastValid = 1000
 	data.VoteFirstValid = 0
@@ -85,31 +86,31 @@ func RandomOnlineAccountData(rewardsBase uint64) basics.AccountData {
 // RandomAssetParams creates a randim basics.AssetParams
 func RandomAssetParams() basics.AssetParams {
 	ap := basics.AssetParams{
-		Total:         crypto.RandUint64(),
-		Decimals:      uint32(crypto.RandUint64() % 20),
-		DefaultFrozen: crypto.RandUint64()%2 == 0,
-		UnitName:      fmt.Sprintf("un%x", uint32(crypto.RandUint64()%0x7fffffff)),
-		AssetName:     fmt.Sprintf("an%x", uint32(crypto.RandUint64()%0x7fffffff)),
-		URL:           fmt.Sprintf("url%x", uint32(crypto.RandUint64()%0x7fffffff)),
+		Total:         cryptbase.RandUint64(),
+		Decimals:      uint32(cryptbase.RandUint64() % 20),
+		DefaultFrozen: cryptbase.RandUint64()%2 == 0,
+		UnitName:      fmt.Sprintf("un%x", uint32(cryptbase.RandUint64()%0x7fffffff)),
+		AssetName:     fmt.Sprintf("an%x", uint32(cryptbase.RandUint64()%0x7fffffff)),
+		URL:           fmt.Sprintf("url%x", uint32(cryptbase.RandUint64()%0x7fffffff)),
 	}
-	crypto.RandBytes(ap.MetadataHash[:])
-	crypto.RandBytes(ap.Manager[:])
-	crypto.RandBytes(ap.Reserve[:])
-	crypto.RandBytes(ap.Freeze[:])
-	crypto.RandBytes(ap.Clawback[:])
+	cryptbase.RandBytes(ap.MetadataHash[:])
+	cryptbase.RandBytes(ap.Manager[:])
+	cryptbase.RandBytes(ap.Reserve[:])
+	cryptbase.RandBytes(ap.Freeze[:])
+	cryptbase.RandBytes(ap.Clawback[:])
 	return ap
 }
 
 // RandomAssetHolding creates a random basics.AssetHolding.
 // If forceFrozen is set the Frozen field is set to True to prevent possible empty AssetHolding struct
 func RandomAssetHolding(forceFrozen bool) basics.AssetHolding {
-	frozen := crypto.RandUint64()%2 == 0
+	frozen := cryptbase.RandUint64()%2 == 0
 	if forceFrozen {
 		frozen = true
 	}
 
 	ah := basics.AssetHolding{
-		Amount: crypto.RandUint64(),
+		Amount: cryptbase.RandUint64(),
 		Frozen: frozen,
 	}
 	return ah
@@ -118,45 +119,45 @@ func RandomAssetHolding(forceFrozen bool) basics.AssetHolding {
 // RandomAppParams creates a random basics.AppParams
 func RandomAppParams() basics.AppParams {
 	ap := basics.AppParams{
-		ApprovalProgram:   make([]byte, int(crypto.RandUint63())%config.MaxAppProgramLen),
-		ClearStateProgram: make([]byte, int(crypto.RandUint63())%config.MaxAppProgramLen),
+		ApprovalProgram:   make([]byte, int(cryptbase.RandUint63())%config.MaxAppProgramLen),
+		ClearStateProgram: make([]byte, int(cryptbase.RandUint63())%config.MaxAppProgramLen),
 		GlobalState:       make(basics.TealKeyValue),
 		StateSchemas: basics.StateSchemas{
 			LocalStateSchema: basics.StateSchema{
-				NumUint:      crypto.RandUint64()%5 + 1,
-				NumByteSlice: crypto.RandUint64() % 5,
+				NumUint:      cryptbase.RandUint64()%5 + 1,
+				NumByteSlice: cryptbase.RandUint64() % 5,
 			},
 			GlobalStateSchema: basics.StateSchema{
-				NumUint:      crypto.RandUint64()%5 + 1,
-				NumByteSlice: crypto.RandUint64() % 5,
+				NumUint:      cryptbase.RandUint64()%5 + 1,
+				NumByteSlice: cryptbase.RandUint64() % 5,
 			},
 		},
 	}
 	if len(ap.ApprovalProgram) > 0 {
-		crypto.RandBytes(ap.ApprovalProgram[:])
+		cryptbase.RandBytes(ap.ApprovalProgram[:])
 	} else {
 		ap.ApprovalProgram = nil
 	}
 	if len(ap.ClearStateProgram) > 0 {
-		crypto.RandBytes(ap.ClearStateProgram[:])
+		cryptbase.RandBytes(ap.ClearStateProgram[:])
 	} else {
 		ap.ClearStateProgram = nil
 	}
 
 	for i := uint64(0); i < ap.StateSchemas.LocalStateSchema.NumUint+ap.StateSchemas.GlobalStateSchema.NumUint; i++ {
-		appName := fmt.Sprintf("tapp%x-%x", crypto.RandUint64(), i)
+		appName := fmt.Sprintf("tapp%x-%x", cryptbase.RandUint64(), i)
 		ap.GlobalState[appName] = basics.TealValue{
 			Type: basics.TealUintType,
-			Uint: crypto.RandUint64(),
+			Uint: cryptbase.RandUint64(),
 		}
 	}
 	for i := uint64(0); i < ap.StateSchemas.LocalStateSchema.NumByteSlice+ap.StateSchemas.GlobalStateSchema.NumByteSlice; i++ {
-		appName := fmt.Sprintf("tapp%x-%x", crypto.RandUint64(), i)
+		appName := fmt.Sprintf("tapp%x-%x", cryptbase.RandUint64(), i)
 		tv := basics.TealValue{
 			Type: basics.TealBytesType,
 		}
-		bytes := make([]byte, crypto.RandUint64()%uint64(config.MaxBytesKeyValueLen))
-		crypto.RandBytes(bytes[:])
+		bytes := make([]byte, cryptbase.RandUint64()%uint64(config.MaxBytesKeyValueLen))
+		cryptbase.RandBytes(bytes[:])
 		tv.Bytes = string(bytes)
 		ap.GlobalState[appName] = tv
 	}
@@ -170,26 +171,26 @@ func RandomAppParams() basics.AppParams {
 func RandomAppLocalState() basics.AppLocalState {
 	ls := basics.AppLocalState{
 		Schema: basics.StateSchema{
-			NumUint:      crypto.RandUint64()%5 + 1,
-			NumByteSlice: crypto.RandUint64() % 5,
+			NumUint:      cryptbase.RandUint64()%5 + 1,
+			NumByteSlice: cryptbase.RandUint64() % 5,
 		},
 		KeyValue: make(map[string]basics.TealValue),
 	}
 
 	for i := uint64(0); i < ls.Schema.NumUint; i++ {
-		appName := fmt.Sprintf("lapp%x-%x", crypto.RandUint64(), i)
+		appName := fmt.Sprintf("lapp%x-%x", cryptbase.RandUint64(), i)
 		ls.KeyValue[appName] = basics.TealValue{
 			Type: basics.TealUintType,
-			Uint: crypto.RandUint64(),
+			Uint: cryptbase.RandUint64(),
 		}
 	}
 	for i := uint64(0); i < ls.Schema.NumByteSlice; i++ {
-		appName := fmt.Sprintf("lapp%x-%x", crypto.RandUint64(), i)
+		appName := fmt.Sprintf("lapp%x-%x", cryptbase.RandUint64(), i)
 		tv := basics.TealValue{
 			Type: basics.TealBytesType,
 		}
-		bytes := make([]byte, crypto.RandUint64()%uint64(config.MaxBytesKeyValueLen-len(appName)))
-		crypto.RandBytes(bytes[:])
+		bytes := make([]byte, cryptbase.RandUint64()%uint64(config.MaxBytesKeyValueLen-len(appName)))
+		cryptbase.RandBytes(bytes[:])
 		tv.Bytes = string(bytes)
 		ls.KeyValue[appName] = tv
 	}
@@ -205,12 +206,12 @@ func RandomFullAccountData(rewardsLevel uint64, lastCreatableID *basics.Creatabl
 	data := RandomAccountData(rewardsLevel)
 
 	if data.Status == basics.Online {
-		crypto.RandBytes(data.VoteID[:])
-		crypto.RandBytes(data.SelectionID[:])
-		crypto.RandBytes(data.StateProofID[:])
-		data.VoteFirstValid = basics.Round(crypto.RandUint64())
-		data.VoteLastValid = basics.Round(crypto.RandUint64() % uint64(math.MaxInt64)) // int64 is the max sqlite can store
-		data.VoteKeyDilution = crypto.RandUint64()
+		cryptbase.RandBytes(data.VoteID[:])
+		cryptbase.RandBytes(data.SelectionID[:])
+		cryptbase.RandBytes(data.StateProofID[:])
+		data.VoteFirstValid = basics.Round(cryptbase.RandUint64())
+		data.VoteLastValid = basics.Round(cryptbase.RandUint64() % uint64(math.MaxInt64)) // int64 is the max sqlite can store
+		data.VoteKeyDilution = cryptbase.RandUint64()
 	} else {
 		data.VoteID = crypto.OneTimeSignatureVerifier{}
 		data.SelectionID = crypto.VRFVerifier{}
@@ -219,9 +220,9 @@ func RandomFullAccountData(rewardsLevel uint64, lastCreatableID *basics.Creatabl
 		data.VoteLastValid = 0
 		data.VoteKeyDilution = 0
 	}
-	if (crypto.RandUint64() % 2) == 1 {
+	if (cryptbase.RandUint64() % 2) == 1 {
 		// if account has created assets, have these defined.
-		createdAssetsCount := crypto.RandUint64()%20 + 1
+		createdAssetsCount := cryptbase.RandUint64()%20 + 1
 		data.AssetParams = make(map[basics.AssetIndex]basics.AssetParams, createdAssetsCount)
 		for i := uint64(0); i < createdAssetsCount; i++ {
 			ap := RandomAssetParams()
@@ -230,15 +231,15 @@ func RandomFullAccountData(rewardsLevel uint64, lastCreatableID *basics.Creatabl
 			assets[basics.AssetIndex(*lastCreatableID)] = struct{}{}
 		}
 	}
-	if (crypto.RandUint64()%2 == 1) && (len(assets) > 0) {
+	if (cryptbase.RandUint64()%2 == 1) && (len(assets) > 0) {
 		// if account owns assets
-		ownedAssetsCount := crypto.RandUint64()%20 + 1
+		ownedAssetsCount := cryptbase.RandUint64()%20 + 1
 		data.Assets = make(map[basics.AssetIndex]basics.AssetHolding, ownedAssetsCount)
 		for i := uint64(0); i < ownedAssetsCount; i++ {
 			ah := RandomAssetHolding(false)
 			var aidx basics.AssetIndex
 			for {
-				aidx = basics.AssetIndex(crypto.RandUint64()%uint64(*lastCreatableID) + 1)
+				aidx = basics.AssetIndex(cryptbase.RandUint64()%uint64(*lastCreatableID) + 1)
 				if _, ok := assets[aidx]; ok {
 					break
 				}
@@ -247,12 +248,12 @@ func RandomFullAccountData(rewardsLevel uint64, lastCreatableID *basics.Creatabl
 			data.Assets[aidx] = ah
 		}
 	}
-	if (crypto.RandUint64() % 5) == 1 {
-		crypto.RandBytes(data.AuthAddr[:])
+	if (cryptbase.RandUint64() % 5) == 1 {
+		cryptbase.RandBytes(data.AuthAddr[:])
 	}
 
-	if (crypto.RandUint64() % 3) == 1 {
-		appParamsCount := crypto.RandUint64()%5 + 1
+	if (cryptbase.RandUint64() % 3) == 1 {
+		appParamsCount := cryptbase.RandUint64()%5 + 1
 		data.AppParams = make(map[basics.AppIndex]basics.AppParams, appParamsCount)
 		for i := uint64(0); i < appParamsCount; i++ {
 			ap := RandomAppParams()
@@ -261,14 +262,14 @@ func RandomFullAccountData(rewardsLevel uint64, lastCreatableID *basics.Creatabl
 			apps[basics.AppIndex(*lastCreatableID)] = struct{}{}
 		}
 	}
-	if (crypto.RandUint64()%3 == 1) && (len(apps) > 0) {
-		appStatesCount := crypto.RandUint64()%20 + 1
+	if (cryptbase.RandUint64()%3 == 1) && (len(apps) > 0) {
+		appStatesCount := cryptbase.RandUint64()%20 + 1
 		data.AppLocalStates = make(map[basics.AppIndex]basics.AppLocalState, appStatesCount)
 		for i := uint64(0); i < appStatesCount; i++ {
 			ap := RandomAppLocalState()
 			var aidx basics.AppIndex
 			for {
-				aidx = basics.AppIndex(crypto.RandUint64()%uint64(*lastCreatableID) + 1)
+				aidx = basics.AppIndex(cryptbase.RandUint64()%uint64(*lastCreatableID) + 1)
 				if _, ok := apps[aidx]; ok {
 					break
 				}
@@ -277,10 +278,10 @@ func RandomFullAccountData(rewardsLevel uint64, lastCreatableID *basics.Creatabl
 		}
 	}
 
-	if (crypto.RandUint64() % 3) == 1 {
+	if (cryptbase.RandUint64() % 3) == 1 {
 		data.TotalAppSchema = basics.StateSchema{
-			NumUint:      crypto.RandUint64() % 50,
-			NumByteSlice: crypto.RandUint64() % 50,
+			NumUint:      cryptbase.RandUint64() % 50,
+			NumByteSlice: cryptbase.RandUint64() % 50,
 		}
 	}
 
@@ -295,7 +296,7 @@ func RandomAccounts(niter int, simpleAccounts bool) map[basics.Address]basics.Ac
 			res[RandomAddress()] = RandomAccountData(0)
 		}
 	} else {
-		lastCreatableID := basics.CreatableIndex(crypto.RandUint64() % 512)
+		lastCreatableID := basics.CreatableIndex(cryptbase.RandUint64() % 512)
 		assets := make(map[basics.AssetIndex]struct{})
 		apps := make(map[basics.AppIndex]struct{})
 		for i := 0; i < niter; i++ {

@@ -22,12 +22,12 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/transactions/logic"
 )
@@ -88,7 +88,7 @@ func main() {
 			program = append(program, []byte(substrings[1])...)
 
 			obj := logic.Program(program)
-			lhash := crypto.HashObj(&obj)
+			lhash := cryptbase.HashObj(&obj)
 			fmt.Println("addr:", basics.Address(lhash))
 			fmt.Println("mod:", encfn(program))
 		}

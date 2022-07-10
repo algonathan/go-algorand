@@ -18,12 +18,12 @@ package ledger
 
 import (
 	"encoding/binary"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/test/partitiontest"
@@ -39,7 +39,7 @@ func TestLRUBasicAccounts(t *testing.T) {
 	// write 50 accounts
 	for i := 0; i < accountsNum; i++ {
 		acct := persistedAccountData{
-			addr:        basics.Address(crypto.Hash([]byte{byte(i)})),
+			addr:        basics.Address(cryptbase.Hash([]byte{byte(i)})),
 			round:       basics.Round(i),
 			rowid:       int64(i),
 			accountData: baseAccountData{MicroAlgos: basics.MicroAlgos{Raw: uint64(i)}},
@@ -49,7 +49,7 @@ func TestLRUBasicAccounts(t *testing.T) {
 
 	// verify that all these accounts are truly there.
 	for i := 0; i < accountsNum; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		acct, has := baseAcct.read(addr)
 		require.True(t, has)
 		require.Equal(t, basics.Round(i), acct.round)
@@ -60,7 +60,7 @@ func TestLRUBasicAccounts(t *testing.T) {
 
 	// verify expected missing entries
 	for i := accountsNum; i < accountsNum*2; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		acct, has := baseAcct.read(addr)
 		require.False(t, has)
 		require.Equal(t, persistedAccountData{}, acct)
@@ -70,7 +70,7 @@ func TestLRUBasicAccounts(t *testing.T) {
 
 	// verify expected (missing/existing) entries
 	for i := 0; i < accountsNum*2; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		acct, has := baseAcct.read(addr)
 
 		if i >= accountsNum/2 && i < accountsNum {
@@ -96,9 +96,9 @@ func TestLRUAccountsPendingWrites(t *testing.T) {
 
 	for i := 0; i < accountsNum; i++ {
 		go func(i int) {
-			time.Sleep(time.Duration((crypto.RandUint64() % 50)) * time.Millisecond)
+			time.Sleep(time.Duration((cryptbase.RandUint64() % 50)) * time.Millisecond)
 			acct := persistedAccountData{
-				addr:        basics.Address(crypto.Hash([]byte{byte(i)})),
+				addr:        basics.Address(cryptbase.Hash([]byte{byte(i)})),
 				round:       basics.Round(i),
 				rowid:       int64(i),
 				accountData: baseAccountData{MicroAlgos: basics.MicroAlgos{Raw: uint64(i)}},
@@ -112,7 +112,7 @@ func TestLRUAccountsPendingWrites(t *testing.T) {
 		// check if all accounts were loaded into "main" cache.
 		allAccountsLoaded := true
 		for i := 0; i < accountsNum; i++ {
-			addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+			addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 			_, has := baseAcct.read(addr)
 			if !has {
 				allAccountsLoaded = false
@@ -150,7 +150,7 @@ func TestLRUAccountsPendingWritesWarning(t *testing.T) {
 	for j := 0; j < 50; j++ {
 		for i := 0; i < j; i++ {
 			acct := persistedAccountData{
-				addr:        basics.Address(crypto.Hash([]byte{byte(i)})),
+				addr:        basics.Address(cryptbase.Hash([]byte{byte(i)})),
 				round:       basics.Round(i),
 				rowid:       int64(i),
 				accountData: baseAccountData{MicroAlgos: basics.MicroAlgos{Raw: uint64(i)}},
@@ -176,7 +176,7 @@ func TestLRUAccountsOmittedPendingWrites(t *testing.T) {
 
 	for i := 0; i < pendingWritesBuffer*2; i++ {
 		acct := persistedAccountData{
-			addr:        basics.Address(crypto.Hash([]byte{byte(i)})),
+			addr:        basics.Address(cryptbase.Hash([]byte{byte(i)})),
 			round:       basics.Round(i),
 			rowid:       int64(i),
 			accountData: baseAccountData{MicroAlgos: basics.MicroAlgos{Raw: uint64(i)}},
@@ -188,7 +188,7 @@ func TestLRUAccountsOmittedPendingWrites(t *testing.T) {
 
 	// verify that all these accounts are truly there.
 	for i := 0; i < pendingWritesBuffer; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		acct, has := baseAcct.read(addr)
 		require.True(t, has)
 		require.Equal(t, basics.Round(i), acct.round)
@@ -199,7 +199,7 @@ func TestLRUAccountsOmittedPendingWrites(t *testing.T) {
 
 	// verify expected missing entries
 	for i := pendingWritesBuffer; i < pendingWritesBuffer*2; i++ {
-		addr := basics.Address(crypto.Hash([]byte{byte(i)}))
+		addr := basics.Address(cryptbase.Hash([]byte{byte(i)}))
 		acct, has := baseAcct.read(addr)
 		require.False(t, has)
 		require.Equal(t, persistedAccountData{}, acct)
@@ -244,7 +244,7 @@ func generatePersistedAccountData(startRound, endRound int) []persistedAccountDa
 
 	for i := startRound; i < endRound; i++ {
 		binary.BigEndian.PutUint32(buffer, uint32(i))
-		digest := crypto.Hash(buffer)
+		digest := cryptbase.Hash(buffer)
 
 		accounts[i-startRound] = persistedAccountData{
 			addr:        basics.Address(digest),

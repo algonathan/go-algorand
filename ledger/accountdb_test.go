@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"os"
 	"reflect"
@@ -265,7 +266,7 @@ func TestAccountDBRound(t *testing.T) {
 	numElementsPerSegment := 10
 
 	// lastCreatableID stores asset or app max used index to get rid of conflicts
-	lastCreatableID := basics.CreatableIndex(crypto.RandUint64() % 512)
+	lastCreatableID := basics.CreatableIndex(cryptbase.RandUint64() % 512)
 	ctbsList, randomCtbs := randomCreatables(numElementsPerSegment)
 	expectedDbImage := make(map[basics.CreatableIndex]ledgercore.ModifiedCreatable)
 	var baseAccounts lruAccounts
@@ -549,7 +550,7 @@ func randomCreatableSampling(iteration int, crtbsList []basics.CreatableIndex,
 		if ctb.Created &&
 			// Always delete the first element, to make sure at least one
 			// element is always deleted.
-			(i == delSegmentStart || (crypto.RandUint64()%2) == 1) {
+			(i == delSegmentStart || (cryptbase.RandUint64()%2) == 1) {
 			ctb.Created = false
 			newSample[crtbsList[i]] = ctb
 			delete(expectedDbImage, crtbsList[i])
@@ -586,7 +587,7 @@ func randomCreatable(uniqueAssetIds map[basics.CreatableIndex]bool) (
 
 	var ctype basics.CreatableType
 
-	switch crypto.RandUint64() % 2 {
+	switch cryptbase.RandUint64() % 2 {
 	case 0:
 		ctype = basics.AssetCreatable
 	case 1:
@@ -595,14 +596,14 @@ func randomCreatable(uniqueAssetIds map[basics.CreatableIndex]bool) (
 
 	creatable := ledgercore.ModifiedCreatable{
 		Ctype:   ctype,
-		Created: (crypto.RandUint64() % 2) == 1,
+		Created: (cryptbase.RandUint64() % 2) == 1,
 		Creator: ledgertesting.RandomAddress(),
 		Ndeltas: 1,
 	}
 
 	var assetIdx basics.CreatableIndex
 	for {
-		assetIdx = basics.CreatableIndex(crypto.RandUint64() % (uint64(2) << 50))
+		assetIdx = basics.CreatableIndex(cryptbase.RandUint64() % (uint64(2) << 50))
 		_, found := uniqueAssetIds[assetIdx]
 		if !found {
 			uniqueAssetIds[assetIdx] = true
@@ -616,7 +617,7 @@ func generateRandomTestingAccountBalances(numAccounts int) (updates map[basics.A
 	secrets := crypto.GenerateOneTimeSignatureSecrets(15, 500)
 	pubVrfKey, _ := crypto.VrfKeygenFromSeed([32]byte{0, 1, 2, 3})
 	var stateProofID merklesignature.Verifier
-	crypto.RandBytes(stateProofID.Commitment[:])
+	cryptbase.RandBytes(stateProofID.Commitment[:])
 	updates = make(map[basics.Address]basics.AccountData, numAccounts)
 
 	for i := 0; i < numAccounts; i++ {
@@ -692,10 +693,10 @@ func benchmarkReadingAllBalances(b *testing.B, inMemory bool) {
 	require.NoError(b, err2)
 	tx.Commit()
 
-	prevHash := crypto.Digest{}
+	prevHash := cryptbase.Digest{}
 	for _, accountBalance := range bal {
 		encodedAccountBalance := protocol.Encode(&accountBalance)
-		prevHash = crypto.Hash(append(encodedAccountBalance, []byte(prevHash[:])...))
+		prevHash = cryptbase.Hash(append(encodedAccountBalance, []byte(prevHash[:])...))
 	}
 	require.Equal(b, b.N, len(bal))
 }
@@ -814,7 +815,7 @@ func BenchmarkWritingRandomBalancesDisk(b *testing.B) {
 		defer preparedUpdate.Close()
 		// updates accounts by address
 		randomAccountData := make([]byte, 200)
-		crypto.RandBytes(randomAccountData)
+		cryptbase.RandBytes(randomAccountData)
 		updateOrder := rand.Perm(len(accountsRowID))
 		b.ResetTimer()
 		startTime := time.Now()
@@ -841,7 +842,7 @@ func BenchmarkWritingRandomBalancesDisk(b *testing.B) {
 		defer preparedUpdate.Close()
 		// updates accounts by address
 		randomAccountData := make([]byte, 200)
-		crypto.RandBytes(randomAccountData)
+		cryptbase.RandBytes(randomAccountData)
 		updateOrder := rand.Perm(len(accountsRowID))
 		b.ResetTimer()
 		startTime := time.Now()
@@ -881,7 +882,7 @@ func TestAccountsReencoding(t *testing.T) {
 	secrets := crypto.GenerateOneTimeSignatureSecrets(15, 500)
 	pubVrfKey, _ := crypto.VrfKeygenFromSeed([32]byte{0, 1, 2, 3})
 	var stateProofID merklesignature.Verifier
-	crypto.RandBytes(stateProofID.Commitment[:])
+	cryptbase.RandBytes(stateProofID.Commitment[:])
 
 	err := dbs.Wdb.Atomic(func(ctx context.Context, tx *sql.Tx) (err error) {
 		accountsInitTest(t, tx, make(map[basics.Address]basics.AccountData), protocol.ConsensusCurrentVersion)
@@ -1020,9 +1021,9 @@ func benchmarkWriteCatchpointStagingBalancesSub(b *testing.B, ascendingOrder boo
 		for i := uint64(0); i < chunkSize; i++ {
 			var randomAccount encodedBalanceRecordV6
 			accountData := baseAccountData{RewardsBase: accountsLoaded + i}
-			accountData.MicroAlgos.Raw = crypto.RandUint63()
+			accountData.MicroAlgos.Raw = cryptbase.RandUint63()
 			randomAccount.AccountData = protocol.Encode(&accountData)
-			crypto.RandBytes(randomAccount.Address[:])
+			cryptbase.RandBytes(randomAccount.Address[:])
 			if ascendingOrder {
 				binary.LittleEndian.PutUint64(randomAccount.Address[:], accountsLoaded+i)
 			}
@@ -2137,7 +2138,7 @@ func TestBaseAccountDataIsEmpty(t *testing.T) {
 		var ba baseAccountData
 		require.True(t, ba.IsEmpty())
 		for i := 0; i < 20; i++ {
-			h := crypto.Hash([]byte{byte(i)})
+			h := cryptbase.Hash([]byte{byte(i)})
 			rnd := binary.BigEndian.Uint64(h[:])
 			ba.UpdateRound = rnd
 			require.True(t, ba.IsEmpty())
@@ -2221,12 +2222,12 @@ func TestBaseOnlineAccountDataGettersSetters(t *testing.T) {
 	addr := ledgertesting.RandomAddress()
 	data := ledgertesting.RandomAccountData(1)
 	data.Status = basics.Online
-	crypto.RandBytes(data.VoteID[:])
-	crypto.RandBytes(data.SelectionID[:])
-	crypto.RandBytes(data.StateProofID[:])
-	data.VoteFirstValid = basics.Round(crypto.RandUint64())
-	data.VoteLastValid = basics.Round(crypto.RandUint64()) // int64 is the max sqlite can store
-	data.VoteKeyDilution = crypto.RandUint64()
+	cryptbase.RandBytes(data.VoteID[:])
+	cryptbase.RandBytes(data.SelectionID[:])
+	cryptbase.RandBytes(data.StateProofID[:])
+	data.VoteFirstValid = basics.Round(cryptbase.RandUint64())
+	data.VoteLastValid = basics.Round(cryptbase.RandUint64()) // int64 is the max sqlite can store
+	data.VoteKeyDilution = cryptbase.RandUint64()
 
 	var ba baseOnlineAccountData
 	ba.SetCoreAccountData(ledgercore.ToAccountData(data))
@@ -2272,12 +2273,12 @@ func TestBaseVotingDataGettersSetters(t *testing.T) {
 
 	data := ledgertesting.RandomAccountData(1)
 	data.Status = basics.Online
-	crypto.RandBytes(data.VoteID[:])
-	crypto.RandBytes(data.SelectionID[:])
-	crypto.RandBytes(data.StateProofID[:])
-	data.VoteFirstValid = basics.Round(crypto.RandUint64())
-	data.VoteLastValid = basics.Round(crypto.RandUint64()) // int64 is the max sqlite can store
-	data.VoteKeyDilution = crypto.RandUint64()
+	cryptbase.RandBytes(data.VoteID[:])
+	cryptbase.RandBytes(data.SelectionID[:])
+	cryptbase.RandBytes(data.StateProofID[:])
+	data.VoteFirstValid = basics.Round(cryptbase.RandUint64())
+	data.VoteLastValid = basics.Round(cryptbase.RandUint64()) // int64 is the max sqlite can store
+	data.VoteKeyDilution = cryptbase.RandUint64()
 
 	var bv baseVotingData
 	require.True(t, bv.IsEmpty())
@@ -2960,16 +2961,16 @@ func TestAccountOnlineQueries(t *testing.T) {
 	baseResources.init(nil, 100, 80)
 	baseOnlineAccounts.init(nil, 100, 80)
 
-	addrA := basics.Address(crypto.Hash([]byte("A")))
-	addrB := basics.Address(crypto.Hash([]byte("B")))
-	addrC := basics.Address(crypto.Hash([]byte("C")))
+	addrA := basics.Address(cryptbase.Hash([]byte("A")))
+	addrB := basics.Address(cryptbase.Hash([]byte("B")))
+	addrC := basics.Address(cryptbase.Hash([]byte("C")))
 
 	var voteIDA crypto.OneTimeSignatureVerifier
-	crypto.RandBytes(voteIDA[:])
+	cryptbase.RandBytes(voteIDA[:])
 	var voteIDB crypto.OneTimeSignatureVerifier
-	crypto.RandBytes(voteIDB[:])
+	cryptbase.RandBytes(voteIDB[:])
 	var voteIDC crypto.OneTimeSignatureVerifier
-	crypto.RandBytes(voteIDC[:])
+	cryptbase.RandBytes(voteIDC[:])
 
 	dataA1 := ledgercore.AccountData{
 		AccountBaseData: ledgercore.AccountBaseData{
@@ -3777,12 +3778,12 @@ func TestUnfinishedCatchpointsTable(t *testing.T) {
 		context.Background(), dbs.Wdb.Handle)
 	require.NoError(t, err)
 
-	var d3 crypto.Digest
+	var d3 cryptbase.Digest
 	rand.Read(d3[:])
 	err = insertUnfinishedCatchpoint(context.Background(), dbs.Wdb.Handle, 3, d3)
 	require.NoError(t, err)
 
-	var d5 crypto.Digest
+	var d5 cryptbase.Digest
 	rand.Read(d5[:])
 	err = insertUnfinishedCatchpoint(context.Background(), dbs.Wdb.Handle, 5, d5)
 	require.NoError(t, err)
@@ -3866,7 +3867,7 @@ func TestRemoveOfflineStateProofID(t *testing.T) {
 	defer expectedTx.Rollback()
 
 	// create account hashes
-	computeRootHash := func(tx *sql.Tx, expected bool) (crypto.Digest, error) {
+	computeRootHash := func(tx *sql.Tx, expected bool) (cryptbase.Digest, error) {
 		rows, err := tx.Query("SELECT address, data FROM accountbase")
 		require.NoError(t, err)
 		defer rows.Close()

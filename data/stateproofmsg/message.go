@@ -17,7 +17,7 @@
 package stateproofmsg
 
 import (
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	sp "github.com/algorand/go-algorand/crypto/stateproof"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -29,8 +29,8 @@ import (
 type Message struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 	// BlockHeadersCommitment contains a commitment on all light block headers within a state proof interval.
-	BlockHeadersCommitment []byte `codec:"b,allocbound=crypto.Sha256Size"`
-	VotersCommitment       []byte `codec:"v,allocbound=crypto.SumhashDigestSize"`
+	BlockHeadersCommitment []byte `codec:"b,allocbound=cryptbase.Sha256Size"`
+	VotersCommitment       []byte `codec:"v,allocbound=cryptbase.SumhashDigestSize"`
 	LnProvenWeight         uint64 `codec:"P"`
 	FirstAttestedRound     uint64 `codec:"f"`
 	LastAttestedRound      uint64 `codec:"l"`
@@ -43,7 +43,7 @@ func (m Message) ToBeHashed() (protocol.HashID, []byte) {
 
 // IntoStateProofMessageHash returns a hashed representation fitting the state proof messages.
 func (m Message) IntoStateProofMessageHash() sp.MessageHash {
-	digest := crypto.GenericHashObj(crypto.HashFactory{HashType: sp.MessageHashType}.NewHash(), m)
+	digest := cryptbase.GenericHashObj(cryptbase.HashFactory{HashType: sp.MessageHashType}.NewHash(), m)
 	result := sp.MessageHash{}
 	copy(result[:], digest)
 	return result

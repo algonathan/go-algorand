@@ -17,12 +17,11 @@
 package network
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"sort"
 	"time"
 
 	"github.com/algorand/go-deadlock"
-
-	"github.com/algorand/go-algorand/crypto"
 )
 
 type pmStage int
@@ -69,9 +68,9 @@ type pmStatistics struct {
 
 // pmPendingMessageBucket is used to buffer messages in time ranges blocks.
 type pmPendingMessageBucket struct {
-	messages  map[crypto.Digest]*pmMessage // the pendingMessages map contains messages that haven't been received from all the peers within the pmMaxMessageWaitTime, and belong to the timerange of this bucket.
-	startTime int64                        // the inclusive start-range of the timestamp which bounds the messages ranges which would go into this bucket. Time is in nano seconds UTC epoch time.
-	endTime   int64                        // the inclusive end-range of the timestamp which bounds the messages ranges which would go into this bucket. Time is in nano seconds UTC epoch time.
+	messages  map[cryptbase.Digest]*pmMessage // the pendingMessages map contains messages that haven't been received from all the peers within the pmMaxMessageWaitTime, and belong to the timerange of this bucket.
+	startTime int64                           // the inclusive start-range of the timestamp which bounds the messages ranges which would go into this bucket. Time is in nano seconds UTC epoch time.
+	endTime   int64                           // the inclusive end-range of the timestamp which bounds the messages ranges which would go into this bucket. Time is in nano seconds UTC epoch time.
 }
 
 // connectionPerformanceMonitor is the connection monitor datatype. We typically would like to have a single monitor for all
@@ -159,7 +158,7 @@ func (pm *connectionPerformanceMonitor) Reset(peers []Peer) {
 	pm.firstMessageCount = make(map[Peer]int64, len(peers))
 	pm.msgCount = 0
 	pm.advanceStage(pmStagePresync, time.Now().UnixNano())
-	pm.accumulationTime = int64(pmAccumulationTime) + int64(crypto.RandUint63())%int64(pmAccumulationTime)
+	pm.accumulationTime = int64(pmAccumulationTime) + int64(cryptbase.RandUint63())%int64(pmAccumulationTime)
 
 	for _, peer := range peers {
 		pm.monitoredConnections[peer] = true
@@ -349,7 +348,7 @@ func (pm *connectionPerformanceMonitor) accumulateMessage(msg *IncomingMessage, 
 			if msgBucket == nil {
 				// no bucket was found. create one.
 				msgBucket = &pmPendingMessageBucket{
-					messages:  make(map[crypto.Digest]*pmMessage),
+					messages:  make(map[cryptbase.Digest]*pmMessage),
 					startTime: msg.Received - (msg.Received % int64(pmMessageBucketDuration)), // align with pmMessageBucketDuration
 				}
 				msgBucket.endTime = msgBucket.startTime + int64(pmMessageBucketDuration) - 1

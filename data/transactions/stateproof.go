@@ -17,7 +17,7 @@
 package transactions
 
 import (
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/crypto/stateproof"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/stateproofmsg"
@@ -69,5 +69,5 @@ func (a specialAddr) ToBeHashed() (protocol.HashID, []byte) {
 var StateProofSender basics.Address
 
 func init() {
-	StateProofSender = basics.Address(crypto.HashObj(specialAddr("StateProofSender")))
+	StateProofSender = basics.Address(cryptbase.HashObj(specialAddr("StateProofSender")))
 }

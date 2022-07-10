@@ -19,6 +19,7 @@ package agreement
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
 
@@ -84,7 +85,7 @@ func readOnlyFixture7000() (Ledger, []basics.Address, []*crypto.VRFSecrets, []cr
 
 func generateKeys(latest basics.Round, keyBatchesForward uint) (basics.Address, *crypto.VRFSecrets, *crypto.OneTimeSignatureSecrets) {
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	s := crypto.GenerateSignatureSecrets(seed)
 	v := crypto.GenerateVRFSecrets()
 	o := crypto.GenerateOneTimeSignatureSecrets(basics.OneTimeIDForRound(latest, config.Consensus[protocol.ConsensusCurrentVersion].DefaultKeyDilution).Batch, uint64(keyBatchesForward))
@@ -118,7 +119,7 @@ func generateEnvironment(numAccounts int) (map[basics.Address]basics.AccountData
 	return genesis, addrs, vrfSecrets, otSecrets
 }
 
-func randomBlockHash() (h crypto.Digest) {
+func randomBlockHash() (h cryptbase.Digest) {
 	rand.Read(h[:])
 	return
 }
@@ -303,7 +304,7 @@ func (l *testLedger) Seed(r basics.Round) (committee.Seed, error) {
 	return b.Seed(), nil
 }
 
-func (l *testLedger) LookupDigest(r basics.Round) (crypto.Digest, error) {
+func (l *testLedger) LookupDigest(r basics.Round) (cryptbase.Digest, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -313,7 +314,7 @@ func (l *testLedger) LookupDigest(r basics.Round) (crypto.Digest, error) {
 	}
 
 	if l.maxNumBlocks != 0 && r+round(l.maxNumBlocks) < l.nextRound {
-		return crypto.Digest{}, &LedgerDroppedRoundError{}
+		return cryptbase.Digest{}, &LedgerDroppedRoundError{}
 	}
 
 	return l.entries[r].Digest(), nil
@@ -542,7 +543,7 @@ func (v *voteMakerHelper) MakeRandomProposalPayload(t *testing.T, r round) (*pro
 
 	propVal := proposalValue{
 		BlockDigest:    payload.Digest(),
-		EncodingDigest: crypto.HashObj(payload),
+		EncodingDigest: cryptbase.HashObj(payload),
 	}
 
 	return &proposal{unauthenticatedProposal: payload, ve: ve}, &propVal

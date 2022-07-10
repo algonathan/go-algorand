@@ -19,6 +19,7 @@ package transactions
 import (
 	"flag"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"testing"
 
@@ -39,7 +40,7 @@ func TestTransaction_EstimateEncodedSize(t *testing.T) {
 	require.NoError(t, err)
 
 	buf := make([]byte, 10)
-	crypto.RandBytes(buf[:])
+	cryptbase.RandBytes(buf[:])
 
 	proto := config.Consensus[protocol.ConsensusCurrentVersion]
 	tx := Transaction{
@@ -62,7 +63,7 @@ func TestTransaction_EstimateEncodedSize(t *testing.T) {
 
 func generateDummyGoNonparticpatingTransaction(addr basics.Address) (tx Transaction) {
 	buf := make([]byte, 10)
-	crypto.RandBytes(buf[:])
+	cryptbase.RandBytes(buf[:])
 
 	proto := config.Consensus[protocol.ConsensusCurrentVersion]
 	tx = Transaction{
@@ -560,12 +561,12 @@ func TestTransactionHash(t *testing.T) {
 	txn.Sender[1] = 3
 	txn.Fee.Raw = 1234
 	txid := txn.ID()
-	txid2 := Txid(crypto.HashObj(txn))
+	txid2 := Txid(cryptbase.HashObj(txn))
 	require.Equal(t, txid, txid2)
 
 	txn.LastValid = 4321
 	txid3 := txn.ID()
-	txid2 = Txid(crypto.HashObj(txn))
+	txid2 = Txid(cryptbase.HashObj(txn))
 	require.NotEqual(t, txid, txid3)
 	require.Equal(t, txid3, txid2)
 }
@@ -1248,7 +1249,7 @@ type stateproofTxnTestCase struct {
 	StateProofInterval uint64
 	fee                basics.MicroAlgos
 	note               []byte
-	group              crypto.Digest
+	group              cryptbase.Digest
 	lease              [32]byte
 	rekeyValue         basics.Address
 	sender             basics.Address
@@ -1270,7 +1271,7 @@ func (s *stateproofTxnTestCase) runIsWellFormedForTestCase() error {
 			LastValid:   0,
 			Note:        s.note,
 			GenesisID:   "",
-			GenesisHash: crypto.Digest{},
+			GenesisHash: cryptbase.Digest{},
 			Group:       s.group,
 			Lease:       s.lease,
 			RekeyTo:     s.rekeyValue,
@@ -1287,10 +1288,10 @@ func TestWellFormedStateProofTxn(t *testing.T) {
 		/* 1 */ {expectedError: errBadSenderInStateProofTxn, StateProofInterval: 256, sender: basics.Address{1, 2, 3, 4}},
 		/* 2 */ {expectedError: errFeeMustBeZeroInStateproofTxn, StateProofInterval: 256, sender: StateProofSender, fee: basics.MicroAlgos{Raw: 1}},
 		/* 3 */ {expectedError: errNoteMustBeEmptyInStateproofTxn, StateProofInterval: 256, sender: StateProofSender, note: []byte{1, 2, 3}},
-		/* 4 */ {expectedError: errGroupMustBeZeroInStateproofTxn, StateProofInterval: 256, sender: StateProofSender, group: crypto.Digest{1, 2, 3}},
+		/* 4 */ {expectedError: errGroupMustBeZeroInStateproofTxn, StateProofInterval: 256, sender: StateProofSender, group: cryptbase.Digest{1, 2, 3}},
 		/* 5 */ {expectedError: errRekeyToMustBeZeroInStateproofTxn, StateProofInterval: 256, sender: StateProofSender, rekeyValue: basics.Address{1, 2, 3, 4}},
 		/* 6 */ {expectedError: errLeaseMustBeZeroInStateproofTxn, StateProofInterval: 256, sender: StateProofSender, lease: [32]byte{1, 2, 3, 4}},
-		/* 7 */ {expectedError: nil, StateProofInterval: 256, fee: basics.MicroAlgos{Raw: 0}, note: nil, group: crypto.Digest{}, lease: [32]byte{}, rekeyValue: basics.Address{}, sender: StateProofSender},
+		/* 7 */ {expectedError: nil, StateProofInterval: 256, fee: basics.MicroAlgos{Raw: 0}, note: nil, group: cryptbase.Digest{}, lease: [32]byte{}, rekeyValue: basics.Address{}, sender: StateProofSender},
 	}
 	for i, testCase := range cases {
 		cpyTestCase := testCase

@@ -8,7 +8,7 @@ import (
 	"github.com/algorand/msgp/msgp"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/basics"
 )
 
@@ -5706,7 +5706,7 @@ func (z *TxGroup) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			} else if (*z).TxGroupHashes != nil && cap((*z).TxGroupHashes) >= zb0004 {
 				(*z).TxGroupHashes = ((*z).TxGroupHashes)[:zb0004]
 			} else {
-				(*z).TxGroupHashes = make([]crypto.Digest, zb0004)
+				(*z).TxGroupHashes = make([]cryptbase.Digest, zb0004)
 			}
 			for zb0001 := range (*z).TxGroupHashes {
 				bts, err = (*z).TxGroupHashes[zb0001].UnmarshalMsg(bts)
@@ -5757,7 +5757,7 @@ func (z *TxGroup) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				} else if (*z).TxGroupHashes != nil && cap((*z).TxGroupHashes) >= zb0006 {
 					(*z).TxGroupHashes = ((*z).TxGroupHashes)[:zb0006]
 				} else {
-					(*z).TxGroupHashes = make([]crypto.Digest, zb0006)
+					(*z).TxGroupHashes = make([]cryptbase.Digest, zb0006)
 				}
 				for zb0001 := range (*z).TxGroupHashes {
 					bts, err = (*z).TxGroupHashes[zb0001].UnmarshalMsg(bts)
@@ -5800,7 +5800,7 @@ func (z *TxGroup) MsgIsZero() bool {
 
 // MarshalMsg implements msgp.Marshaler
 func (z *Txid) MarshalMsg(b []byte) []byte {
-	return ((*(crypto.Digest))(z)).MarshalMsg(b)
+	return ((*(cryptbase.Digest))(z)).MarshalMsg(b)
 }
 func (_ *Txid) CanMarshalMsg(z interface{}) bool {
 	_, ok := (z).(*Txid)
@@ -5809,7 +5809,7 @@ func (_ *Txid) CanMarshalMsg(z interface{}) bool {
 
 // UnmarshalMsg implements msgp.Unmarshaler
 func (z *Txid) UnmarshalMsg(bts []byte) ([]byte, error) {
-	return ((*(crypto.Digest))(z)).UnmarshalMsg(bts)
+	return ((*(cryptbase.Digest))(z)).UnmarshalMsg(bts)
 }
 func (_ *Txid) CanUnmarshalMsg(z interface{}) bool {
 	_, ok := (z).(*Txid)
@@ -5818,10 +5818,10 @@ func (_ *Txid) CanUnmarshalMsg(z interface{}) bool {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *Txid) Msgsize() int {
-	return ((*(crypto.Digest))(z)).Msgsize()
+	return ((*(cryptbase.Digest))(z)).Msgsize()
 }
 
 // MsgIsZero returns whether this is a zero value
 func (z *Txid) MsgIsZero() bool {
-	return ((*(crypto.Digest))(z)).MsgIsZero()
+	return ((*(cryptbase.Digest))(z)).MsgIsZero()
 }

@@ -17,7 +17,7 @@
 package ledger
 
 import (
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
 )
@@ -34,5 +34,5 @@ type CatchpointFileHeader struct {
 	TotalAccounts     uint64                   `codec:"accountsCount"`
 	TotalChunks       uint64                   `codec:"chunksCount"`
 	Catchpoint        string                   `codec:"catchpoint"`
-	BlockHeaderDigest crypto.Digest            `codec:"blockHeaderDigest"`
+	BlockHeaderDigest cryptbase.Digest         `codec:"blockHeaderDigest"`
 }

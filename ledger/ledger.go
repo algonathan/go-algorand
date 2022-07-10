@@ -20,6 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"time"
 
@@ -27,7 +28,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -67,7 +67,7 @@ type Ledger struct {
 	accountsRebuildSynchronousMode db.SynchronousMode
 
 	// genesisHash stores the genesis hash for this ledger.
-	genesisHash crypto.Digest
+	genesisHash cryptbase.Digest
 
 	genesisAccounts map[basics.Address]basics.AccountData
 
@@ -680,7 +680,7 @@ func (l *Ledger) Wait(r basics.Round) chan struct{} {
 }
 
 // GenesisHash returns the genesis hash for this ledger.
-func (l *Ledger) GenesisHash() crypto.Digest {
+func (l *Ledger) GenesisHash() cryptbase.Digest {
 	return l.genesisHash
 }
 

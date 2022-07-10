@@ -17,6 +17,7 @@
 package transactions
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -29,7 +30,7 @@ import (
 
 func keypair() *crypto.SignatureSecrets {
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	s := crypto.GenerateSignatureSecrets(seed)
 	return s
 }

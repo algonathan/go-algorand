@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"net/http"
 	"path/filepath"
 	"runtime"
@@ -241,7 +242,7 @@ func test5MAssets(t *testing.T, scenario int) {
 
 	suggestedParams, err := fixture.AlgodClient.SuggestedParams()
 	require.NoError(t, err)
-	var genesisHash crypto.Digest
+	var genesisHash cryptbase.Digest
 	copy(genesisHash[:], suggestedParams.GenesisHash)
 	tLife := config.Consensus[protocol.ConsensusVersion(suggestedParams.ConsensusVersion)].MaxTxnLife
 
@@ -343,7 +344,7 @@ func sendAlgoTransaction(
 	receiver basics.Address,
 	amount uint64,
 	tLife uint64,
-	genesisHash crypto.Digest) (txn transactions.Transaction) {
+	genesisHash cryptbase.Digest) (txn transactions.Transaction) {
 
 	txn = transactions.Transaction{
 		Type: protocol.PaymentTx,
@@ -370,7 +371,7 @@ func createAssetTransaction(
 	sender basics.Address,
 	tLife uint64,
 	amount uint64,
-	genesisHash crypto.Digest) (assetTx transactions.Transaction) {
+	genesisHash cryptbase.Digest) (assetTx transactions.Transaction) {
 
 	note := make([]byte, 8)
 	binary.LittleEndian.PutUint64(note, counter)
@@ -401,7 +402,7 @@ func sendAssetTransaction(
 	round uint64,
 	sender basics.Address,
 	tLife uint64,
-	genesisHash crypto.Digest,
+	genesisHash cryptbase.Digest,
 	assetID basics.AssetIndex,
 	receiver basics.Address,
 	amount uint64) (tx transactions.Transaction) {
@@ -438,7 +439,7 @@ func scenarioA(
 	t *testing.T,
 	fixture *fixtures.RestClientFixture,
 	baseAcct psKey,
-	genesisHash crypto.Digest,
+	genesisHash cryptbase.Digest,
 	txnChan chan<- *txnKey,
 	txnGrpChan chan<- []txnKey,
 	tLife uint64,
@@ -626,7 +627,7 @@ func scenarioB(
 	t *testing.T,
 	fixture *fixtures.RestClientFixture,
 	baseAcct psKey,
-	genesisHash crypto.Digest,
+	genesisHash cryptbase.Digest,
 	txnChan chan<- *txnKey,
 	txnGrpChan chan<- []txnKey,
 	tLife uint64,
@@ -711,7 +712,7 @@ func scenarioC(
 	t *testing.T,
 	fixture *fixtures.RestClientFixture,
 	baseAcct psKey,
-	genesisHash crypto.Digest,
+	genesisHash cryptbase.Digest,
 	txnChan chan<- *txnKey,
 	txnGrpChan chan<- []txnKey,
 	tLife uint64,
@@ -891,7 +892,7 @@ func scenarioD(
 	t *testing.T,
 	fixture *fixtures.RestClientFixture,
 	baseAcct psKey,
-	genesisHash crypto.Digest,
+	genesisHash cryptbase.Digest,
 	txnChan chan<- *txnKey,
 	txnGrpChan chan<- []txnKey,
 	tLife uint64,
@@ -1114,7 +1115,7 @@ func makeAppTransaction(
 	sender basics.Address,
 	tLife uint64,
 	setCounterInProg bool,
-	genesisHash crypto.Digest) (appTx transactions.Transaction) {
+	genesisHash cryptbase.Digest) (appTx transactions.Transaction) {
 
 	progCounter := uint64(1)
 	if setCounterInProg {
@@ -1180,7 +1181,7 @@ func makeOptInAppTransaction(
 	round uint64,
 	sender basics.Address,
 	tLife uint64,
-	genesisHash crypto.Digest) (appTx transactions.Transaction) {
+	genesisHash cryptbase.Digest) (appTx transactions.Transaction) {
 
 	appTx, err := client.MakeUnsignedAppOptInTx(uint64(appIdx), nil, nil, nil, nil)
 	require.NoError(t, err)
@@ -1246,7 +1247,7 @@ func createAccounts(
 	balance uint64,
 	counter uint64,
 	tLife uint64,
-	genesisHash crypto.Digest,
+	genesisHash cryptbase.Digest,
 	txnChan chan<- *txnKey,
 	txnGrpChan chan<- []txnKey,
 	stopChan <-chan struct{},
@@ -1286,7 +1287,7 @@ func callAppTransaction(
 	round uint64,
 	sender basics.Address,
 	tLife uint64,
-	genesisHash crypto.Digest) (appTx transactions.Transaction) {
+	genesisHash cryptbase.Digest) (appTx transactions.Transaction) {
 
 	appTx, err := client.MakeUnsignedAppNoOpTx(uint64(appIdx), nil, nil, nil, nil)
 	require.NoError(t, err)

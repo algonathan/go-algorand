@@ -18,6 +18,7 @@ package crypto
 
 import (
 	"bytes"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/algorand/go-algorand/test/partitiontest"
@@ -25,7 +26,7 @@ import (
 
 func makeCurve25519Secret() *SignatureSecrets {
 	var s Seed
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	return GenerateSignatureSecrets(s)
 }
 
@@ -52,7 +53,7 @@ func TestVerifyZeros(t *testing.T) {
 func TestGenerateSignatureSecrets(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	var s Seed
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	ref := GenerateSignatureSecrets(s)
 	for i := 0; i < 10; i++ {
 		secrets := GenerateSignatureSecrets(s)
@@ -99,7 +100,7 @@ func BenchmarkSign(b *testing.B) {
 }
 func BenchmarkVerify(b *testing.B) {
 	c := makeCurve25519Secret()
-	strs := make([]TestingHashable, b.N)
+	strs := make([]cryptbase.TestingHashable, b.N)
 	sigs := make([]Signature, b.N)
 	for i := 0; i < b.N; i++ {
 		strs[i] = randString()

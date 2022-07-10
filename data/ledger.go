@@ -17,12 +17,12 @@
 package data
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"sync/atomic"
 	"time"
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/committee"
@@ -79,7 +79,7 @@ type roundSeed struct {
 // specified database file prefix, initializing it if necessary.
 func LoadLedger(
 	log logging.Logger, dbFilenamePrefix string, memory bool,
-	genesisProto protocol.ConsensusVersion, genesisBal bookkeeping.GenesisBalances, genesisID string, genesisHash crypto.Digest,
+	genesisProto protocol.ConsensusVersion, genesisBal bookkeeping.GenesisBalances, genesisID string, genesisHash cryptbase.Digest,
 	blockListeners []ledger.BlockListener, cfg config.Local,
 ) (*Ledger, error) {
 	if genesisBal.Balances == nil {
@@ -243,12 +243,12 @@ func (l *Ledger) Seed(r basics.Round) (committee.Seed, error) {
 // returning an error if we don't have that round or we have an
 // I/O error.
 // Implements agreement.Ledger.LookupDigest
-func (l *Ledger) LookupDigest(r basics.Round) (crypto.Digest, error) {
+func (l *Ledger) LookupDigest(r basics.Round) (cryptbase.Digest, error) {
 	blockhdr, err := l.BlockHdr(r)
 	if err != nil {
-		return crypto.Digest{}, err
+		return cryptbase.Digest{}, err
 	}
-	return crypto.Digest(blockhdr.Hash()), nil
+	return cryptbase.Digest(blockhdr.Hash()), nil
 }
 
 // ConsensusParams gives the consensus parameters agreed on in a given round,

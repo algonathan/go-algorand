@@ -17,6 +17,7 @@
 package indexer
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"os"
 	"testing"
@@ -36,7 +37,7 @@ import (
 
 const testGenesisID string = "foo"
 
-var genesisHash = crypto.Digest{0x1, 0x2, 0x3}
+var genesisHash = cryptbase.Digest{0x1, 0x2, 0x3}
 
 type IndexSuite struct {
 	suite.Suite
@@ -270,7 +271,7 @@ func generateTestObjects(numTxs, numAccs int) ([]transactions.Transaction, []tra
 
 func keypair() *crypto.SignatureSecrets {
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	s := crypto.GenerateSignatureSecrets(seed)
 	return s
 }

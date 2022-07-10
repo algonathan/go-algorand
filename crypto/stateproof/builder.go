@@ -19,8 +19,8 @@ package stateproof
 import (
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/data/basics"
@@ -179,7 +179,7 @@ func (b *Builder) Build() (*StateProof, error) {
 		b.sigs[i].L = b.sigs[i-1].L + b.sigs[i-1].Weight
 	}
 
-	hfactory := crypto.HashFactory{HashType: HashType}
+	hfactory := cryptbase.HashFactory{HashType: HashType}
 	sigtree, err := merklearray.BuildVectorCommitmentTree(committableSignatureSlotArray(b.sigs), hfactory)
 	if err != nil {
 		return nil, err

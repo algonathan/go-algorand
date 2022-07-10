@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"net"
 	"net/http"
@@ -32,7 +33,6 @@ import (
 	"github.com/algorand/websocket"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/util/metrics"
@@ -99,7 +99,7 @@ type sendMessage struct {
 	enqueued     time.Time             // the time at which the message was first generated
 	peerEnqueued time.Time             // the time at which the peer was attempting to enqueue the message
 	msgTags      map[protocol.Tag]bool // when msgTags is specified ( i.e. non-nil ), the send goroutine is to replace the message tag filter with this one. No data would be accompanied to this message.
-	hash         crypto.Digest
+	hash         cryptbase.Digest
 	ctx          context.Context
 }
 
@@ -284,9 +284,9 @@ func (wp *wsPeer) Unicast(ctx context.Context, msg []byte, tag protocol.Tag) err
 	mbytes := make([]byte, len(tbytes)+len(msg))
 	copy(mbytes, tbytes)
 	copy(mbytes[len(tbytes):], msg)
-	var digest crypto.Digest
+	var digest cryptbase.Digest
 	if tag != protocol.MsgDigestSkipTag && len(msg) >= messageFilterSize {
-		digest = crypto.Hash(mbytes)
+		digest = cryptbase.Hash(mbytes)
 	}
 
 	ok := wp.writeNonBlock(ctx, mbytes, false, digest, time.Now())
@@ -556,11 +556,11 @@ func (wp *wsPeer) handleFilterMessage(msg IncomingMessage) {
 	if wp.outgoingMsgFilter == nil {
 		return
 	}
-	if len(msg.Data) != crypto.DigestSize {
+	if len(msg.Data) != cryptbase.DigestSize {
 		wp.net.log.Warnf("bad filter message size %d", len(msg.Data))
 		return
 	}
-	var digest crypto.Digest
+	var digest cryptbase.Digest
 	copy(digest[:], msg.Data)
 	//wp.net.log.Debugf("add filter %v", digest)
 	wp.outgoingMsgFilter.CheckDigest(digest, true, true)
@@ -669,16 +669,16 @@ func (wp *wsPeer) writeLoopCleanup(reason disconnectReason) {
 	wp.wg.Done()
 }
 
-func (wp *wsPeer) writeNonBlock(ctx context.Context, data []byte, highPrio bool, digest crypto.Digest, msgEnqueueTime time.Time) bool {
+func (wp *wsPeer) writeNonBlock(ctx context.Context, data []byte, highPrio bool, digest cryptbase.Digest, msgEnqueueTime time.Time) bool {
 	msgs := make([][]byte, 1, 1)
-	digests := make([]crypto.Digest, 1, 1)
+	digests := make([]cryptbase.Digest, 1, 1)
 	msgs[0] = data
 	digests[0] = digest
 	return wp.writeNonBlockMsgs(ctx, msgs, highPrio, digests, msgEnqueueTime)
 }
 
 // return true if enqueued/sent
-func (wp *wsPeer) writeNonBlockMsgs(ctx context.Context, data [][]byte, highPrio bool, digest []crypto.Digest, msgEnqueueTime time.Time) bool {
+func (wp *wsPeer) writeNonBlockMsgs(ctx context.Context, data [][]byte, highPrio bool, digest []cryptbase.Digest, msgEnqueueTime time.Time) bool {
 	includeIndices := make([]int, 0, len(data))
 	for i := range data {
 		if wp.outgoingMsgFilter != nil && len(data[i]) > messageFilterSize && wp.outgoingMsgFilter.CheckDigest(digest[i], false, false) {
@@ -732,9 +732,9 @@ func (wp *wsPeer) sendPing() bool {
 	tagBytes := []byte(protocol.PingTag)
 	mbytes := make([]byte, len(tagBytes)+pingLength)
 	copy(mbytes, tagBytes)
-	crypto.RandBytes(mbytes[len(tagBytes):])
+	cryptbase.RandBytes(mbytes[len(tagBytes):])
 	wp.pingData = mbytes[len(tagBytes):]
-	sent := wp.writeNonBlock(context.Background(), mbytes, false, crypto.Digest{}, time.Now())
+	sent := wp.writeNonBlock(context.Background(), mbytes, false, cryptbase.Digest{}, time.Now())
 
 	if sent {
 		wp.pingInFlight = true

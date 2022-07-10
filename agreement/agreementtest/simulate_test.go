@@ -19,6 +19,7 @@ package agreementtest
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"os"
 	"strconv"
@@ -30,7 +31,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/account"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -191,7 +191,7 @@ func (l *testLedger) Seed(r basics.Round) (committee.Seed, error) {
 	return b.Seed(), nil
 }
 
-func (l *testLedger) LookupDigest(r basics.Round) (crypto.Digest, error) {
+func (l *testLedger) LookupDigest(r basics.Round) (cryptbase.Digest, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

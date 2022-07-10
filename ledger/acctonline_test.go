@@ -19,12 +19,12 @@ package ledger
 import (
 	"context"
 	"database/sql"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"sort"
 	"testing"
 	"time"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
@@ -745,7 +745,7 @@ func TestAcctOnlineRoundParamsCache(t *testing.T) {
 		if i > 2*basics.Round(maxBalLookback) {
 			consensusVersion = testProtocolVersion3
 		}
-		rewardLevelDelta := crypto.RandUint64() % 3
+		rewardLevelDelta := cryptbase.RandUint64() % 3
 		rewardLevel += rewardLevelDelta
 		var updates ledgercore.AccountDeltas
 		var totals map[basics.Address]ledgercore.AccountData

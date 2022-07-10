@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -41,7 +42,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/logging/telemetryspec"
 	"github.com/algorand/go-algorand/network/limitlistener"
@@ -750,7 +750,7 @@ func (wn *WebsocketNetwork) setup() {
 	wn.readBuffer = make(chan IncomingMessage, readBufferLen)
 
 	var rbytes [10]byte
-	crypto.RandBytes(rbytes[:])
+	cryptbase.RandBytes(rbytes[:])
 	wn.RandomID = base64.StdEncoding.EncodeToString(rbytes[:])
 
 	if wn.config.EnableIncomingMessageFilter {
@@ -1433,7 +1433,7 @@ func (wn *WebsocketNetwork) innerBroadcast(request broadcastRequest, prio bool, 
 
 	start := time.Now()
 
-	digests := make([]crypto.Digest, len(request.data), len(request.data))
+	digests := make([]cryptbase.Digest, len(request.data), len(request.data))
 	data := make([][]byte, len(request.data), len(request.data))
 	for i, d := range request.data {
 		tbytes := []byte(request.tags[i])
@@ -1442,7 +1442,7 @@ func (wn *WebsocketNetwork) innerBroadcast(request broadcastRequest, prio bool, 
 		copy(mbytes[len(tbytes):], d)
 		data[i] = mbytes
 		if request.tags[i] != protocol.MsgDigestSkipTag && len(d) >= messageFilterSize {
-			digests[i] = crypto.Hash(mbytes)
+			digests[i] = cryptbase.Hash(mbytes)
 		}
 	}
 
@@ -1702,7 +1702,7 @@ func (wn *WebsocketNetwork) checkNetworkAdvanceDisconnect() bool {
 		return false
 	}
 	var peer *wsPeer
-	disconnectPeerIdx := crypto.RandUint63() % uint64(len(outgoingPeers))
+	disconnectPeerIdx := cryptbase.RandUint63() % uint64(len(outgoingPeers))
 	peer = outgoingPeers[disconnectPeerIdx].(*wsPeer)
 
 	wn.disconnect(peer, disconnectCliqueResolve)
@@ -2112,7 +2112,7 @@ func (wn *WebsocketNetwork) tryConnect(addr, gossipAddr string) {
 			resp := wn.prioScheme.MakePrioResponse(challenge)
 			if resp != nil {
 				mbytes := append([]byte(protocol.NetPrioResponseTag), resp...)
-				sent := peer.writeNonBlock(context.Background(), mbytes, true, crypto.Digest{}, time.Now())
+				sent := peer.writeNonBlock(context.Background(), mbytes, true, cryptbase.Digest{}, time.Now())
 				if !sent {
 					wn.log.With("remote", addr).With("local", localAddr).Warnf("could not send priority response to %v", addr)
 				}

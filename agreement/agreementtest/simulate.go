@@ -19,6 +19,7 @@ package agreementtest
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strconv"
 	"time"
 
@@ -28,7 +29,6 @@ import (
 	"github.com/algorand/go-algorand/agreement/gossip"
 	"github.com/algorand/go-algorand/components/mocks"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
@@ -131,7 +131,7 @@ type CryptoRandomSource struct{}
 
 // Uint64 implements the randomness by calling hte crypto library.
 func (c *CryptoRandomSource) Uint64() uint64 {
-	return crypto.RandUint64()
+	return cryptbase.RandUint64()
 }
 
 // Simulate n rounds of agreement on the specified Ledger given the specified

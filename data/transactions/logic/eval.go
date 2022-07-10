@@ -28,6 +28,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math"
 	"math/big"
 	"math/bits"
@@ -502,7 +503,7 @@ type EvalContext struct {
 	// jumping into the middle of multibyte instruction.
 	instructionStarts map[int]bool
 
-	programHashCached crypto.Digest
+	programHashCached cryptbase.Digest
 
 	// Stores state & disassembly for the optional debugger
 	debugState *DebugState
@@ -2963,9 +2964,9 @@ func opGlobal(cx *EvalContext) error {
 // Msg is data meant to be signed and then verified with the
 // ed25519verify opcode.
 type Msg struct {
-	_struct     struct{}      `codec:",omitempty,omitemptyarray"`
-	ProgramHash crypto.Digest `codec:"p"`
-	Data        []byte        `codec:"d"`
+	_struct     struct{}         `codec:",omitempty,omitemptyarray"`
+	ProgramHash cryptbase.Digest `codec:"p"`
+	Data        []byte           `codec:"d"`
 }
 
 // ToBeHashed implements crypto.Hashable
@@ -2974,9 +2975,9 @@ func (msg Msg) ToBeHashed() (protocol.HashID, []byte) {
 }
 
 // programHash lets us lazily compute H(cx.program)
-func (cx *EvalContext) programHash() crypto.Digest {
-	if cx.programHashCached == (crypto.Digest{}) {
-		cx.programHashCached = crypto.HashObj(Program(cx.program))
+func (cx *EvalContext) programHash() cryptbase.Digest {
+	if cx.programHashCached == (cryptbase.Digest{}) {
+		cx.programHashCached = cryptbase.HashObj(Program(cx.program))
 	}
 	return cx.programHashCached
 }
@@ -4291,7 +4292,7 @@ func opItxnNext(cx *EvalContext) error {
 // that don't need (or want!) to allow low numbers to represent the account at
 // that index in Accounts array.
 func (cx *EvalContext) availableAccount(sv stackValue) (basics.Address, error) {
-	if sv.argType() != StackBytes || len(sv.Bytes) != crypto.DigestSize {
+	if sv.argType() != StackBytes || len(sv.Bytes) != cryptbase.DigestSize {
 		return basics.Address{}, fmt.Errorf("not an address")
 	}
 
@@ -4750,12 +4751,12 @@ func opItxnSubmit(cx *EvalContext) error {
 				innerOffset += itx
 			}
 			group.TxGroupHashes = append(group.TxGroupHashes,
-				crypto.Digest(cx.subtxns[itx].Txn.InnerID(parent, innerOffset)))
+				cryptbase.Digest(cx.subtxns[itx].Txn.InnerID(parent, innerOffset)))
 		}
 	}
 
 	if isGroup {
-		groupID := crypto.HashObj(group)
+		groupID := cryptbase.HashObj(group)
 		for itx := range cx.subtxns {
 			cx.subtxns[itx].Txn.Group = groupID
 		}

@@ -19,6 +19,7 @@ package basics
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"reflect"
 
 	"github.com/algorand/go-algorand/config"
@@ -409,7 +410,7 @@ func (app AppIndex) ToBeHashed() (protocol.HashID, []byte) {
 
 // Address yields the "app address" of the app
 func (app AppIndex) Address() Address {
-	return Address(crypto.HashObj(app))
+	return Address(cryptbase.HashObj(app))
 }
 
 // MakeAccountData returns a UserToken

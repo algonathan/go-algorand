@@ -17,6 +17,7 @@
 package kmdtest
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -292,7 +293,7 @@ func TestMultisigSignWithSigner(t *testing.T) {
 			Subsigs:   []crypto.MultisigSubsig{{Key: pk1}, {Key: pk2}, {Key: pk3}},
 		},
 		WalletPassword: f.WalletPassword,
-		AuthAddr:       crypto.Digest(msigAddr),
+		AuthAddr:       cryptbase.Digest(msigAddr),
 	}
 	resp2 := kmdapi.APIV1POSTMultisigTransactionSignResponse{}
 	err = f.Client.DoV1Request(req2, &resp2)
@@ -309,7 +310,7 @@ func TestMultisigSignWithSigner(t *testing.T) {
 		PublicKey:         pk2,
 		PartialMsig:       msig,
 		WalletPassword:    f.WalletPassword,
-		AuthAddr:          crypto.Digest(msigAddr),
+		AuthAddr:          cryptbase.Digest(msigAddr),
 	}
 	resp3 := kmdapi.APIV1POSTMultisigTransactionSignResponse{}
 	err = f.Client.DoV1Request(req3, &resp3)
@@ -440,7 +441,7 @@ func TestMultisigSignProgram(t *testing.T) {
 	err = protocol.Decode(resp3.Multisig, &msig)
 	a.NoError(err)
 
-	ok, err := crypto.MultisigVerify(logic.Program(program), crypto.Digest(msigAddr), msig)
+	ok, err := crypto.MultisigVerify(logic.Program(program), cryptbase.Digest(msigAddr), msig)
 	a.NoError(err)
 	a.True(ok)
 }

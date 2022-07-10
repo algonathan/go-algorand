@@ -25,6 +25,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"os"
 	"path/filepath"
@@ -37,7 +38,6 @@ import (
 	"github.com/golang/snappy"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merkletrie"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -142,7 +142,7 @@ type catchpointTracker struct {
 	balancesTrie *merkletrie.Trie
 
 	// roundDigest stores the digest of the block for every round starting with dbRound+1 and every round after it.
-	roundDigest []crypto.Digest
+	roundDigest []cryptbase.Digest
 
 	// reenableCatchpointsRound is a round where the EnableOnlineAccountCatchpoints feature was enabled via the consensus.
 	// we avoid generating catchpoints before that round in order to ensure the network remain consistent in the catchpoint
@@ -491,7 +491,7 @@ func (ct *catchpointTracker) prepareCommit(dcc *deferredCommitContext) error {
 	ct.catchpointsMu.RLock()
 	defer ct.catchpointsMu.RUnlock()
 
-	dcc.committedRoundDigests = make([]crypto.Digest, dcc.offset)
+	dcc.committedRoundDigests = make([]cryptbase.Digest, dcc.offset)
 	copy(dcc.committedRoundDigests, ct.roundDigest[:dcc.offset])
 
 	return nil
@@ -715,7 +715,7 @@ func repackCatchpoint(ctx context.Context, header CatchpointFileHeader, biggestC
 
 // Create a catchpoint (a label and possibly a file with db record) and remove
 // the unfinished catchpoint record.
-func (ct *catchpointTracker) createCatchpoint(ctx context.Context, accountsRound basics.Round, round basics.Round, dataInfo catchpointFirstStageInfo, blockHash crypto.Digest) error {
+func (ct *catchpointTracker) createCatchpoint(ctx context.Context, accountsRound basics.Round, round basics.Round, dataInfo catchpointFirstStageInfo, blockHash cryptbase.Digest) error {
 	startTime := time.Now()
 	label := ledgercore.MakeCatchpointLabel(
 		round, blockHash, dataInfo.TrieBalancesHash, dataInfo.Totals).String()
@@ -805,7 +805,7 @@ func (ct *catchpointTracker) createCatchpoint(ctx context.Context, accountsRound
 
 // Try create a catchpoint (a label and possibly a file with db record) and remove
 // the unfinished catchpoint record.
-func (ct *catchpointTracker) finishCatchpoint(ctx context.Context, round basics.Round, blockHash crypto.Digest, catchpointLookback uint64) error {
+func (ct *catchpointTracker) finishCatchpoint(ctx context.Context, round basics.Round, blockHash cryptbase.Digest, catchpointLookback uint64) error {
 	accountsRound := round - basics.Round(catchpointLookback)
 
 	ct.log.Infof("finishing catchpoint round: %d accountsRound: %d", round, accountsRound)
@@ -1359,7 +1359,7 @@ func removeSingleCatchpointFileFromDisk(dbDirectory, fileToDelete string) (err e
 
 // accountHashBuilderV6 calculates the hash key used for the trie by combining the account address and the account data
 func accountHashBuilderV6(addr basics.Address, accountData *baseAccountData, encodedAccountData []byte) []byte {
-	hash := make([]byte, 4+crypto.DigestSize)
+	hash := make([]byte, 4+cryptbase.DigestSize)
 	hashIntPrefix := accountData.UpdateRound
 	if hashIntPrefix == 0 {
 		hashIntPrefix = accountData.RewardsBase
@@ -1372,17 +1372,17 @@ func accountHashBuilderV6(addr basics.Address, accountData *baseAccountData, enc
 	}
 	hash[4] = 0 // set the 5th byte to zero to indicate it's a account base record hash
 
-	prehash := make([]byte, crypto.DigestSize+len(encodedAccountData))
+	prehash := make([]byte, cryptbase.DigestSize+len(encodedAccountData))
 	copy(prehash[:], addr[:])
-	copy(prehash[crypto.DigestSize:], encodedAccountData[:])
-	entryHash := crypto.Hash(prehash)
+	copy(prehash[cryptbase.DigestSize:], encodedAccountData[:])
+	entryHash := cryptbase.Hash(prehash)
 	copy(hash[5:], entryHash[1:])
 	return hash[:]
 }
 
 // accountHashBuilderV6 calculates the hash key used for the trie by combining the account address and the account data
 func resourcesHashBuilderV6(addr basics.Address, cidx basics.CreatableIndex, ctype basics.CreatableType, updateRound uint64, encodedResourceData []byte) []byte {
-	hash := make([]byte, 4+crypto.DigestSize)
+	hash := make([]byte, 4+cryptbase.DigestSize)
 	// write out the lowest 32 bits of the reward base. This should improve the caching of the trie by allowing
 	// recent updated to be in-cache, and "older" nodes will be left alone.
 	for i, prefix := 3, updateRound; i >= 0; i, prefix = i-1, prefix>>8 {
@@ -1391,25 +1391,25 @@ func resourcesHashBuilderV6(addr basics.Address, cidx basics.CreatableIndex, cty
 	}
 	hash[4] = byte(ctype + 1) // set the 5th byte to one or two ( asset / application ) so we could differentiate the hashes.
 
-	prehash := make([]byte, 8+crypto.DigestSize+len(encodedResourceData))
+	prehash := make([]byte, 8+cryptbase.DigestSize+len(encodedResourceData))
 	copy(prehash[:], addr[:])
-	binary.LittleEndian.PutUint64(prehash[crypto.DigestSize:], uint64(cidx))
-	copy(prehash[crypto.DigestSize+8:], encodedResourceData[:])
-	entryHash := crypto.Hash(prehash)
+	binary.LittleEndian.PutUint64(prehash[cryptbase.DigestSize:], uint64(cidx))
+	copy(prehash[cryptbase.DigestSize+8:], encodedResourceData[:])
+	entryHash := cryptbase.Hash(prehash)
 	copy(hash[5:], entryHash[1:])
 	return hash[:]
 }
 
 // accountHashBuilder calculates the hash key used for the trie by combining the account address and the account data
 func accountHashBuilder(addr basics.Address, accountData basics.AccountData, encodedAccountData []byte) []byte {
-	hash := make([]byte, 4+crypto.DigestSize)
+	hash := make([]byte, 4+cryptbase.DigestSize)
 	// write out the lowest 32 bits of the reward base. This should improve the caching of the trie by allowing
 	// recent updated to be in-cache, and "older" nodes will be left alone.
 	for i, rewards := 3, accountData.RewardsBase; i >= 0; i, rewards = i-1, rewards>>8 {
 		// the following takes the rewards & 255 -> hash[i]
 		hash[i] = byte(rewards)
 	}
-	entryHash := crypto.Hash(append(addr[:], encodedAccountData[:]...))
+	entryHash := cryptbase.Hash(append(addr[:], encodedAccountData[:]...))
 	copy(hash[4:], entryHash[:])
 	return hash[:]
 }

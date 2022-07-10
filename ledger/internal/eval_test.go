@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
 
@@ -140,9 +141,9 @@ ok:
 	}
 
 	var group transactions.TxGroup
-	group.TxGroupHashes = []crypto.Digest{crypto.HashObj(appcall1), crypto.HashObj(appcall2)}
-	appcall1.Group = crypto.HashObj(group)
-	appcall2.Group = crypto.HashObj(group)
+	group.TxGroupHashes = []cryptbase.Digest{cryptbase.HashObj(appcall1), cryptbase.HashObj(appcall2)}
+	appcall1.Group = cryptbase.HashObj(group)
+	appcall2.Group = cryptbase.HashObj(group)
 	stxn1 := appcall1.Sign(keys[0])
 	stxn2 := appcall2.Sign(keys[0])
 
@@ -302,7 +303,7 @@ func TestTestnetFixup(t *testing.T) {
 	var rewardPoolBalance ledgercore.AccountData
 	rewardPoolBalance.MicroAlgos.Raw = 1234
 	var headerRound basics.Round
-	testnetGenesisHash, _ := crypto.DigestFromString("JBR3KGFEWPEE5SAQ6IWU6EEBZMHXD4CZU6WCBXWGF57XBZIJHIRA")
+	testnetGenesisHash, _ := cryptbase.DigestFromString("JBR3KGFEWPEE5SAQ6IWU6EEBZMHXD4CZU6WCBXWGF57XBZIJHIRA")
 
 	// not a fixup round, no change
 	headerRound = 1
@@ -328,7 +329,7 @@ func TestTestnetFixup(t *testing.T) {
 }
 
 func testnetFixupExecution(t *testing.T, headerRound basics.Round, poolBonus uint64) {
-	testnetGenesisHash, _ := crypto.DigestFromString("JBR3KGFEWPEE5SAQ6IWU6EEBZMHXD4CZU6WCBXWGF57XBZIJHIRA")
+	testnetGenesisHash, _ := cryptbase.DigestFromString("JBR3KGFEWPEE5SAQ6IWU6EEBZMHXD4CZU6WCBXWGF57XBZIJHIRA")
 	// big setup so we can move some algos
 	// boilerplate like TestBlockEvaluator, but pretend to be testnet
 	genesisInitState, addrs, keys := ledgertesting.Genesis(10)
@@ -436,7 +437,7 @@ func newTestGenesis() (bookkeeping.GenesisBalances, []basics.Address, []*crypto.
 type evalTestLedger struct {
 	blocks              map[basics.Round]bookkeeping.Block
 	roundBalances       map[basics.Round]map[basics.Address]basics.AccountData
-	genesisHash         crypto.Digest
+	genesisHash         cryptbase.Digest
 	genesisProto        config.ConsensusParams
 	genesisProtoVersion protocol.ConsensusVersion
 	feeSink             basics.Address
@@ -454,7 +455,7 @@ func newTestLedger(t testing.TB, balances bookkeeping.GenesisBalances) *evalTest
 		rewardsPool:   balances.RewardsPool,
 	}
 
-	crypto.RandBytes(l.genesisHash[:])
+	cryptbase.RandBytes(l.genesisHash[:])
 	genBlock, err := bookkeeping.MakeGenesisBlock(protocol.ConsensusFuture,
 		balances, "test", l.genesisHash)
 	require.NoError(t, err)
@@ -564,7 +565,7 @@ func (ledger *evalTestLedger) LookupAsset(rnd basics.Round, addr basics.Address,
 }
 
 // GenesisHash returns the genesis hash for this ledger.
-func (ledger *evalTestLedger) GenesisHash() crypto.Digest {
+func (ledger *evalTestLedger) GenesisHash() cryptbase.Digest {
 	return ledger.genesisHash
 }
 
@@ -816,8 +817,8 @@ func TestEvalFunctionForExpiredAccounts(t *testing.T) {
 		}
 		tmp := genesisInitState.Accounts[addr]
 		tmp.Status = basics.Online
-		crypto.RandBytes(tmp.StateProofID[:])
-		crypto.RandBytes(tmp.SelectionID[:])
+		cryptbase.RandBytes(tmp.StateProofID[:])
+		cryptbase.RandBytes(tmp.SelectionID[:])
 		genesisInitState.Accounts[addr] = tmp
 	}
 
@@ -1054,9 +1055,9 @@ func TestExpiredAccountGeneration(t *testing.T) {
 		tmp.VoteFirstValid = basics.Round(1)
 		tmp.VoteLastValid = basics.Round(100)
 		tmp.VoteKeyDilution = 0x1234123412341234
-		crypto.RandBytes(tmp.SelectionID[:])
-		crypto.RandBytes(tmp.VoteID[:])
-		crypto.RandBytes(tmp.StateProofID[:])
+		cryptbase.RandBytes(tmp.SelectionID[:])
+		cryptbase.RandBytes(tmp.VoteID[:])
+		cryptbase.RandBytes(tmp.StateProofID[:])
 
 		genesisInitState.Accounts[addr] = tmp
 	}

@@ -19,10 +19,10 @@ package datatest
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -92,12 +92,12 @@ func (i ledgerImpl) Seed(r basics.Round) (committee.Seed, error) {
 	return block.Seed, nil
 }
 
-func (i ledgerImpl) LookupDigest(r basics.Round) (crypto.Digest, error) {
+func (i ledgerImpl) LookupDigest(r basics.Round) (cryptbase.Digest, error) {
 	blockhdr, err := i.l.BlockHdr(r)
 	if err != nil {
-		return crypto.Digest{}, err
+		return cryptbase.Digest{}, err
 	}
-	return crypto.Digest(blockhdr.Hash()), nil
+	return cryptbase.Digest(blockhdr.Hash()), nil
 }
 
 // Lookup implements Ledger.LookupAgreement.

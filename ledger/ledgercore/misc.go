@@ -17,7 +17,7 @@
 package ledgercore
 
 import (
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 )
@@ -26,5 +26,5 @@ import (
 type InitState struct {
 	Block       bookkeeping.Block
 	Accounts    map[basics.Address]basics.AccountData
-	GenesisHash crypto.Digest
+	GenesisHash cryptbase.Digest
 }

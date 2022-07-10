@@ -20,8 +20,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
+	"github.com/algorand/go-algorand/crypto/falcon"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 )
 
@@ -35,10 +36,10 @@ type (
 	Signature struct {
 		_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-		Signature             crypto.FalconSignature      `codec:"sig"`
+		Signature             falcon.Signature            `codec:"sig"`
 		VectorCommitmentIndex uint64                      `codec:"idx"`
 		Proof                 merklearray.SingleLeafProof `codec:"prf"`
-		VerifyingKey          crypto.FalconVerifier       `codec:"vkey"`
+		VerifyingKey          falcon.Verifier             `codec:"vkey"`
 	}
 
 	// Secrets contains the private data needed by the merkle signature scheme.
@@ -48,7 +49,7 @@ type (
 		// these keys should be temporarily stored in memory until Persist is called,
 		// in which they will be dumped into database and disposed of.
 		// non-exported fields to prevent msgpack marshalling
-		ephemeralKeys []crypto.FalconSigner
+		ephemeralKeys []falcon.Signer
 
 		SignerContext
 	}
@@ -56,7 +57,7 @@ type (
 	// Signer represents the StateProof signer for a specified round.
 	//msgp:ignore Signer
 	Signer struct {
-		SigningKey *crypto.FalconSigner
+		SigningKey *falcon.Signer
 
 		// The round for which the signature would be valid
 		Round uint64
@@ -88,8 +89,8 @@ type (
 	KeyRoundPair struct {
 		_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-		Round uint64               `codec:"rnd"`
-		Key   *crypto.FalconSigner `codec:"key"`
+		Round uint64         `codec:"rnd"`
+		Key   *falcon.Signer `codec:"key"`
 	}
 )
 
@@ -125,7 +126,7 @@ func New(firstValid, lastValid, keyLifetime uint64) (*Secrets, error) {
 	if err != nil {
 		return nil, err
 	}
-	tree, err := merklearray.BuildVectorCommitmentTree(&committablePublicKeyArray{keys, firstValid, keyLifetime}, crypto.HashFactory{HashType: MerkleSignatureSchemeHashFunction})
+	tree, err := merklearray.BuildVectorCommitmentTree(&committablePublicKeyArray{keys, firstValid, keyLifetime}, cryptbase.HashFactory{HashType: MerkleSignatureSchemeHashFunction})
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +223,7 @@ func (s *Secrets) GetAllKeys() []KeyRoundPair {
 
 // GetKey retrieves key from memory
 // the function return nil if the key does not exists
-func (s *Secrets) GetKey(round uint64) *crypto.FalconSigner {
+func (s *Secrets) GetKey(round uint64) *falcon.Signer {
 	keyRound := firstRoundInKeyLifetime(round, s.KeyLifetime)
 	idx := roundToIndex(s.FirstValid, keyRound, s.KeyLifetime)
 	if idx >= uint64(len(s.ephemeralKeys)) || (keyRound%s.KeyLifetime) != 0 || keyRound < s.FirstValid {
@@ -279,7 +280,7 @@ func (v *Verifier) VerifyBytes(round uint64, msg []byte, sig Signature) error {
 	// verification path and the index.
 	err = merklearray.VerifyVectorCommitment(
 		v.Commitment[:],
-		map[uint64]crypto.Hashable{sig.VectorCommitmentIndex: &ephkey},
+		map[uint64]cryptbase.Hashable{sig.VectorCommitmentIndex: &ephkey},
 		sig.Proof.ToProof(),
 	)
 	if err != nil {

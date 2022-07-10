@@ -18,11 +18,11 @@ package merkletrie
 
 import (
 	"encoding/binary"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -48,9 +48,9 @@ func TestInMemoryCommitter(t *testing.T) {
 	mt1, _ := MakeTrie(&memoryCommitter, defaultTestMemoryConfig)
 	// create 50000 hashes.
 	leafsCount := 50000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < len(hashes)/4; i++ {
@@ -111,9 +111,9 @@ func TestNoRedundentPages(t *testing.T) {
 
 	testSize := 20000
 	// create 20000 hashes.
-	hashes := make([]crypto.Digest, testSize)
+	hashes := make([]cryptbase.Digest, testSize)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 	for i := 0; i < len(hashes); i++ {
 		mt1.Add(hashes[i][:])
@@ -162,9 +162,9 @@ func TestMultipleCommits(t *testing.T) {
 	testSize := 5000
 	commitsCount := 5
 
-	hashes := make([]crypto.Digest, testSize)
+	hashes := make([]cryptbase.Digest, testSize)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	var memoryCommitter1 InMemoryCommitter
@@ -213,9 +213,9 @@ func TestIterativeCommits(t *testing.T) {
 		MaxChildrenPagesThreshold: 64,
 	}
 
-	hashes := make([]crypto.Digest, testSize)
+	hashes := make([]cryptbase.Digest, testSize)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i), byte(i >> 8), byte(i >> 16), byte(i >> 24), byte(0), byte(0)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i), byte(i >> 8), byte(i >> 16), byte(i >> 24), byte(0), byte(0)})
 	}
 
 	// initialize memory container.
@@ -239,7 +239,7 @@ func TestIterativeCommits(t *testing.T) {
 			deleted, err := mt.Delete(hashes[i][:])
 			require.True(t, deleted)
 			require.NoError(t, err)
-			hashes[i] = crypto.Hash([]byte{byte(i), byte(i >> 8), byte(i >> 16), byte(i >> 24), byte(r + 1), byte((r + 1) >> 8)})
+			hashes[i] = cryptbase.Hash([]byte{byte(i), byte(i >> 8), byte(i >> 16), byte(i >> 24), byte(r + 1), byte((r + 1) >> 8)})
 			added, err := mt.Add(hashes[i][:])
 			require.True(t, added)
 			require.NoError(t, err)

@@ -20,12 +20,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/test/partitiontest"
@@ -45,7 +45,7 @@ func dbOpenTestRand(t testing.TB, inMemory bool, rnd uint64) (db.Pair, string) {
 }
 
 func dbOpenTest(t testing.TB, inMemory bool) (db.Pair, string) {
-	return dbOpenTestRand(t, inMemory, crypto.RandUint64())
+	return dbOpenTestRand(t, inMemory, cryptbase.RandUint64())
 }
 
 func TestPendingSigDB(t *testing.T) {
@@ -62,14 +62,14 @@ func TestPendingSigDB(t *testing.T) {
 	for r := basics.Round(0); r < basics.Round(100); r++ {
 		err = dbs.Wdb.Atomic(func(ctx context.Context, tx *sql.Tx) error {
 			var psig pendingSig
-			crypto.RandBytes(psig.signer[:])
+			cryptbase.RandBytes(psig.signer[:])
 			return addPendingSig(tx, r, psig)
 		})
 		require.NoError(t, err)
 
 		err = dbs.Wdb.Atomic(func(ctx context.Context, tx *sql.Tx) error {
 			var psig pendingSig
-			crypto.RandBytes(psig.signer[:])
+			cryptbase.RandBytes(psig.signer[:])
 			// watermark signers from this node: 4th byte is zero
 			psig.signer[4] = 0
 			psig.fromThisNode = true

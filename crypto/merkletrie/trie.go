@@ -19,8 +19,7 @@ package merkletrie
 import (
 	"encoding/binary"
 	"errors"
-
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 const (
@@ -114,24 +113,24 @@ func (mt *Trie) SetCommitter(committer Committer) (prevCommitter Committer) {
 }
 
 // RootHash returns the root hash of all the elements in the trie
-func (mt *Trie) RootHash() (crypto.Digest, error) {
+func (mt *Trie) RootHash() (cryptbase.Digest, error) {
 	if mt.root == storedNodeIdentifierNull {
-		return crypto.Digest{}, nil
+		return cryptbase.Digest{}, nil
 	}
 	if mt.cache.modified {
 		if _, err := mt.Commit(); err != nil {
-			return crypto.Digest{}, err
+			return cryptbase.Digest{}, err
 		}
 	}
 	pnode, err := mt.cache.getNode(mt.root)
 	if err != nil {
-		return crypto.Digest{}, err
+		return cryptbase.Digest{}, err
 	}
 
 	if pnode.leaf() {
-		return crypto.Hash(append([]byte{0}, pnode.hash...)), nil
+		return cryptbase.Hash(append([]byte{0}, pnode.hash...)), nil
 	}
-	return crypto.Hash(append([]byte{1}, pnode.hash...)), nil
+	return cryptbase.Hash(append([]byte{1}, pnode.hash...)), nil
 }
 
 // Add adds the given hash to the trie.

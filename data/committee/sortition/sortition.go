@@ -25,18 +25,17 @@ import "C"
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/big"
 	"strings"
-
-	"github.com/algorand/go-algorand/crypto"
 )
 
-const precision = uint(8 * (crypto.DigestSize + 1))
+const precision = uint(8 * (cryptbase.DigestSize + 1))
 
 var maxFloat *big.Float
 
 // Select runs the sortition function and returns the number of time the key was selected
-func Select(money uint64, totalMoney uint64, expectedSize float64, vrfOutput crypto.Digest) uint64 {
+func Select(money uint64, totalMoney uint64, expectedSize float64, vrfOutput cryptbase.Digest) uint64 {
 	binomialN := float64(money)
 	binomialP := expectedSize / float64(totalMoney)
 
@@ -56,7 +55,7 @@ func Select(money uint64, totalMoney uint64, expectedSize float64, vrfOutput cry
 func init() {
 	var b int
 	var err error
-	maxFloatString := fmt.Sprintf("0x%s", strings.Repeat("ff", crypto.DigestSize))
+	maxFloatString := fmt.Sprintf("0x%s", strings.Repeat("ff", cryptbase.DigestSize))
 	maxFloat, b, err = big.ParseFloat(maxFloatString, 0, precision, big.ToNearestEven)
 	if b != 16 || err != nil {
 		err = fmt.Errorf("failed to parse big float constant in sortition : %w", err)

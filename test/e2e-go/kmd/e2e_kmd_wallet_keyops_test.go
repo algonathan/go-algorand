@@ -17,6 +17,7 @@
 package kmdtest
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -99,7 +100,7 @@ func TestImportKey(t *testing.T) {
 
 	// Generate a key outside of kmd
 	seed := crypto.Seed{}
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	secrets := crypto.GenerateSignatureSecrets(seed)
 
 	// Import the key
@@ -152,7 +153,7 @@ func TestExportKey(t *testing.T) {
 
 	// Generate a key outside of kmd
 	seed := crypto.Seed{}
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	secrets := crypto.GenerateSignatureSecrets(seed)
 
 	// Import the key
@@ -224,7 +225,7 @@ func TestDeleteKey(t *testing.T) {
 	a.NoError(err)
 
 	// Token should not be empty
-	a.NotEqual(resp0.Address, crypto.Digest{})
+	a.NotEqual(resp0.Address, cryptbase.Digest{})
 
 	// List public keys
 	req1 := kmdapi.APIV1POSTKeyListRequest{
@@ -284,9 +285,9 @@ func TestSignTransaction(t *testing.T) {
 
 	// Generate a key outside of kmd
 	seed := crypto.Seed{}
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	secrets := crypto.GenerateSignatureSecrets(seed)
-	pk := crypto.Digest(secrets.SignatureVerifier)
+	pk := cryptbase.Digest(secrets.SignatureVerifier)
 
 	// Import the key
 	req0 := kmdapi.APIV1POSTKeyImportRequest{
@@ -345,9 +346,9 @@ func TestSignProgram(t *testing.T) {
 
 	// Generate a key outside of kmd
 	seed := crypto.Seed{}
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	secrets := crypto.GenerateSignatureSecrets(seed)
-	pk := crypto.Digest(secrets.SignatureVerifier)
+	pk := cryptbase.Digest(secrets.SignatureVerifier)
 
 	// Import the key
 	req0 := kmdapi.APIV1POSTKeyImportRequest{
@@ -391,7 +392,7 @@ func BenchmarkSignTransaction(b *testing.B) {
 
 	// Generate a key outside of kmd
 	seed := crypto.Seed{}
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	secrets := crypto.GenerateSignatureSecrets(seed)
 	pk := crypto.PublicKey(secrets.SignatureVerifier)
 
@@ -455,7 +456,7 @@ func TestMasterKeyImportExport(t *testing.T) {
 
 	// Key should not be empty
 	key0 := resp0.Address
-	a.NotEqual(key0, crypto.Digest{})
+	a.NotEqual(key0, cryptbase.Digest{})
 
 	// Generate another key
 	req1 := kmdapi.APIV1POSTKeyRequest{
@@ -467,7 +468,7 @@ func TestMasterKeyImportExport(t *testing.T) {
 
 	// Key should not be empty
 	key1 := resp1.Address
-	a.NotEqual(key1, crypto.Digest{})
+	a.NotEqual(key1, cryptbase.Digest{})
 
 	// Export master key with incorrect password should fail
 	req2 := kmdapi.APIV1POSTMasterKeyExportRequest{
@@ -525,7 +526,7 @@ func TestMasterKeyImportExport(t *testing.T) {
 
 	// Key should not be empty
 	key2 := resp6.Address
-	a.NotEqual(key2, crypto.Digest{})
+	a.NotEqual(key2, cryptbase.Digest{})
 
 	// Key should not be equal to either of the keys from the first wallet
 	a.NotEqual(key2, key0)
@@ -568,7 +569,7 @@ func TestMasterKeyImportExport(t *testing.T) {
 
 	// Key should not be empty
 	key3 := resp9.Address
-	a.NotEqual(key3, crypto.Digest{})
+	a.NotEqual(key3, cryptbase.Digest{})
 
 	// Generate another key
 	req10 := kmdapi.APIV1POSTKeyRequest{
@@ -580,7 +581,7 @@ func TestMasterKeyImportExport(t *testing.T) {
 
 	// Key should not be empty
 	key4 := resp1.Address
-	a.NotEqual(key4, crypto.Digest{})
+	a.NotEqual(key4, cryptbase.Digest{})
 
 	// key3 should be the same as key0
 	a.Equal(key3, key0)

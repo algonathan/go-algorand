@@ -20,8 +20,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 )
 
@@ -44,7 +44,7 @@ func (sc committableSignatureSlotArray) Length() uint64 {
 	return uint64(len(sc))
 }
 
-func (sc committableSignatureSlotArray) Marshal(pos uint64) (crypto.Hashable, error) {
+func (sc committableSignatureSlotArray) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	if pos >= uint64(len(sc)) {
 		return nil, fmt.Errorf("%w: pos %d past end %d", ErrIndexOutOfBound, pos, len(sc))
 	}

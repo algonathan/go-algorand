@@ -20,6 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
@@ -79,7 +80,7 @@ func (id *ParticipationKeyIdentity) ToBeHashed() (protocol.HashID, []byte) {
 
 // ID creates a ParticipationID hash from the identity file.
 func (id ParticipationKeyIdentity) ID() ParticipationID {
-	return ParticipationID(crypto.HashObj(&id))
+	return ParticipationID(cryptbase.HashObj(&id))
 }
 
 // ID computes a ParticipationID.

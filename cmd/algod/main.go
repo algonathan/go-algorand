@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -31,7 +32,6 @@ import (
 	"github.com/gofrs/flock"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/daemon/algod"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/logging"
@@ -333,7 +333,7 @@ func run() int {
 			CommitHash:   currentVersion.CommitHash,
 			Branch:       currentVersion.Branch,
 			Channel:      currentVersion.Channel,
-			InstanceHash: crypto.Hash([]byte(absolutePath)).String(),
+			InstanceHash: cryptbase.Hash([]byte(absolutePath)).String(),
 		}
 
 		log.EventWithDetails(telemetryspec.ApplicationState, telemetryspec.StartupEvent, startupDetails)

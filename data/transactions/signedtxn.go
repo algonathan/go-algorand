@@ -19,6 +19,7 @@ package transactions
 import (
 	"crypto/sha256"
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
@@ -115,15 +116,15 @@ func (s *SignedTxnInBlock) ToBeHashed() (protocol.HashID, []byte) {
 }
 
 // Hash implements an optimized version of crypto.HashObj(s).
-func (s *SignedTxnInBlock) Hash() crypto.Digest {
+func (s *SignedTxnInBlock) Hash() cryptbase.Digest {
 	enc := s.MarshalMsg(append(protocol.GetEncodingBuf(), []byte(protocol.SignedTxnInBlock)...))
 	defer protocol.PutEncodingBuf(enc)
 
-	return crypto.Hash(enc)
+	return cryptbase.Hash(enc)
 }
 
 // HashSHA256 implements an optimized version of crypto.HashObj(s) using SHA256 instead of the default SHA512_256.
-func (s *SignedTxnInBlock) HashSHA256() crypto.Digest {
+func (s *SignedTxnInBlock) HashSHA256() cryptbase.Digest {
 	enc := s.MarshalMsg(append(protocol.GetEncodingBuf(), []byte(protocol.SignedTxnInBlock)...))
 	defer protocol.PutEncodingBuf(enc)
 

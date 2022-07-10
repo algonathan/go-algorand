@@ -18,13 +18,13 @@ package merklesignature
 
 import (
 	"fmt"
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // HashType/ hashSize relate to the type of hash this package uses.
 const (
-	MerkleSignatureSchemeHashFunction = crypto.Sumhash
-	MerkleSignatureSchemeRootSize     = crypto.SumhashDigestSize
+	MerkleSignatureSchemeHashFunction = cryptbase.Sumhash
+	MerkleSignatureSchemeRootSize     = cryptbase.SumhashDigestSize
 	// KeyLifetimeDefault defines the default lifetime of a key in the merkle signature scheme (in rounds).
 	KeyLifetimeDefault = 256
 

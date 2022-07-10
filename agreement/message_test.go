@@ -17,6 +17,7 @@
 package agreement
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -35,17 +36,17 @@ func BenchmarkVoteDecoding(b *testing.B) {
 		Batch: 1000,
 
 		// Avoid generating the last few offsets (in a batch size of 256), so we can increment correctly
-		Offset: crypto.RandUint64() % 250,
+		Offset: cryptbase.RandUint64() % 250,
 	}
 	proposal := unauthenticatedProposal{
-		OriginalPeriod: period(crypto.RandUint64() % 250),
+		OriginalPeriod: period(cryptbase.RandUint64() % 250),
 	}
 
 	var vrfProof crypto.VRFProof
-	crypto.SystemRNG.RandBytes(vrfProof[:])
+	cryptbase.SystemRNG.RandBytes(vrfProof[:])
 
 	var sendAddr basics.Address
-	crypto.SystemRNG.RandBytes(sendAddr[:])
+	cryptbase.SystemRNG.RandBytes(sendAddr[:])
 
 	uv := unauthenticatedVote{
 		R: rawVote{
@@ -56,8 +57,8 @@ func BenchmarkVoteDecoding(b *testing.B) {
 			Proposal: proposalValue{
 				OriginalPeriod:   period(3),
 				OriginalProposer: poolAddr,
-				BlockDigest:      crypto.Hash([]byte{1, 2, 3}),
-				EncodingDigest:   crypto.Hash([]byte{5, 6, 7}),
+				BlockDigest:      cryptbase.Hash([]byte{1, 2, 3}),
+				EncodingDigest:   cryptbase.Hash([]byte{5, 6, 7}),
 			},
 		},
 		Cred: committee.UnauthenticatedCredential{

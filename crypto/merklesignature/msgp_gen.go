@@ -5,7 +5,7 @@ package merklesignature
 import (
 	"github.com/algorand/msgp/msgp"
 
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/falcon"
 )
 
 // The following msgp objects are implemented in this file:
@@ -168,7 +168,7 @@ func (z *KeyRoundPair) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				(*z).Key = nil
 			} else {
 				if (*z).Key == nil {
-					(*z).Key = new(crypto.FalconSigner)
+					(*z).Key = new(falcon.Signer)
 				}
 				bts, err = (*z).Key.UnmarshalMsg(bts)
 				if err != nil {
@@ -215,7 +215,7 @@ func (z *KeyRoundPair) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					(*z).Key = nil
 				} else {
 					if (*z).Key == nil {
-						(*z).Key = new(crypto.FalconSigner)
+						(*z).Key = new(falcon.Signer)
 					}
 					bts, err = (*z).Key.UnmarshalMsg(bts)
 					if err != nil {

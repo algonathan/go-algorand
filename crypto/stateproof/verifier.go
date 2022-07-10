@@ -19,8 +19,8 @@ package stateproof
 import (
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 )
 
@@ -34,12 +34,12 @@ var (
 type Verifier struct {
 	strengthTarget         uint64
 	lnProvenWeight         uint64 // ln(provenWeight) as integer with 16 bits of precision
-	participantsCommitment crypto.GenericDigest
+	participantsCommitment cryptbase.GenericDigest
 }
 
 // MkVerifier constructs a verifier to check the state proof. the arguments for this function
 // represent all the verifier's trusted data
-func MkVerifier(partcom crypto.GenericDigest, provenWeight uint64, strengthTarget uint64) (*Verifier, error) {
+func MkVerifier(partcom cryptbase.GenericDigest, provenWeight uint64, strengthTarget uint64) (*Verifier, error) {
 	lnProvenWt, err := LnIntApproximation(provenWeight)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func MkVerifier(partcom crypto.GenericDigest, provenWeight uint64, strengthTarge
 
 // MkVerifierWithLnProvenWeight constructs a verifier to check the state proof. the arguments for this function
 // represent all the verifier's trusted data. This function uses the Ln(provenWeight) approximation value
-func MkVerifierWithLnProvenWeight(partcom crypto.GenericDigest, lnProvenWt uint64, strengthTarget uint64) *Verifier {
+func MkVerifierWithLnProvenWeight(partcom cryptbase.GenericDigest, lnProvenWt uint64, strengthTarget uint64) *Verifier {
 	return &Verifier{
 		strengthTarget:         strengthTarget,
 		lnProvenWeight:         lnProvenWt,
@@ -77,8 +77,8 @@ func (v *Verifier) Verify(round uint64, data MessageHash, s *StateProof) error {
 		}
 	}
 
-	sigs := make(map[uint64]crypto.Hashable)
-	parts := make(map[uint64]crypto.Hashable)
+	sigs := make(map[uint64]cryptbase.Hashable)
+	parts := make(map[uint64]cryptbase.Hashable)
 
 	for pos, r := range s.Reveals {
 		sig, err := buildCommittableSignature(r.SigSlot)

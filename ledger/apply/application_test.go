@@ -18,13 +18,13 @@ package apply
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/data/transactions/logic"
@@ -118,7 +118,7 @@ func getRandomAddress(a *require.Assertions) basics.Address {
 	a.NoError(err)
 	a.Equal(rl, n)
 
-	address := crypto.Hash(b)
+	address := cryptbase.Hash(b)
 	return basics.Address(address)
 }
 

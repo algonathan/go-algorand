@@ -17,11 +17,11 @@
 package v1
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"net/http"
 
 	"github.com/gorilla/mux"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
 	"github.com/algorand/go-algorand/daemon/kmd/session"
 	"github.com/algorand/go-algorand/daemon/kmd/wallet"
@@ -58,13 +58,13 @@ func successResponse(w http.ResponseWriter, resp kmdapi.APIV1Response) {
 	w.Write(protocol.EncodeJSON(resp))
 }
 
-func encodeAddress(addr crypto.Digest) string {
+func encodeAddress(addr cryptbase.Digest) string {
 	return basics.Address(addr).GetUserAddress()
 }
 
 // encodeAddresses turns raw addresses into checksummed strings suitable for
 // displaying to users
-func encodeAddresses(addrs []crypto.Digest) (userAddrs []string) {
+func encodeAddresses(addrs []cryptbase.Digest) (userAddrs []string) {
 	for _, addr := range addrs {
 		userAddrs = append(userAddrs, encodeAddress(addr))
 	}
@@ -624,7 +624,7 @@ func postKeyExportHandler(ctx reqContext, w http.ResponseWriter, r *http.Request
 	}
 
 	// Export the key
-	secretKey, err := wallet.ExportKey(crypto.Digest(reqAddr), []byte(req.WalletPassword))
+	secretKey, err := wallet.ExportKey(cryptbase.Digest(reqAddr), []byte(req.WalletPassword))
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, err)
 		return
@@ -733,7 +733,7 @@ func deleteKeyHandler(ctx reqContext, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Delete the key
-	err = wallet.DeleteKey(crypto.Digest(reqAddr), []byte(req.WalletPassword))
+	err = wallet.DeleteKey(cryptbase.Digest(reqAddr), []byte(req.WalletPassword))
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, err)
 		return
@@ -901,7 +901,7 @@ func postProgramSignHandler(ctx reqContext, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	stx, err := wallet.SignProgram(req.Program, crypto.Digest(reqAddr), []byte(req.WalletPassword))
+	stx, err := wallet.SignProgram(req.Program, cryptbase.Digest(reqAddr), []byte(req.WalletPassword))
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, err)
 		return
@@ -1063,7 +1063,7 @@ func postMultisigExportHandler(ctx reqContext, w http.ResponseWriter, r *http.Re
 	}
 
 	// Export the key
-	version, threshold, pks, err := wallet.LookupMultisigPreimage(crypto.Digest(reqAddr))
+	version, threshold, pks, err := wallet.LookupMultisigPreimage(cryptbase.Digest(reqAddr))
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, err)
 		return
@@ -1186,7 +1186,7 @@ func postMultisigProgramSignHandler(ctx reqContext, w http.ResponseWriter, r *ht
 	}
 
 	// Sign the transaction
-	msig, err := wallet.MultisigSignProgram(req.Program, crypto.Digest(reqAddr), req.PublicKey, req.PartialMsig, []byte(req.WalletPassword))
+	msig, err := wallet.MultisigSignProgram(req.Program, cryptbase.Digest(reqAddr), req.PublicKey, req.PartialMsig, []byte(req.WalletPassword))
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, err)
 		return
@@ -1244,7 +1244,7 @@ func deleteMultisigHandler(ctx reqContext, w http.ResponseWriter, r *http.Reques
 	}
 
 	// Delete the key
-	err = wallet.DeleteMultisigAddr(crypto.Digest(reqAddr), []byte(req.WalletPassword))
+	err = wallet.DeleteMultisigAddr(cryptbase.Digest(reqAddr), []byte(req.WalletPassword))
 	if err != nil {
 		errorResponse(w, http.StatusBadRequest, err)
 		return

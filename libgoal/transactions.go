@@ -19,6 +19,7 @@ package libgoal
 import (
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
@@ -107,7 +108,7 @@ func (c *Client) MultisigSignTransactionWithWallet(walletHandle, pw []byte, utx 
 	if err != nil {
 		return
 	}
-	resp, err := kmd.MultisigSignTransaction(walletHandle, pw, txBytes, crypto.PublicKey(addr), partial, crypto.Digest{})
+	resp, err := kmd.MultisigSignTransaction(walletHandle, pw, txBytes, crypto.PublicKey(addr), partial, cryptbase.Digest{})
 	if err != nil {
 		return
 	}
@@ -130,7 +131,7 @@ func (c *Client) MultisigSignTransactionWithWalletAndSigner(walletHandle, pw []b
 	if err != nil {
 		return
 	}
-	resp, err := kmd.MultisigSignTransaction(walletHandle, pw, txBytes, crypto.PublicKey(addr), partial, crypto.Digest(msigAddr))
+	resp, err := kmd.MultisigSignTransaction(walletHandle, pw, txBytes, crypto.PublicKey(addr), partial, cryptbase.Digest(msigAddr))
 	if err != nil {
 		return
 	}
@@ -324,7 +325,7 @@ func (c *Client) MakeUnsignedGoOnlineTx(address string, firstValid, lastValid, f
 		return transactions.Transaction{}, err
 	}
 	if cparams.SupportGenesisHash {
-		var genHash crypto.Digest
+		var genHash cryptbase.Digest
 		copy(genHash[:], params.GenesisHash)
 		goOnlineTransaction.GenesisHash = genHash
 	}
@@ -380,7 +381,7 @@ func (c *Client) MakeUnsignedGoOfflineTx(address string, firstValid, lastValid, 
 		},
 	}
 	if cparams.SupportGenesisHash {
-		var genHash crypto.Digest
+		var genHash cryptbase.Digest
 		copy(genHash[:], params.GenesisHash)
 		goOfflineTransaction.GenesisHash = genHash
 	}
@@ -434,7 +435,7 @@ func (c *Client) MakeUnsignedBecomeNonparticipatingTx(address string, firstValid
 		},
 	}
 	if cparams.SupportGenesisHash {
-		var genHash crypto.Digest
+		var genHash cryptbase.Digest
 		copy(genHash[:], params.GenesisHash)
 		becomeNonparticipatingTransaction.GenesisHash = genHash
 	}
@@ -483,7 +484,7 @@ func (c *Client) FillUnsignedTxTemplate(sender string, firstValid, lastValid, fe
 	tx.Header.LastValid = basics.Round(lastValid)
 
 	if cparams.SupportGenesisHash {
-		var genHash crypto.Digest
+		var genHash cryptbase.Digest
 		copy(genHash[:], params.GenesisHash)
 		tx.GenesisHash = genHash
 	}
@@ -837,7 +838,7 @@ func (c *Client) MakeUnsignedAssetFreezeTx(index uint64, accountToChange string,
 }
 
 // GroupID computes the group ID for a group of transactions.
-func (c *Client) GroupID(txgroup []transactions.Transaction) (gid crypto.Digest, err error) {
+func (c *Client) GroupID(txgroup []transactions.Transaction) (gid cryptbase.Digest, err error) {
 	var group transactions.TxGroup
 	for _, tx := range txgroup {
 		if !tx.Group.IsZero() {
@@ -845,8 +846,8 @@ func (c *Client) GroupID(txgroup []transactions.Transaction) (gid crypto.Digest,
 			return
 		}
 
-		group.TxGroupHashes = append(group.TxGroupHashes, crypto.Digest(tx.ID()))
+		group.TxGroupHashes = append(group.TxGroupHashes, cryptbase.Digest(tx.ID()))
 	}
 
-	return crypto.HashObj(group), nil
+	return cryptbase.HashObj(group), nil
 }

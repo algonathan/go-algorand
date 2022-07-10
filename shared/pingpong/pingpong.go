@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math"
 	"math/rand"
 	"os"
@@ -627,7 +628,7 @@ func (pps *WorkerState) makeNftTraffic(client libgoal.Client) (sentCount uint64,
 		var addr string
 
 		var seed [32]byte
-		crypto.RandBytes(seed[:])
+		cryptbase.RandBytes(seed[:])
 		privateKey := crypto.GenerateSignatureSecrets(seed)
 		publicKey := basics.Address(privateKey.SignatureVerifier)
 
@@ -758,9 +759,9 @@ func (pps *WorkerState) sendFromTo(
 		to := toList[i]
 		if cfg.RandomizeDst {
 			var addr basics.Address
-			crypto.RandBytes(addr[:])
+			cryptbase.RandBytes(addr[:])
 			to = addr.String()
-		} else if len(belowMinBalanceAccounts) > 0 && (crypto.RandUint64()%100 < 50) {
+		} else if len(belowMinBalanceAccounts) > 0 && (cryptbase.RandUint64()%100 < 50) {
 			// make 50% of the calls attempt to refund low-balanced accounts.
 			// ( if there is any )
 			// pick the first low balance account
@@ -1008,7 +1009,7 @@ func (pps *WorkerState) constructTxn(from, to string, fee, amt, aidx uint64, cli
 		noteLength := tagLen + int(rand.Uint32())%(maxNoteFieldLen-tagLen)
 		noteField = make([]byte, noteLength)
 		copy(noteField, pingpongTag)
-		crypto.RandBytes(noteField[tagLen:])
+		cryptbase.RandBytes(noteField[tagLen:])
 	} else {
 		noteField = pps.makeNextUniqueNoteField()
 	}
@@ -1016,7 +1017,7 @@ func (pps *WorkerState) constructTxn(from, to string, fee, amt, aidx uint64, cli
 	// if random lease flag set, fill the lease field with random bytes
 	var lease [32]byte
 	if cfg.RandomLease {
-		crypto.RandBytes(lease[:])
+		cryptbase.RandBytes(lease[:])
 	}
 
 	if cfg.NumApp > 0 { // Construct app transaction

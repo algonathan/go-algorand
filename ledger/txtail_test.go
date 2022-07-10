@@ -20,12 +20,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -65,7 +65,7 @@ func TestTxTailCheckdup(t *testing.T) {
 		blk.Payset[0].Txn.Note = []byte{byte(rnd % 256), byte(rnd / 256), byte(1)}
 		txids[blk.Payset[0].Txn.ID()] = ledgercore.IncludedTransactions{LastValid: rnd + txvalidity, Intra: 0}
 		txleases := make(map[ledgercore.Txlease]basics.Round, 1)
-		txleases[ledgercore.Txlease{Sender: basics.Address(crypto.Hash([]byte{byte(rnd % 256), byte(rnd / 256), byte(2)})), Lease: crypto.Hash([]byte{byte(rnd % 256), byte(rnd / 256), byte(3)})}] = rnd + leasevalidity
+		txleases[ledgercore.Txlease{Sender: basics.Address(cryptbase.Hash([]byte{byte(rnd % 256), byte(rnd / 256), byte(2)})), Lease: cryptbase.Hash([]byte{byte(rnd % 256), byte(rnd / 256), byte(3)})}] = rnd + leasevalidity
 
 		delta := ledgercore.MakeStateDelta(&blk.BlockHeader, 0, 1, 0)
 		delta.Txids = txids
@@ -94,7 +94,7 @@ func TestTxTailCheckdup(t *testing.T) {
 
 	// test lease detection
 	for rnd := basics.Round(1); rnd < lastRound; rnd++ {
-		lease := ledgercore.Txlease{Sender: basics.Address(crypto.Hash([]byte{byte(rnd % 256), byte(rnd / 256), byte(2)})), Lease: crypto.Hash([]byte{byte(rnd % 256), byte(rnd / 256), byte(3)})}
+		lease := ledgercore.Txlease{Sender: basics.Address(cryptbase.Hash([]byte{byte(rnd % 256), byte(rnd / 256), byte(2)})), Lease: cryptbase.Hash([]byte{byte(rnd % 256), byte(rnd / 256), byte(3)})}
 		err := tail.checkDup(proto, rnd, basics.Round(0), rnd, transactions.Txid{}, lease)
 		require.Errorf(t, err, "round %d", rnd)
 		if rnd < lastRound-lookback-1 {
@@ -181,12 +181,12 @@ func makeTxTailTestTransaction(r basics.Round, txnIdx int) (txn transactions.Sig
 	txn.Txn.FirstValid = r
 	txn.Txn.LastValid = r + testTxTailValidityRange
 	if txnIdx%5 == 0 {
-		digest := crypto.Hash([]byte{byte(r), byte(r >> 8), byte(r >> 16), byte(r >> 24), byte(r >> 32), byte(r >> 40), byte(r >> 48), byte(r >> 56)})
+		digest := cryptbase.Hash([]byte{byte(r), byte(r >> 8), byte(r >> 16), byte(r >> 24), byte(r >> 32), byte(r >> 40), byte(r >> 48), byte(r >> 56)})
 		copy(txn.Txn.Lease[:], digest[:])
 	}
 	// use 7 different senders.
 	sender := uint64((int(r) + txnIdx) % 7)
-	senderDigest := crypto.Hash([]byte{byte(sender), byte(sender >> 8), byte(sender >> 16), byte(sender >> 24), byte(sender >> 32), byte(sender >> 40), byte(sender >> 48), byte(sender >> 56)})
+	senderDigest := cryptbase.Hash([]byte{byte(sender), byte(sender >> 8), byte(sender >> 16), byte(sender >> 24), byte(sender >> 32), byte(sender >> 40), byte(sender >> 48), byte(sender >> 56)})
 	copy(txn.Txn.Sender[:], senderDigest[:])
 	return txn
 }
@@ -205,8 +205,8 @@ func TestTxTailLoadFromDisk(t *testing.T) {
 
 	// do some fuzz testing for leases -
 	for i := 0; i < 5000; i++ {
-		r := basics.Round(crypto.RandUint64() % uint64(ledger.Latest()))
-		txIdx := int(crypto.RandUint64() % uint64(len(txtail.recent)))
+		r := basics.Round(cryptbase.RandUint64() % uint64(ledger.Latest()))
+		txIdx := int(cryptbase.RandUint64() % uint64(len(txtail.recent)))
 		txn := makeTxTailTestTransaction(r, txIdx)
 		if txn.Txn.Lease != [32]byte{} {
 			// transaction has a lease

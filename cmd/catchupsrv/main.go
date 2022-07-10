@@ -20,6 +20,7 @@ import (
 	"encoding/base64"
 	"flag"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -30,7 +31,6 @@ import (
 	"github.com/algorand/websocket"
 	"github.com/gorilla/mux"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/network"
 	"github.com/algorand/go-algorand/rpcs"
@@ -80,7 +80,7 @@ func main() {
 		genesisID := pathVars["genesisID"]
 
 		var rnd [10]byte
-		crypto.RandBytes(rnd[:])
+		cryptbase.RandBytes(rnd[:])
 
 		requestHeader := make(http.Header)
 		requestHeader.Set(network.GenesisHeader, genesisID)

@@ -17,13 +17,13 @@
 package teal
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/framework/fixtures"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -64,7 +64,7 @@ func TestTealCompile(t *testing.T) {
 
 	fixture.Start()
 
-	var hash crypto.Digest
+	var hash cryptbase.Digest
 	compiledProgram, hash, err = libGoalClient.Compile([]byte("int 1"))
 	a.NotNil(compiledProgram)
 	a.NoError(err, "A valid v1 program should result in a compilation success")
@@ -80,5 +80,5 @@ func TestTealCompile(t *testing.T) {
 	compiledProgram, hash, err = libGoalClient.Compile([]byte("bad program"))
 	a.Error(err, "An invalid program should result in a compilation failure")
 	a.Nil(compiledProgram)
-	a.Equal(crypto.Digest{}, hash)
+	a.Equal(cryptbase.Digest{}, hash)
 }

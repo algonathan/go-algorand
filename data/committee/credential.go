@@ -19,6 +19,7 @@ package committee
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/big"
 
 	"github.com/algorand/go-algorand/config"
@@ -47,9 +48,9 @@ type (
 	// If this flag is set, this flag also includes original hashable
 	// credential.
 	Credential struct {
-		_struct struct{}      `codec:",omitempty,omitemptyarray"`
-		Weight  uint64        `codec:"wt"`
-		VrfOut  crypto.Digest `codec:"h"`
+		_struct struct{}         `codec:",omitempty,omitemptyarray"`
+		Weight  uint64           `codec:"wt"`
+		VrfOut  cryptbase.Digest `codec:"h"`
 
 		DomainSeparationEnabled bool               `codec:"ds"`
 		Hashable                hashableCredential `codec:"hc"`
@@ -82,11 +83,11 @@ func (cred UnauthenticatedCredential) Verify(proto config.ConsensusParams, m Mem
 	}
 
 	// Also hash in the address. This is necessary to decorrelate the selection of different accounts that have the same VRF key.
-	var h crypto.Digest
+	var h cryptbase.Digest
 	if proto.CredentialDomainSeparationEnabled {
-		h = crypto.HashObj(hashable)
+		h = cryptbase.HashObj(hashable)
 	} else {
-		h = crypto.Hash(append(vrfOut[:], m.Record.Addr[:]...))
+		h = cryptbase.Hash(append(vrfOut[:], m.Record.Addr[:]...))
 	}
 
 	if !ok {
@@ -182,14 +183,14 @@ func (cred Credential) lowestOutput() *big.Int {
 	// wants the hash to be large but tiebreaking between proposals wants
 	// the hash to be small.
 	for i := uint64(1); i <= cred.Weight; i++ {
-		var h crypto.Digest
+		var h cryptbase.Digest
 		if cred.DomainSeparationEnabled {
 			cred.Hashable.Iter = i
-			h = crypto.HashObj(cred.Hashable)
+			h = cryptbase.HashObj(cred.Hashable)
 		} else {
-			var h2 crypto.Digest
+			var h2 cryptbase.Digest
 			binary.BigEndian.PutUint64(h2[:], i)
-			h = crypto.Hash(append(h1[:], h2[:]...))
+			h = cryptbase.Hash(append(h1[:], h2[:]...))
 		}
 
 		if i == 1 {
@@ -209,9 +210,9 @@ func (cred Credential) lowestOutput() *big.Int {
 // LowestOutputDigest gives the lowestOutput as a crypto.Digest, which allows
 // pretty-printing a proposal's lowest output.
 // This function is only used for debugging.
-func (cred Credential) LowestOutputDigest() crypto.Digest {
+func (cred Credential) LowestOutputDigest() cryptbase.Digest {
 	lbytes := cred.lowestOutput().Bytes()
-	var out crypto.Digest
+	var out cryptbase.Digest
 	if len(lbytes) > len(out) {
 		panic("Cred lowest output too long")
 	}

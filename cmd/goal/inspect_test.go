@@ -17,6 +17,7 @@
 package main
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,55 +38,55 @@ func TestInspect(t *testing.T) {
 	require.NoError(t, err)
 
 	var payment transactions.SignedTxn
-	crypto.RandBytes(payment.Sig[:])
+	cryptbase.RandBytes(payment.Sig[:])
 	payment.Txn.Type = protocol.PaymentTx
-	crypto.RandBytes(payment.Txn.Sender[:])
-	crypto.RandBytes(payment.Txn.Receiver[:])
-	payment.Txn.Fee.Raw = crypto.RandUint64()
-	payment.Txn.Amount.Raw = crypto.RandUint64()
-	payment.Txn.FirstValid = basics.Round(crypto.RandUint64())
-	payment.Txn.LastValid = basics.Round(crypto.RandUint64())
+	cryptbase.RandBytes(payment.Txn.Sender[:])
+	cryptbase.RandBytes(payment.Txn.Receiver[:])
+	payment.Txn.Fee.Raw = cryptbase.RandUint64()
+	payment.Txn.Amount.Raw = cryptbase.RandUint64()
+	payment.Txn.FirstValid = basics.Round(cryptbase.RandUint64())
+	payment.Txn.LastValid = basics.Round(cryptbase.RandUint64())
 	_, err = inspectTxn(payment)
 	require.NoError(t, err)
 
 	var keyreg transactions.SignedTxn
-	crypto.RandBytes(keyreg.Sig[:])
+	cryptbase.RandBytes(keyreg.Sig[:])
 	keyreg.Txn.Type = protocol.KeyRegistrationTx
-	crypto.RandBytes(keyreg.Txn.Sender[:])
-	keyreg.Txn.Fee.Raw = crypto.RandUint64()
-	keyreg.Txn.FirstValid = basics.Round(crypto.RandUint64())
-	keyreg.Txn.LastValid = basics.Round(crypto.RandUint64())
-	crypto.RandBytes(keyreg.Txn.VotePK[:])
-	crypto.RandBytes(keyreg.Txn.SelectionPK[:])
+	cryptbase.RandBytes(keyreg.Txn.Sender[:])
+	keyreg.Txn.Fee.Raw = cryptbase.RandUint64()
+	keyreg.Txn.FirstValid = basics.Round(cryptbase.RandUint64())
+	keyreg.Txn.LastValid = basics.Round(cryptbase.RandUint64())
+	cryptbase.RandBytes(keyreg.Txn.VotePK[:])
+	cryptbase.RandBytes(keyreg.Txn.SelectionPK[:])
 	_, err = inspectTxn(keyreg)
 	require.NoError(t, err)
 
 	var full transactions.SignedTxn
-	crypto.RandBytes(full.Sig[:])
-	full.Msig.Version = uint8(crypto.RandUint64())
-	full.Msig.Threshold = uint8(crypto.RandUint64())
+	cryptbase.RandBytes(full.Sig[:])
+	full.Msig.Version = uint8(cryptbase.RandUint64())
+	full.Msig.Threshold = uint8(cryptbase.RandUint64())
 	full.Msig.Subsigs = make([]crypto.MultisigSubsig, 2)
-	crypto.RandBytes(full.Msig.Subsigs[0].Key[:])
-	crypto.RandBytes(full.Msig.Subsigs[0].Sig[:])
-	crypto.RandBytes(full.Msig.Subsigs[1].Key[:])
-	crypto.RandBytes(full.Msig.Subsigs[1].Sig[:])
+	cryptbase.RandBytes(full.Msig.Subsigs[0].Key[:])
+	cryptbase.RandBytes(full.Msig.Subsigs[0].Sig[:])
+	cryptbase.RandBytes(full.Msig.Subsigs[1].Key[:])
+	cryptbase.RandBytes(full.Msig.Subsigs[1].Sig[:])
 	full.Txn.Type = protocol.UnknownTx
-	crypto.RandBytes(full.Txn.Sender[:])
-	full.Txn.Fee.Raw = crypto.RandUint64()
-	full.Txn.FirstValid = basics.Round(crypto.RandUint64())
-	full.Txn.LastValid = basics.Round(crypto.RandUint64())
+	cryptbase.RandBytes(full.Txn.Sender[:])
+	full.Txn.Fee.Raw = cryptbase.RandUint64()
+	full.Txn.FirstValid = basics.Round(cryptbase.RandUint64())
+	full.Txn.LastValid = basics.Round(cryptbase.RandUint64())
 	full.Txn.Note = make([]byte, 256)
-	crypto.RandBytes(full.Txn.Note[:])
+	cryptbase.RandBytes(full.Txn.Note[:])
 	full.Txn.GenesisID = "testid"
-	crypto.RandBytes(full.Txn.GenesisHash[:])
-	crypto.RandBytes(full.Txn.VotePK[:])
-	crypto.RandBytes(full.Txn.SelectionPK[:])
-	full.Txn.VoteFirst = basics.Round(crypto.RandUint64())
-	full.Txn.VoteLast = basics.Round(crypto.RandUint64())
-	full.Txn.VoteKeyDilution = crypto.RandUint64()
-	full.Txn.Amount.Raw = crypto.RandUint64()
-	crypto.RandBytes(full.Txn.Receiver[:])
-	crypto.RandBytes(full.Txn.CloseRemainderTo[:])
+	cryptbase.RandBytes(full.Txn.GenesisHash[:])
+	cryptbase.RandBytes(full.Txn.VotePK[:])
+	cryptbase.RandBytes(full.Txn.SelectionPK[:])
+	full.Txn.VoteFirst = basics.Round(cryptbase.RandUint64())
+	full.Txn.VoteLast = basics.Round(cryptbase.RandUint64())
+	full.Txn.VoteKeyDilution = cryptbase.RandUint64()
+	full.Txn.Amount.Raw = cryptbase.RandUint64()
+	cryptbase.RandBytes(full.Txn.Receiver[:])
+	cryptbase.RandBytes(full.Txn.CloseRemainderTo[:])
 	_, err = inspectTxn(full)
 	require.NoError(t, err)
 }

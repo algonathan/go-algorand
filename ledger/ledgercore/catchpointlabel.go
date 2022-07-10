@@ -20,10 +20,10 @@ import (
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strconv"
 	"strings"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
@@ -37,13 +37,13 @@ var ErrCatchpointParsingFailed = errors.New("catchpoint parsing failed")
 // CatchpointLabel represent a single catchpoint label. It will "assemble" a label based on the components
 type CatchpointLabel struct {
 	ledgerRound          basics.Round
-	ledgerRoundBlockHash crypto.Digest
-	balancesMerkleRoot   crypto.Digest
+	ledgerRoundBlockHash cryptbase.Digest
+	balancesMerkleRoot   cryptbase.Digest
 	totals               AccountTotals
 }
 
 // MakeCatchpointLabel creates a catchpoint label given the catchpoint label parameters.
-func MakeCatchpointLabel(ledgerRound basics.Round, ledgerRoundBlockHash crypto.Digest, balancesMerkleRoot crypto.Digest, totals AccountTotals) CatchpointLabel {
+func MakeCatchpointLabel(ledgerRound basics.Round, ledgerRoundBlockHash cryptbase.Digest, balancesMerkleRoot cryptbase.Digest, totals AccountTotals) CatchpointLabel {
 	return CatchpointLabel{
 		ledgerRound:          ledgerRound,
 		ledgerRoundBlockHash: ledgerRoundBlockHash,
@@ -62,18 +62,18 @@ func (l CatchpointLabel) String() string {
 }
 
 // Hash return the hash portion of this catchpoint label
-func (l CatchpointLabel) Hash() crypto.Digest {
+func (l CatchpointLabel) Hash() cryptbase.Digest {
 	encodedTotals := protocol.EncodeReflect(&l.totals)
-	buffer := make([]byte, 2*crypto.DigestSize+len(encodedTotals))
+	buffer := make([]byte, 2*cryptbase.DigestSize+len(encodedTotals))
 	copy(buffer[:], l.ledgerRoundBlockHash[:])
-	copy(buffer[crypto.DigestSize:], l.balancesMerkleRoot[:])
-	copy(buffer[crypto.DigestSize*2:], encodedTotals)
-	return crypto.Hash(buffer[:crypto.DigestSize*2+len(encodedTotals)])
+	copy(buffer[cryptbase.DigestSize:], l.balancesMerkleRoot[:])
+	copy(buffer[cryptbase.DigestSize*2:], encodedTotals)
+	return cryptbase.Hash(buffer[:cryptbase.DigestSize*2+len(encodedTotals)])
 }
 
 // ParseCatchpointLabel parse the given label and breaks it into the round and hash components. In case of a parsing failuire,
 // the returned err is non-nil.
-func ParseCatchpointLabel(label string) (round basics.Round, hash crypto.Digest, err error) {
+func ParseCatchpointLabel(label string) (round basics.Round, hash cryptbase.Digest, err error) {
 	err = ErrCatchpointParsingFailed
 	splitted := strings.Split(label, "#")
 	if len(splitted) != 2 {
@@ -91,7 +91,7 @@ func ParseCatchpointLabel(label string) (round basics.Round, hash crypto.Digest,
 	if err != nil {
 		return
 	}
-	if len(hashBytes) > crypto.DigestSize {
+	if len(hashBytes) > cryptbase.DigestSize {
 		err = ErrCatchpointParsingFailed
 		return
 	}

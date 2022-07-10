@@ -17,12 +17,12 @@
 package merkletrie
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -35,12 +35,12 @@ func TestAddingAndRemoving(t *testing.T) {
 
 	mt, _ := MakeTrie(nil, defaultTestMemoryConfig)
 	// create 10000 hashes.
-	hashes := make([]crypto.Digest, 10000)
+	hashes := make([]cryptbase.Digest, 10000)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte(i / 256)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte(i / 256)})
 	}
 
-	rootsWhileAdding := make([]crypto.Digest, len(hashes))
+	rootsWhileAdding := make([]cryptbase.Digest, len(hashes))
 	for i := 0; i < len(hashes); i++ {
 		addResult, _ := mt.Add(hashes[i][:])
 		require.Equal(t, true, addResult)
@@ -68,7 +68,7 @@ func TestAddingAndRemoving(t *testing.T) {
 	}
 
 	roothash, _ := mt.RootHash()
-	require.Equal(t, crypto.Digest{}, roothash)
+	require.Equal(t, cryptbase.Digest{}, roothash)
 	stats, _ = mt.GetStats()
 	require.Equal(t, 0, int(stats.LeafCount))
 	require.Equal(t, 0, int(stats.Depth))
@@ -93,7 +93,7 @@ func TestRandomAddingAndRemoving(t *testing.T) {
 	// create 10000 hashes.
 	toAddHashes := make([][]byte, 10000)
 	for i := 0; i < len(toAddHashes); i++ {
-		hash := crypto.Hash([]byte{byte(i % 256), byte(i / 256)})
+		hash := cryptbase.Hash([]byte{byte(i % 256), byte(i / 256)})
 		toAddHashes[i] = hash[:]
 	}
 	toRemoveHashes := make([][]byte, 0, 10000)

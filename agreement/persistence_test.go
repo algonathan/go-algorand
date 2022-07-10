@@ -19,12 +19,12 @@ package agreement
 import (
 	"context"
 	"database/sql"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/test/partitiontest"
 	"github.com/algorand/go-algorand/util/db"
@@ -103,7 +103,7 @@ func TestAgreementPersistence(t *testing.T) {
 	}
 
 	raw := [100 * 1024]byte{}
-	crypto.RandBytes(raw[:])
+	cryptbase.RandBytes(raw[:])
 	persist(serviceLogger{Logger: logging.Base()}, accessor, p.Round, p.Period, p.Step, raw[:])
 
 	raw2, err := restore(serviceLogger{Logger: logging.Base()}, accessor)
@@ -130,7 +130,7 @@ func BenchmarkAgreementPersistence(b *testing.B) {
 	}
 
 	raw := [100 * 1024]byte{}
-	crypto.RandBytes(raw[:])
+	cryptbase.RandBytes(raw[:])
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
 		persist(serviceLogger{Logger: logging.Base()}, accessor, p.Round, p.Period, p.Step, raw[:])
@@ -156,7 +156,7 @@ func BenchmarkAgreementPersistenceRecovery(b *testing.B) {
 	}
 
 	raw := [100 * 1024]byte{}
-	crypto.RandBytes(raw[:])
+	cryptbase.RandBytes(raw[:])
 	persist(serviceLogger{Logger: logging.Base()}, accessor, p.Round, p.Period, p.Step, raw[:])
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {

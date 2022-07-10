@@ -19,6 +19,7 @@ package ledger
 import (
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
 
@@ -26,7 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -114,8 +114,8 @@ func TestEvalForIndexerCustomProtocolParams(t *testing.T) {
 
 	genesisBalances, addrs, _ := ledgertesting.NewTestGenesis()
 
-	var genHash crypto.Digest
-	crypto.RandBytes(genHash[:])
+	var genHash cryptbase.Digest
+	cryptbase.RandBytes(genHash[:])
 	block, err := bookkeeping.MakeGenesisBlock(protocol.ConsensusV24,
 		genesisBalances, "test", genHash)
 	require.NoError(t, err)
@@ -216,8 +216,8 @@ func TestEvalForIndexerForExpiredAccounts(t *testing.T) {
 
 	genesisBalances, addrs, _ := ledgertesting.NewTestGenesis()
 
-	var genHash crypto.Digest
-	crypto.RandBytes(genHash[:])
+	var genHash cryptbase.Digest
+	cryptbase.RandBytes(genHash[:])
 	block, err := bookkeeping.MakeGenesisBlock(protocol.ConsensusFuture,
 		genesisBalances, "test", genHash)
 	require.NoError(t, err)
@@ -278,13 +278,13 @@ func TestEvalForIndexerForExpiredAccounts(t *testing.T) {
 }
 
 func newTestLedger(t testing.TB, balances bookkeeping.GenesisBalances) *Ledger {
-	var genHash crypto.Digest
-	crypto.RandBytes(genHash[:])
+	var genHash cryptbase.Digest
+	cryptbase.RandBytes(genHash[:])
 	genBlock, err := bookkeeping.MakeGenesisBlock(protocol.ConsensusFuture, balances, "test", genHash)
 	require.NoError(t, err)
 	require.False(t, genBlock.FeeSink.IsZero())
 	require.False(t, genBlock.RewardsPool.IsZero())
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	cfg := config.GetDefaultLocal()
 	cfg.Archival = true
 	l, err := OpenLedger(logging.Base(), dbName, true, ledgercore.InitState{

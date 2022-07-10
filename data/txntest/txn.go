@@ -34,6 +34,7 @@ package txntest
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"reflect"
 	"strings"
 
@@ -60,8 +61,8 @@ type Txn struct {
 	LastValid   basics.Round
 	Note        []byte
 	GenesisID   string
-	GenesisHash crypto.Digest
-	Group       crypto.Digest
+	GenesisHash cryptbase.Digest
+	Group       cryptbase.Digest
 	Lease       [32]byte
 	RekeyTo     basics.Address
 
@@ -270,17 +271,17 @@ func (tx Txn) SignedTxnWithAD() transactions.SignedTxnWithAD {
 // another name is more approrpriate
 func SignedTxns(txns ...*Txn) []transactions.SignedTxn {
 	txgroup := transactions.TxGroup{
-		TxGroupHashes: make([]crypto.Digest, len(txns)),
+		TxGroupHashes: make([]cryptbase.Digest, len(txns)),
 	}
 	stxns := make([]transactions.SignedTxn, len(txns))
 	for i, txn := range txns {
 		stxns[i] = txn.SignedTxn()
 	}
 	for i, txn := range stxns {
-		txn.Txn.Group = crypto.Digest{}
-		txgroup.TxGroupHashes[i] = crypto.Digest(txn.ID())
+		txn.Txn.Group = cryptbase.Digest{}
+		txgroup.TxGroupHashes[i] = cryptbase.Digest(txn.ID())
 	}
-	group := crypto.HashObj(txgroup)
+	group := cryptbase.HashObj(txgroup)
 	for i, txn := range txns {
 		txn.Group = group
 		stxns[i].Txn.Group = group

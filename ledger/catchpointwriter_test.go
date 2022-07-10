@@ -23,6 +23,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"io/ioutil"
 	"os"
@@ -52,12 +53,12 @@ func makeString(len int) string {
 
 func makeTestEncodedBalanceRecordV5(t *testing.T) encodedBalanceRecordV5 {
 	er := encodedBalanceRecordV5{}
-	hash := crypto.Hash([]byte{1, 2, 3})
+	hash := cryptbase.Hash([]byte{1, 2, 3})
 	copy(er.Address[:], hash[:])
 	oneTimeSecrets := crypto.GenerateOneTimeSignatureSecrets(0, 1)
 	vrfSecrets := crypto.GenerateVRFSecrets()
 	var stateProofID merklesignature.Verifier
-	crypto.RandBytes(stateProofID.Commitment[:])
+	cryptbase.RandBytes(stateProofID.Commitment[:])
 
 	ad := basics.AccountData{
 		Status:             basics.NotParticipating,
@@ -72,7 +73,7 @@ func makeTestEncodedBalanceRecordV5(t *testing.T) encodedBalanceRecordV5 {
 		VoteKeyDilution:    0x1234123412341234,
 		AssetParams:        make(map[basics.AssetIndex]basics.AssetParams),
 		Assets:             make(map[basics.AssetIndex]basics.AssetHolding),
-		AuthAddr:           basics.Address(crypto.Hash([]byte{1, 2, 3, 4})),
+		AuthAddr:           basics.Address(cryptbase.Hash([]byte{1, 2, 3, 4})),
 	}
 	currentConsensusParams := config.Consensus[protocol.ConsensusCurrentVersion]
 	maxAssetsPerAccount := currentConsensusParams.MaxAssetsPerAccount
@@ -88,10 +89,10 @@ func makeTestEncodedBalanceRecordV5(t *testing.T) encodedBalanceRecordV5 {
 			UnitName:      makeString(currentConsensusParams.MaxAssetUnitNameBytes),
 			AssetName:     makeString(currentConsensusParams.MaxAssetNameBytes),
 			URL:           makeString(currentConsensusParams.MaxAssetURLBytes),
-			Manager:       basics.Address(crypto.Hash([]byte{1, byte(assetCreatorAssets)})),
-			Reserve:       basics.Address(crypto.Hash([]byte{2, byte(assetCreatorAssets)})),
-			Freeze:        basics.Address(crypto.Hash([]byte{3, byte(assetCreatorAssets)})),
-			Clawback:      basics.Address(crypto.Hash([]byte{4, byte(assetCreatorAssets)})),
+			Manager:       basics.Address(cryptbase.Hash([]byte{1, byte(assetCreatorAssets)})),
+			Reserve:       basics.Address(cryptbase.Hash([]byte{2, byte(assetCreatorAssets)})),
+			Freeze:        basics.Address(cryptbase.Hash([]byte{3, byte(assetCreatorAssets)})),
+			Clawback:      basics.Address(cryptbase.Hash([]byte{4, byte(assetCreatorAssets)})),
 		}
 		copy(ap.MetadataHash[:], makeString(32))
 		ad.AssetParams[basics.AssetIndex(0x1234123412341234-assetCreatorAssets)] = ap
@@ -117,15 +118,15 @@ func makeTestEncodedBalanceRecordV5(t *testing.T) encodedBalanceRecordV5 {
 	maxSumBytesLen := currentConsensusParams.MaxAppSumKeyValueLens
 
 	genKey := func() (string, basics.TealValue) {
-		len := int(crypto.RandUint64() % uint64(maxKeyBytesLen))
+		len := int(cryptbase.RandUint64() % uint64(maxKeyBytesLen))
 		if len == 0 {
 			return "k", basics.TealValue{Type: basics.TealUintType, Uint: 0}
 		}
 		key := make([]byte, maxSumBytesLen-len)
-		crypto.RandBytes(key)
+		cryptbase.RandBytes(key)
 		return string(key), basics.TealValue{Type: basics.TealUintType, Bytes: string(key)}
 	}
-	startIndex := crypto.RandUint64() % 100000
+	startIndex := cryptbase.RandUint64() % 100000
 	ad.AppParams = make(map[basics.AppIndex]basics.AppParams, maxApps)
 	for aidx := startIndex; aidx < startIndex+uint64(maxApps); aidx++ {
 		ap := basics.AppParams{}
@@ -332,7 +333,7 @@ func TestFullCatchpointWriter(t *testing.T) {
 	})
 	require.NoError(t, err)
 	blocksRound := accountsRnd + 1
-	blockHeaderDigest := crypto.Hash([]byte{1, 2, 3})
+	blockHeaderDigest := cryptbase.Hash([]byte{1, 2, 3})
 	catchpointLabel := fmt.Sprintf("%d#%v", blocksRound, blockHeaderDigest) // this is not a correct way to create a label, but it's good enough for this unit test
 	catchpointFileHeader := CatchpointFileHeader{
 		Version:           CatchpointFileVersionV6,

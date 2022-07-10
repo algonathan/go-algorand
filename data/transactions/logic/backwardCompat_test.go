@@ -19,6 +19,7 @@ package logic
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"testing"
 
@@ -253,7 +254,7 @@ func TestBackwardCompatTEALv1(t *testing.T) {
 
 	t.Parallel()
 	var s crypto.Seed
-	crypto.RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	c := crypto.GenerateSignatureSecrets(s)
 	msg := "62fdfc072182654f163f5f0f9a621d729566c74d0aa413bf009c9800418c19cd"
 	data, err := hex.DecodeString(msg)
@@ -273,7 +274,7 @@ func TestBackwardCompatTEALv1(t *testing.T) {
 	require.Equal(t, program[1:], opsV2.Program[1:])
 
 	sig := c.Sign(Msg{
-		ProgramHash: crypto.HashObj(Program(program)),
+		ProgramHash: cryptbase.HashObj(Program(program)),
 		Data:        data[:],
 	})
 
@@ -319,7 +320,7 @@ func TestBackwardCompatTEALv1(t *testing.T) {
 	ep, tx, _ = makeSampleEnv()
 	program[0] = 0
 	sig = c.Sign(Msg{
-		ProgramHash: crypto.HashObj(Program(program)),
+		ProgramHash: cryptbase.HashObj(Program(program)),
 		Data:        data[:],
 	})
 	ep.TxnGroup[0].Lsig.Logic = program

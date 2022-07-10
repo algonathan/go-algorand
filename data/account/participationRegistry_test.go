@@ -22,6 +22,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math"
 	"os"
 	"path/filepath"
@@ -1212,7 +1213,7 @@ func BenchmarkDeleteExpired(b *testing.B) {
 				} else {
 					// generate key the same way as BenchmarkOldKeysDeletion
 					var rootAddr basics.Address
-					crypto.RandBytes(rootAddr[:])
+					cryptbase.RandBytes(rootAddr[:])
 
 					ppartDB, err := db.MakeErasableAccessor("bench_part")
 					a.NoError(err)

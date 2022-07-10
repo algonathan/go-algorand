@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,7 +33,6 @@ import (
 	"github.com/algorand/go-algorand/agreement/gossip"
 	"github.com/algorand/go-algorand/catchup"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data"
 	"github.com/algorand/go-algorand/data/account"
 	"github.com/algorand/go-algorand/data/basics"
@@ -116,7 +116,7 @@ type AlgorandFullNode struct {
 
 	rootDir     string
 	genesisID   string
-	genesisHash crypto.Digest
+	genesisHash cryptbase.Digest
 	devMode     bool // is this node operates in a developer mode ? ( benign agreement, broadcasting transaction generates a new block )
 
 	log logging.Logger
@@ -696,7 +696,7 @@ func (node *AlgorandFullNode) GenesisID() string {
 }
 
 // GenesisHash returns the hash of the genesis configuration.
-func (node *AlgorandFullNode) GenesisHash() crypto.Digest {
+func (node *AlgorandFullNode) GenesisHash() cryptbase.Digest {
 	node.mu.Lock()
 	defer node.mu.Unlock()
 
@@ -808,7 +808,7 @@ func createTemporaryParticipationKey(outDir string, partKeyBinary []byte) (strin
 	// Create a temporary filename with a UUID so that we can call this function twice
 	// in a row without worrying about collisions
 	sb.WriteString("tempPartKeyBinary.")
-	sb.WriteString(fmt.Sprintf("%d", crypto.RandUint64()))
+	sb.WriteString(fmt.Sprintf("%d", cryptbase.RandUint64()))
 	sb.WriteString(".bin")
 
 	tempFile := filepath.Join(outDir, filepath.Base(sb.String()))
@@ -1064,7 +1064,7 @@ func (node *AlgorandFullNode) oldKeyDeletionThread(done <-chan struct{}) {
 
 // Uint64 implements the randomness by calling the crypto library.
 func (node *AlgorandFullNode) Uint64() uint64 {
-	return crypto.RandUint64()
+	return cryptbase.RandUint64()
 }
 
 // Indexer returns a pointer to nodes indexer

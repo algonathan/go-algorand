@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"math/rand"
 	"net"
@@ -40,7 +41,6 @@ import (
 	"github.com/algorand/go-deadlock"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/logging/telemetryspec"
 	"github.com/algorand/go-algorand/protocol"
@@ -444,7 +444,7 @@ func TestWebsocketNetworkCancel(t *testing.T) {
 		mbytes := make([]byte, len(tbytes)+len(msg))
 		copy(mbytes, tbytes)
 		copy(mbytes[len(tbytes):], msg)
-		msgs = append(msgs, sendMessage{data: mbytes, enqueued: time.Now(), peerEnqueued: enqueueTime, hash: crypto.Hash(mbytes), ctx: context.Background()})
+		msgs = append(msgs, sendMessage{data: mbytes, enqueued: time.Now(), peerEnqueued: enqueueTime, hash: cryptbase.Hash(mbytes), ctx: context.Background()})
 	}
 
 	msgs[50].ctx = ctx
@@ -1119,8 +1119,8 @@ func TestWebsocketNetworkPrio(t *testing.T) {
 	defer netStop(t, netA, "A")
 
 	prioB := netPrioStub{}
-	crypto.RandBytes(prioB.addr[:])
-	prioB.prio = crypto.RandUint64()
+	cryptbase.RandBytes(prioB.addr[:])
+	prioB.prio = cryptbase.RandUint64()
 	netB := makeTestWebsocketNode(t)
 	netB.SetPrioScheme(&prioB)
 	netB.config.GossipFanout = 1
@@ -1168,7 +1168,7 @@ func TestWebsocketNetworkPrioLimit(t *testing.T) {
 	counterB := newMessageCounter(t, 1)
 	counterBdone := counterB.done
 	prioB := netPrioStub{}
-	crypto.RandBytes(prioB.addr[:])
+	cryptbase.RandBytes(prioB.addr[:])
 	prioB.prio = 100
 	netB := makeTestWebsocketNode(t)
 	netB.SetPrioScheme(&prioB)
@@ -1182,7 +1182,7 @@ func TestWebsocketNetworkPrioLimit(t *testing.T) {
 	counterC := newMessageCounter(t, 1)
 	counterCdone := counterC.done
 	prioC := netPrioStub{}
-	crypto.RandBytes(prioC.addr[:])
+	cryptbase.RandBytes(prioC.addr[:])
 	prioC.prio = 10
 	netC := makeTestWebsocketNode(t)
 	netC.SetPrioScheme(&prioC)
@@ -2491,7 +2491,7 @@ func BenchmarkVariableTransactionMessageBlockSizes(t *testing.B) {
 		t.Run(fmt.Sprintf("%d-TxnPerMessage", txnCount), func(t *testing.B) {
 			msgProcessed = make(chan struct{}, t.N/txnCount)
 			dataBuffer := make([]byte, txnSize*txnCount)
-			crypto.RandBytes(dataBuffer[:])
+			cryptbase.RandBytes(dataBuffer[:])
 			t.ResetTimer()
 			startTime := time.Now()
 			for i := 0; i < t.N/txnCount; i++ {

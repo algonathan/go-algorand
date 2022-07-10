@@ -19,6 +19,7 @@ package agreement
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"testing"
 	"time"
@@ -26,7 +27,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/committee"
@@ -483,9 +483,9 @@ func (t *demuxTester) Seed(basics.Round) (committee.Seed, error) {
 }
 
 // implement Ledger
-func (t *demuxTester) LookupDigest(basics.Round) (crypto.Digest, error) {
+func (t *demuxTester) LookupDigest(basics.Round) (cryptbase.Digest, error) {
 	// we don't care about this function in this test.
-	return crypto.Digest{}, nil
+	return cryptbase.Digest{}, nil
 }
 
 // implement Ledger

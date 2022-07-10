@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"flag"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"math"
 	"math/rand"
@@ -563,7 +564,7 @@ func TestAccountParticipationInfo(t *testing.T) {
 	randomSelPKStr := randomString(32)
 	var selPK crypto.VRFVerifier
 	copy(selPK[:], []byte(randomSelPKStr))
-	var gh crypto.Digest
+	var gh cryptbase.Digest
 	copy(gh[:], params.GenesisHash)
 	tx := transactions.Transaction{
 		Type: protocol.KeyRegistrationTx,
@@ -1101,7 +1102,7 @@ func TestStateProofInParticipationInfo(t *testing.T) {
 	var mssRoot [merklesignature.MerkleSignatureSchemeRootSize]byte
 	randomRootStr := randomString(merklesignature.MerkleSignatureSchemeRootSize)
 	copy(mssRoot[:], randomRootStr)
-	var gh crypto.Digest
+	var gh cryptbase.Digest
 	copy(gh[:], params.GenesisHash)
 
 	tx := transactions.Transaction{
@@ -1198,7 +1199,7 @@ func TestNilStateProofInParticipationInfo(t *testing.T) {
 	randomSelPKStr := randomString(32)
 	var selPK crypto.VRFVerifier
 	copy(selPK[:], []byte(randomSelPKStr))
-	var gh crypto.Digest
+	var gh cryptbase.Digest
 	copy(gh[:], params.GenesisHash)
 
 	tx := transactions.Transaction{

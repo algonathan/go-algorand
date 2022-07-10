@@ -20,6 +20,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"strings"
 	"testing"
@@ -50,7 +51,7 @@ var proto = config.Consensus[protocol.ConsensusCurrentVersion]
 
 func keypair() *crypto.SignatureSecrets {
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	s := crypto.GenerateSignatureSecrets(seed)
 	return s
 }
@@ -64,11 +65,11 @@ type TestingT interface {
 var minBalance = config.Consensus[protocol.ConsensusCurrentVersion].MinBalance
 
 func mockLedger(t TestingT, initAccounts map[basics.Address]basics.AccountData, proto protocol.ConsensusVersion) *ledger.Ledger {
-	var hash crypto.Digest
-	crypto.RandBytes(hash[:])
+	var hash cryptbase.Digest
+	cryptbase.RandBytes(hash[:])
 
 	var pool basics.Address
-	crypto.RandBytes(pool[:])
+	cryptbase.RandBytes(pool[:])
 	var poolData basics.AccountData
 	poolData.MicroAlgos.Raw = 1 << 32
 	initAccounts[pool] = poolData
@@ -91,7 +92,7 @@ func mockLedger(t TestingT, initAccounts map[basics.Address]basics.AccountData, 
 	initBlock.TxnCommitments, err = initBlock.PaysetCommit()
 	require.NoError(t, err)
 
-	fn := fmt.Sprintf("/tmp/%s.%d.sqlite3", t.Name(), crypto.RandUint64())
+	fn := fmt.Sprintf("/tmp/%s.%d.sqlite3", t.Name(), cryptbase.RandUint64())
 	const inMem = true
 	genesisInitState := ledgercore.InitState{Block: initBlock, Accounts: initAccounts, GenesisHash: hash}
 	cfg := config.GetDefaultLocal()
@@ -947,7 +948,7 @@ func TestTransactionPool_CurrentFeePerByte(t *testing.T) {
 	for i, sender := range addresses {
 		for j := 0; j < testPoolSize*15/len(addresses); j++ {
 			var receiver basics.Address
-			crypto.RandBytes(receiver[:])
+			cryptbase.RandBytes(receiver[:])
 			tx := transactions.Transaction{
 				Type: protocol.PaymentTx,
 				Header: transactions.Header{
@@ -964,7 +965,7 @@ func TestTransactionPool_CurrentFeePerByte(t *testing.T) {
 				},
 			}
 			tx.Note = make([]byte, 8, 8)
-			crypto.RandBytes(tx.Note)
+			cryptbase.RandBytes(tx.Note)
 			signedTx := tx.Sign(secrets[i])
 			err := transactionPool.RememberOne(signedTx)
 			require.NoError(t, err)
@@ -998,7 +999,7 @@ func BenchmarkTransactionPoolRememberOne(b *testing.B) {
 	for i, sender := range addresses {
 		for j := 0; j < b.N/len(addresses); j++ {
 			var receiver basics.Address
-			crypto.RandBytes(receiver[:])
+			cryptbase.RandBytes(receiver[:])
 			tx := transactions.Transaction{
 				Type: protocol.PaymentTx,
 				Header: transactions.Header{
@@ -1015,7 +1016,7 @@ func BenchmarkTransactionPoolRememberOne(b *testing.B) {
 				},
 			}
 			tx.Note = make([]byte, 8, 8)
-			crypto.RandBytes(tx.Note)
+			cryptbase.RandBytes(tx.Note)
 			signedTx := tx.Sign(secrets[i])
 			signedTransactions = append(signedTransactions, signedTx)
 			err := transactionPool.RememberOne(signedTx)
@@ -1061,7 +1062,7 @@ func BenchmarkTransactionPoolPending(b *testing.B) {
 		for i, sender := range addresses {
 			for j := 0; j < benchPoolSize/len(addresses); j++ {
 				var receiver basics.Address
-				crypto.RandBytes(receiver[:])
+				cryptbase.RandBytes(receiver[:])
 				tx := transactions.Transaction{
 					Type: protocol.PaymentTx,
 					Header: transactions.Header{
@@ -1078,7 +1079,7 @@ func BenchmarkTransactionPoolPending(b *testing.B) {
 					},
 				}
 				tx.Note = make([]byte, 8, 8)
-				crypto.RandBytes(tx.Note)
+				cryptbase.RandBytes(tx.Note)
 				signedTx := tx.Sign(secrets[i])
 				err := transactionPool.RememberOne(signedTx)
 				require.NoError(b, err)
@@ -1124,7 +1125,7 @@ func BenchmarkTransactionPoolSteadyState(b *testing.B) {
 	var signedTransactions []transactions.SignedTxn
 	for i := 0; i < b.N; i++ {
 		var receiver basics.Address
-		crypto.RandBytes(receiver[:])
+		cryptbase.RandBytes(receiver[:])
 		tx := transactions.Transaction{
 			Type: protocol.PaymentTx,
 			Header: transactions.Header{
@@ -1140,7 +1141,7 @@ func BenchmarkTransactionPoolSteadyState(b *testing.B) {
 			},
 		}
 		tx.Note = make([]byte, 8, 8)
-		crypto.RandBytes(tx.Note)
+		cryptbase.RandBytes(tx.Note)
 
 		signedTx, err := transactions.AssembleSignedTxn(tx, crypto.Signature{}, crypto.MultisigSig{})
 		require.NoError(b, err)
@@ -1445,7 +1446,7 @@ func TestTStateProofLogging(t *testing.T) {
 	require.Less(t, numOfAccounts/2, int(numReveals))
 	require.Greater(t, numOfAccounts, int(numReveals))
 	require.Equal(t, len(proof.PositionsToReveal), int(posToReveal))
-	stxn.Txn.GenesisHash = crypto.Digest{}
+	stxn.Txn.GenesisHash = cryptbase.Digest{}
 	require.Equal(t, stxn.GetEncodedLength(), int(txnSize))
 }
 

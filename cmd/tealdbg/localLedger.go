@@ -19,12 +19,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	v2 "github.com/algorand/go-algorand/daemon/algod/api/server/v2"
 	"github.com/algorand/go-algorand/daemon/algod/api/server/v2/generated"
 	"github.com/algorand/go-algorand/data/basics"
@@ -273,7 +273,7 @@ func getRandomAddress() (basics.Address, error) {
 		return basics.Address{}, err
 	}
 
-	address := crypto.Hash(b)
+	address := cryptbase.Hash(b)
 	return basics.Address(address), nil
 }
 

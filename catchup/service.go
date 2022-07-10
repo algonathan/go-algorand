@@ -20,13 +20,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
@@ -542,7 +542,7 @@ func (s *Service) periodicSync() {
 			stuckInARow = 0
 			// go to sleep for a short while, for a random duration.
 			// we want to sleep for a random duration since it would "de-syncronize" us from the ledger advance sync
-			sleepDuration = time.Duration(crypto.RandUint63()) % s.deadlineTimeout
+			sleepDuration = time.Duration(cryptbase.RandUint63()) % s.deadlineTimeout
 			continue
 		case <-time.After(sleepDuration):
 			if sleepDuration < s.deadlineTimeout || s.cfg.DisableNetworking {

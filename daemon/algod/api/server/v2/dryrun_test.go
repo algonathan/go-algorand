@@ -21,6 +21,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strconv"
 	"strings"
 	"testing"
@@ -29,7 +30,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/daemon/algod/api/server/v2/generated"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -1072,7 +1072,7 @@ func TestStateDeltaToStateDelta(t *testing.T) {
 
 func randomAddress() basics.Address {
 	var addr basics.Address
-	crypto.RandBytes(addr[:])
+	cryptbase.RandBytes(addr[:])
 	return addr
 }
 

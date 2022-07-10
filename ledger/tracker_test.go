@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"sync"
 	"testing"
 	"time"
@@ -28,7 +29,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
@@ -251,12 +251,12 @@ func TestTrackerDbRoundDataRace(t *testing.T) {
 	blk := genesisInitState.Block
 	for i := basics.Round(0); i < targetRound-1; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		err := ledger.AddBlock(blk, agreement.Certificate{})
 		a.NoError(err)
 	}
 	blk.BlockHeader.Round++
-	blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+	blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 	err = ledger.AddBlock(blk, agreement.Certificate{})
 	a.NoError(err)
 	commitRoundNext(ledger)
@@ -269,7 +269,7 @@ func TestTrackerDbRoundDataRace(t *testing.T) {
 	stallingTracker.cancelTasks = true
 	for i := targetRound; i < 2*targetRound; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		err := ledger.AddBlock(blk, agreement.Certificate{})
 		a.NoError(err)
 	}
@@ -287,7 +287,7 @@ func TestTrackerDbRoundDataRace(t *testing.T) {
 	stallingTracker.produceReleaseLock = make(chan struct{})
 
 	blk.BlockHeader.Round++
-	blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+	blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 	err = ledger.AddBlock(blk, agreement.Certificate{})
 	a.NoError(err)
 	// the notifyCommit -> committedUpTo -> scheduleCommit chain

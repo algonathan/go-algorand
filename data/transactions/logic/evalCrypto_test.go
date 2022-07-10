@@ -24,6 +24,7 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/big"
 	mrand "math/rand"
 	"strconv"
@@ -98,7 +99,7 @@ func TestEd25519verify(t *testing.T) {
 
 	t.Parallel()
 	var s crypto.Seed
-	crypto.RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	c := crypto.GenerateSignatureSecrets(s)
 	msg := "62fdfc072182654f163f5f0f9a621d729566c74d0aa413bf009c9800418c19cd"
 	data, err := hex.DecodeString(msg)
@@ -113,7 +114,7 @@ arg 1
 addr %s
 ed25519verify`, pkStr), v)
 			sig := c.Sign(Msg{
-				ProgramHash: crypto.HashObj(Program(ops.Program)),
+				ProgramHash: cryptbase.HashObj(Program(ops.Program)),
 				Data:        data[:],
 			})
 			var txn transactions.SignedTxn
@@ -140,7 +141,7 @@ func TestEd25519VerifyBare(t *testing.T) {
 
 	t.Parallel()
 	var s crypto.Seed
-	crypto.RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	c := crypto.GenerateSignatureSecrets(s)
 	msg := "62fdfc072182654f163f5f0f9a621d729566c74d0aa413bf009c9800418c19cd"
 	data, err := hex.DecodeString(msg)
@@ -586,11 +587,11 @@ func BenchmarkEd25519Verifyx1(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		var buffer [32]byte //generate data to be signed
-		crypto.RandBytes(buffer[:])
+		cryptbase.RandBytes(buffer[:])
 		data = append(data, buffer)
 
 		var s crypto.Seed //generate programs and signatures
-		crypto.RandBytes(s[:])
+		cryptbase.RandBytes(s[:])
 		secret := crypto.GenerateSignatureSecrets(s)
 		pk := basics.Address(secret.SignatureVerifier)
 		pkStr := pk.String()
@@ -601,7 +602,7 @@ ed25519verify`, pkStr), AssemblerMaxVersion)
 		require.NoError(b, err)
 		programs = append(programs, ops.Program)
 		sig := secret.Sign(Msg{
-			ProgramHash: crypto.HashObj(Program(ops.Program)),
+			ProgramHash: cryptbase.HashObj(Program(ops.Program)),
 			Data:        buffer[:],
 		})
 		signatures = append(signatures, sig)

@@ -17,7 +17,7 @@
 package transactions
 
 import (
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/protocol"
 )
 
@@ -28,18 +28,18 @@ type (
 )
 
 // CommitFlat returns a commitment to the Payset, as a flat array.
-func (payset Payset) CommitFlat() crypto.Digest {
+func (payset Payset) CommitFlat() cryptbase.Digest {
 	return payset.commit(false)
 }
 
 // CommitGenesis is like Commit, but with special handling for zero-length
 // but non-nil paysets.
-func (payset Payset) CommitGenesis() crypto.Digest {
+func (payset Payset) CommitGenesis() cryptbase.Digest {
 	return payset.commit(true)
 }
 
 // commit handles the logic for both Commit and CommitGenesis
-func (payset Payset) commit(genesis bool) crypto.Digest {
+func (payset Payset) commit(genesis bool) cryptbase.Digest {
 	// We used to build up Paysets from a nil slice with `append` during
 	// block evaluation, meaning zero-length paysets would remain nil.
 	// After we started allocating them up front, we started calling Commit
@@ -53,7 +53,7 @@ func (payset Payset) commit(genesis bool) crypto.Digest {
 		payset = nil
 	}
 
-	return crypto.HashObj(payset)
+	return cryptbase.HashObj(payset)
 }
 
 // ToBeHashed implements the crypto.Hashable interface

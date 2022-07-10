@@ -21,6 +21,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
@@ -46,7 +47,7 @@ type Root struct {
 // account.
 func GenerateRoot(store db.Accessor) (Root, error) {
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	return ImportRoot(store, seed)
 }
 

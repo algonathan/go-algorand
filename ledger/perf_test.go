@@ -19,6 +19,7 @@ package ledger
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/algorand/go-deadlock"
@@ -26,7 +27,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -44,7 +44,7 @@ func BenchmarkManyAccounts(b *testing.B) {
 	genesisInitState, addrs, _ := ledgertesting.Genesis(1)
 	addr := addrs[0]
 
-	dbName := fmt.Sprintf("%s.%d", b.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", b.Name(), cryptbase.RandUint64())
 	const inMem = true
 	cfg := config.GetDefaultLocal()
 	cfg.Archival = true
@@ -62,12 +62,12 @@ func BenchmarkManyAccounts(b *testing.B) {
 		var txbytes int
 		for {
 			var st transactions.SignedTxn
-			crypto.RandBytes(st.Sig[:])
+			cryptbase.RandBytes(st.Sig[:])
 			st.Txn.Type = protocol.PaymentTx
 			st.Txn.Sender = addr
 			st.Txn.Fee = basics.MicroAlgos{Raw: 1}
 			st.Txn.Amount = basics.MicroAlgos{Raw: 1}
-			crypto.RandBytes(st.Txn.Receiver[:])
+			cryptbase.RandBytes(st.Txn.Receiver[:])
 
 			txib, err := blk.EncodeSignedTxn(st, transactions.ApplyData{})
 			require.NoError(b, err)
@@ -97,7 +97,7 @@ func BenchmarkValidate(b *testing.B) {
 	backlogPool := execpool.MakeBacklog(nil, 0, execpool.LowPriority, nil)
 	defer backlogPool.Shutdown()
 
-	dbName := fmt.Sprintf("%s.%d", b.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", b.Name(), cryptbase.RandUint64())
 	const inMem = true
 	cfg := config.GetDefaultLocal()
 	cfg.Archival = true
@@ -126,7 +126,7 @@ func BenchmarkValidate(b *testing.B) {
 					Amount: basics.MicroAlgos{Raw: 1},
 				},
 			}
-			crypto.RandBytes(t.Receiver[:])
+			cryptbase.RandBytes(t.Receiver[:])
 			st := t.Sign(keys[i])
 
 			txib, err := newblk.EncodeSignedTxn(st, transactions.ApplyData{})

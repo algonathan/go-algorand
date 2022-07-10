@@ -17,11 +17,11 @@
 package ledgercore
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -206,11 +206,11 @@ var uniqueAccountTotals = []AccountTotals{
 func TestAccountTotalsMarshalMsgUnique(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	uniqueAt := make(map[crypto.Digest]bool, len(uniqueAccountTotals))
+	uniqueAt := make(map[cryptbase.Digest]bool, len(uniqueAccountTotals))
 	for _, at := range uniqueAccountTotals {
 		inBuffer := make([]byte, 0, 128)
 		outBuffer := at.MarshalMsg(inBuffer)
-		outBufDigest := crypto.Hash(outBuffer)
+		outBufDigest := cryptbase.Hash(outBuffer)
 		require.False(t, uniqueAt[outBufDigest])
 		uniqueAt[outBufDigest] = true
 	}

@@ -19,8 +19,7 @@ package network
 import (
 	"encoding/binary"
 	"fmt"
-
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // Constant strings used as keys for topics
@@ -127,7 +126,7 @@ func UnmarshallTopics(buffer []byte) (ts Topics, err error) {
 // hashTopics returns the hash of serialized topics.
 // Expects the nonce to be already added as a topic
 func hashTopics(topics []byte) (partialHash uint64) {
-	digest := crypto.Hash(topics)
+	digest := cryptbase.Hash(topics)
 	partialHash = digest.TrimUint64()
 	return partialHash
 }

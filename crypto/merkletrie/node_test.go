@@ -17,11 +17,11 @@
 package merkletrie
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -35,9 +35,9 @@ func TestNodeSerialization(t *testing.T) {
 	mt1, _ := MakeTrie(&memoryCommitter, memConfig)
 	// create 1024 hashes.
 	leafsCount := 1024
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < len(hashes); i++ {
@@ -74,9 +74,9 @@ func BenchmarkNodeLeafImplementation(b *testing.B) {
 		mt1, _ := MakeTrie(&memoryCommitter, memConfig)
 		// create 100000 hashes.
 		leafsCount := 100000
-		hashes := make([]crypto.Digest, leafsCount)
+		hashes := make([]cryptbase.Digest, leafsCount)
 		for i := 0; i < len(hashes); i++ {
-			hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+			hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 		}
 
 		for i := 0; i < len(hashes); i++ {
@@ -102,9 +102,9 @@ func BenchmarkNodeLeafImplementation(b *testing.B) {
 		mt1, _ := MakeTrie(&memoryCommitter, memConfig)
 		// create 100000 hashes.
 		leafsCount := 100000
-		hashes := make([]crypto.Digest, leafsCount)
+		hashes := make([]cryptbase.Digest, leafsCount)
 		for i := 0; i < len(hashes); i++ {
-			hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+			hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 		}
 
 		for i := 0; i < len(hashes); i++ {

@@ -18,11 +18,11 @@ package merkletrie
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -57,9 +57,9 @@ func TestCacheEviction1(t *testing.T) {
 	mt1, _ := MakeTrie(&memoryCommitter, defaultTestMemoryConfig)
 	// create 13000 hashes.
 	leafsCount := 13000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < defaultTestEvictSize; i++ {
@@ -81,9 +81,9 @@ func TestCacheEviction2(t *testing.T) {
 	mt1, _ := MakeTrie(&memoryCommitter, defaultTestMemoryConfig)
 	// create 20000 hashes.
 	leafsCount := 20000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < defaultTestEvictSize; i++ {
@@ -110,9 +110,9 @@ func TestCacheEviction3(t *testing.T) {
 	mt1, _ := MakeTrie(&memoryCommitter, defaultTestMemoryConfig)
 	// create 200000 hashes.
 	leafsCount := 200000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < defaultTestEvictSize; i++ {
@@ -156,7 +156,7 @@ func (spmc *smallPageMemoryCommitter) LoadPage(page uint64) (content []byte, err
 	return spmc.InMemoryCommitter.LoadPage(page)
 }
 
-func cacheEvictionFuzzer(t *testing.T, hashes []crypto.Digest, pageSize int64, evictSize int) {
+func cacheEvictionFuzzer(t *testing.T, hashes []cryptbase.Digest, pageSize int64, evictSize int) {
 	var memoryCommitter smallPageMemoryCommitter
 	memoryConfig := defaultTestMemoryConfig
 	memoryConfig.CachedNodesCount = evictSize
@@ -196,9 +196,9 @@ func TestCacheEvictionFuzzer(t *testing.T) {
 
 	// create 2000 hashes.
 	leafsCount := 2000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 	for _, pageSize := range []int64{2, 3, 8, 12, 17} {
 		for _, evictSize := range []int{5, 10, 13, 30} {
@@ -216,14 +216,14 @@ func TestCacheEvictionFuzzer2(t *testing.T) {
 
 	// create 1000 hashes.
 	leafsCount := 1000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 	for i := 0; i < 80; i++ {
-		pageSize := int64(1 + crypto.RandUint64()%101)
-		evictSize := int(1 + crypto.RandUint64()%37)
-		hashesCount := uint64(100) + crypto.RandUint64()%uint64(leafsCount-100)
+		pageSize := int64(1 + cryptbase.RandUint64()%101)
+		evictSize := int(1 + cryptbase.RandUint64()%37)
+		hashesCount := uint64(100) + cryptbase.RandUint64()%uint64(leafsCount-100)
 		t.Run(fmt.Sprintf("Fuzzer-%d-%d", pageSize, evictSize), func(t *testing.T) {
 			cacheEvictionFuzzer(t, hashes[:hashesCount], pageSize, evictSize)
 		})
@@ -243,9 +243,9 @@ func TestCacheMidTransactionPageDeletion(t *testing.T) {
 
 	// create 10000 hashes.
 	leafsCount := 10000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < len(hashes); i++ {
@@ -331,9 +331,9 @@ func TestCacheTransactionRollbackPageDeletion(t *testing.T) {
 
 	// create 1000 hashes.
 	leafsCount := 1000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < len(hashes); i++ {
@@ -374,9 +374,9 @@ func TestCacheDeleteNodeMidTransaction(t *testing.T) {
 
 	// create 1000 hashes.
 	leafsCount := 10000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < len(hashes); i++ {
@@ -405,9 +405,9 @@ func TestCachePageReloading(t *testing.T) {
 	mt1, _ := MakeTrie(&memoryCommitter, defaultTestMemoryConfig)
 	// create 10 hashes.
 	leafsCount := 10
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < len(hashes); i++ {
@@ -449,9 +449,9 @@ func TestCachePagedOutTip(t *testing.T) {
 	mt1, _ := MakeTrie(&memoryCommitter, memConfig)
 	// create 2048 hashes.
 	leafsCount := 2048
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < len(hashes)/2; i++ {
@@ -485,9 +485,9 @@ func TestCacheLoadingDeferedPage(t *testing.T) {
 	mt1, _ := MakeTrie(&memoryCommitter1, defaultTestMemoryConfig)
 	// create 100000 hashes.
 	leafsCount := 100000
-	hashes := make([]crypto.Digest, leafsCount)
+	hashes := make([]cryptbase.Digest, leafsCount)
 	for i := 0; i < len(hashes); i++ {
-		hashes[i] = crypto.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
+		hashes[i] = cryptbase.Hash([]byte{byte(i % 256), byte((i / 256) % 256), byte(i / 65536)})
 	}
 
 	for i := 0; i < len(hashes); i++ {

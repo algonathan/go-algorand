@@ -18,6 +18,7 @@ package catchup
 
 import (
 	"context"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"net"
 	"net/http"
 	"net/url"
@@ -30,7 +31,6 @@ import (
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/components/mocks"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -61,7 +61,7 @@ func buildTestLedger(t *testing.T, blk bookkeeping.Block) (ledger *data.Ledger, 
 
 	log := logging.TestingLog(t)
 	genBal := bookkeeping.MakeGenesisBalances(genesis, sinkAddr, poolAddr)
-	genHash := crypto.Digest{0x42}
+	genHash := cryptbase.Digest{0x42}
 	const inMem = true
 	cfg := config.GetDefaultLocal()
 	cfg.Archival = true
@@ -115,7 +115,7 @@ func addBlocks(t *testing.T, ledger *data.Ledger, blk bookkeeping.Block, numBloc
 	var err error
 	for i := 0; i < numBlocks; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		blk.TxnCommitments, err = blk.PaysetCommit()
 		require.NoError(t, err)
 

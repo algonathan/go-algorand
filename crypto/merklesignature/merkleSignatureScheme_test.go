@@ -19,12 +19,13 @@ package merklesignature
 import (
 	"crypto/rand"
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
+	"github.com/algorand/go-algorand/crypto/falcon"
 	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
@@ -198,7 +199,7 @@ func TestNonEmptyDisposableKeys(t *testing.T) {
 
 	signer := generateTestSigner(0, 100, 1, a)
 
-	s := crypto.FalconSigner{}
+	s := falcon.Signer{}
 	for i := uint64(1); i <= 100; i++ {
 		key := signer.GetKey(i)
 		a.NotNil(key)
@@ -207,7 +208,7 @@ func TestNonEmptyDisposableKeys(t *testing.T) {
 
 	signer = generateTestSigner(0, 100, 1, a)
 
-	s = crypto.FalconSigner{}
+	s = falcon.Signer{}
 	for i := uint64(1); i <= 100; i++ {
 		key := signer.GetKey(i)
 		a.NotNil(key)
@@ -336,7 +337,7 @@ func TestBadMerkleProofInSignature(t *testing.T) {
 	a.ErrorIs(err, ErrSignatureSchemeVerificationFailed)
 
 	sig3 := copySig(sig)
-	someDigest := crypto.Digest{}
+	someDigest := cryptbase.Digest{}
 	rand.Read(someDigest[:])
 	sig3.Proof.Path[0] = someDigest[:]
 	err = signer.GetVerifier().VerifyBytes(start, msg, sig3)
@@ -520,7 +521,7 @@ func length(s *Secrets, a *require.Assertions) int {
 }
 
 func copyProof(proof merklearray.SingleLeafProof) merklearray.SingleLeafProof {
-	path := make([]crypto.GenericDigest, len(proof.Path))
+	path := make([]cryptbase.GenericDigest, len(proof.Path))
 	for i, digest := range proof.Path {
 		path[i] = make([]byte, len(digest))
 		copy(path[i], digest)

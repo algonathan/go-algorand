@@ -18,8 +18,7 @@ package merklearray
 
 import (
 	"fmt"
-
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // Proof is used to convince a verifier about membership of leaves: h0,h1...hn
@@ -31,8 +30,8 @@ type Proof struct {
 	// Path is bounded by MaxNumLeavesOnEncodedTree since there could be multiple reveals, and
 	// given the distribution of the elt positions and the depth of the tree,
 	// the path length can increase up to 2^MaxEncodedTreeDepth / 2
-	Path        []crypto.GenericDigest `codec:"pth,allocbound=MaxNumLeavesOnEncodedTree/2"`
-	HashFactory crypto.HashFactory     `codec:"hsh"`
+	Path        []cryptbase.GenericDigest `codec:"pth,allocbound=MaxNumLeavesOnEncodedTree/2"`
+	HashFactory cryptbase.HashFactory     `codec:"hsh"`
 	// TreeDepth represents the depth of the tree that is being proven.
 	// It is the number of edges from the root to a leaf.
 	TreeDepth uint8 `codec:"td"`
@@ -101,14 +100,14 @@ func (p *SingleLeafProof) GetConcatenatedProof() []byte {
 
 // ProofDataToSingleLeafProof receives serialized proof data and uses it to construct a proof object.
 func ProofDataToSingleLeafProof(hashTypeData string, treeDepth uint64, proofBytes []byte) (SingleLeafProof, error) {
-	hashType, err := crypto.UnmarshalHashType(hashTypeData)
+	hashType, err := cryptbase.UnmarshalHashType(hashTypeData)
 	if err != nil {
 		return SingleLeafProof{}, err
 	}
 
 	var proof SingleLeafProof
 
-	proof.HashFactory = crypto.HashFactory{HashType: hashType}
+	proof.HashFactory = cryptbase.HashFactory{HashType: hashType}
 	proof.TreeDepth = uint8(treeDepth)
 
 	digestSize := proof.HashFactory.NewHash().Size()
@@ -117,7 +116,7 @@ func ProofDataToSingleLeafProof(hashTypeData string, treeDepth uint64, proofByte
 			"digest size %d: %w", len(proofBytes), digestSize, ErrProofLengthDigestSizeMismatch)
 	}
 
-	var proofPath []crypto.GenericDigest
+	var proofPath []cryptbase.GenericDigest
 	for len(proofBytes) > 0 {
 		d := make([]byte, digestSize)
 		copy(d[:], proofBytes)

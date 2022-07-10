@@ -18,6 +18,7 @@ package algod
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"net/http"
 	"path/filepath"
 	"sync"
@@ -29,7 +30,6 @@ import (
 	generatedV2 "github.com/algorand/go-algorand/daemon/algod/api/server/v2/generated"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/libgoal"
@@ -118,7 +118,7 @@ func doBenchTemplate(b *testing.B, template string, moneynode string) {
 	suggest, err := c.SuggestedParams()
 	a.NoError(err)
 
-	var genesisHash crypto.Digest
+	var genesisHash cryptbase.Digest
 	copy(genesisHash[:], suggest.GenesisHash)
 
 	// Increase the number of keepalive connections, since we use many
@@ -158,7 +158,7 @@ func doBenchTemplate(b *testing.B, template string, moneynode string) {
 
 				for txi := 0; txi < numTransactions; txi++ {
 					var dst basics.Address
-					crypto.RandBytes(dst[:])
+					cryptbase.RandBytes(dst[:])
 
 					txn := transactions.Transaction{
 						Type: protocol.PaymentTx,

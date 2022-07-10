@@ -19,13 +19,13 @@ package internal_test
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -388,17 +388,17 @@ func newTestLedger(t testing.TB, balances bookkeeping.GenesisBalances) *ledger.L
 }
 
 func newTestLedgerWithConsensusVersion(t testing.TB, balances bookkeeping.GenesisBalances, cv protocol.ConsensusVersion) *ledger.Ledger {
-	var genHash crypto.Digest
-	crypto.RandBytes(genHash[:])
+	var genHash cryptbase.Digest
+	cryptbase.RandBytes(genHash[:])
 	return newTestLedgerFull(t, balances, cv, genHash)
 }
 
-func newTestLedgerFull(t testing.TB, balances bookkeeping.GenesisBalances, cv protocol.ConsensusVersion, genHash crypto.Digest) *ledger.Ledger {
+func newTestLedgerFull(t testing.TB, balances bookkeeping.GenesisBalances, cv protocol.ConsensusVersion, genHash cryptbase.Digest) *ledger.Ledger {
 	genBlock, err := bookkeeping.MakeGenesisBlock(cv, balances, "test", genHash)
 	require.NoError(t, err)
 	require.False(t, genBlock.FeeSink.IsZero())
 	require.False(t, genBlock.RewardsPool.IsZero())
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	cfg := config.GetDefaultLocal()
 	cfg.Archival = true
 	l, err := ledger.OpenLedger(logging.Base(), dbName, true, ledgercore.InitState{
@@ -1811,7 +1811,7 @@ assert
 		dl.txgroup("too many inner", callTxGroup[0], callTxGroup[0].Noted("another"))
 
 		// Don't need all those extra top-levels to be allowed to do 256 in tx0
-		callTxGroup[0].Group = crypto.Digest{}
+		callTxGroup[0].Group = cryptbase.Digest{}
 		dl.fullBlock(callTxGroup[0])
 
 		// Can't do 257 txns

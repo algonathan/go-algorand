@@ -22,6 +22,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"strconv"
 	"strings"
 	"testing"
@@ -30,7 +31,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -1045,7 +1045,7 @@ func TestGlobal(t *testing.T) {
 			}
 
 			txn := transactions.SignedTxn{}
-			txn.Txn.Group = crypto.Digest{0x07, 0x06}
+			txn.Txn.Group = cryptbase.Digest{0x07, 0x06}
 
 			ep := defaultEvalParams(&txn)
 			ep.Ledger = ledger

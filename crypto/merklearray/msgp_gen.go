@@ -5,7 +5,7 @@ package merklearray
 import (
 	"github.com/algorand/msgp/msgp"
 
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // The following msgp objects are implemented in this file:
@@ -199,7 +199,7 @@ func (z *Proof) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			} else if (*z).Path != nil && cap((*z).Path) >= zb0004 {
 				(*z).Path = ((*z).Path)[:zb0004]
 			} else {
-				(*z).Path = make([]crypto.GenericDigest, zb0004)
+				(*z).Path = make([]cryptbase.GenericDigest, zb0004)
 			}
 			for zb0001 := range (*z).Path {
 				bts, err = (*z).Path[zb0001].UnmarshalMsg(bts)
@@ -266,7 +266,7 @@ func (z *Proof) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				} else if (*z).Path != nil && cap((*z).Path) >= zb0006 {
 					(*z).Path = ((*z).Path)[:zb0006]
 				} else {
-					(*z).Path = make([]crypto.GenericDigest, zb0006)
+					(*z).Path = make([]cryptbase.GenericDigest, zb0006)
 				}
 				for zb0001 := range (*z).Path {
 					bts, err = (*z).Path[zb0001].UnmarshalMsg(bts)
@@ -404,7 +404,7 @@ func (z *SingleLeafProof) UnmarshalMsg(bts []byte) (o []byte, err error) {
 			} else if (*z).Proof.Path != nil && cap((*z).Proof.Path) >= zb0004 {
 				(*z).Proof.Path = ((*z).Proof.Path)[:zb0004]
 			} else {
-				(*z).Proof.Path = make([]crypto.GenericDigest, zb0004)
+				(*z).Proof.Path = make([]cryptbase.GenericDigest, zb0004)
 			}
 			for zb0001 := range (*z).Proof.Path {
 				bts, err = (*z).Proof.Path[zb0001].UnmarshalMsg(bts)
@@ -471,7 +471,7 @@ func (z *SingleLeafProof) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				} else if (*z).Proof.Path != nil && cap((*z).Proof.Path) >= zb0006 {
 					(*z).Proof.Path = ((*z).Proof.Path)[:zb0006]
 				} else {
-					(*z).Proof.Path = make([]crypto.GenericDigest, zb0006)
+					(*z).Proof.Path = make([]cryptbase.GenericDigest, zb0006)
 				}
 				for zb0001 := range (*z).Proof.Path {
 					bts, err = (*z).Proof.Path[zb0001].UnmarshalMsg(bts)

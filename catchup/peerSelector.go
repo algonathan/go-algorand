@@ -18,13 +18,13 @@ package catchup
 
 import (
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math"
 	"sort"
 	"time"
 
 	"github.com/algorand/go-deadlock"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/network"
 )
 
@@ -290,7 +290,7 @@ func (ps *peerSelector) getNextPeer() (psp *peerSelectorPeer, err error) {
 			// however, if we do have a zero length pool, we don't want to divide by zero, so this would
 			// provide the needed test.
 			// pick one of the peers from this pool at random
-			peerIdx := crypto.RandUint64() % uint64(len(pool.peers))
+			peerIdx := cryptbase.RandUint64() % uint64(len(pool.peers))
 			psp = &peerSelectorPeer{pool.peers[peerIdx].peer, pool.peers[peerIdx].class.peerClass}
 			return
 		}

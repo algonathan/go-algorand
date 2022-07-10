@@ -20,6 +20,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"strconv"
 	"strings"
@@ -153,7 +154,7 @@ func BenchmarkOldKeysDeletion(b *testing.B) {
 	a := require.New(b)
 
 	var rootAddr basics.Address
-	crypto.RandBytes(rootAddr[:])
+	cryptbase.RandBytes(rootAddr[:])
 
 	partDB, err := db.MakeErasableAccessor(b.Name() + "_part")
 	a.NoError(err)
@@ -464,7 +465,7 @@ func BenchmarkParticipationKeyRestoration(b *testing.B) {
 	a := require.New(b)
 
 	var rootAddr basics.Address
-	crypto.RandBytes(rootAddr[:])
+	cryptbase.RandBytes(rootAddr[:])
 
 	dbname := b.Name() + "_part"
 	defer os.Remove(dbname)
@@ -488,7 +489,7 @@ func BenchmarkParticipationKeyRestoration(b *testing.B) {
 }
 
 func createMerkleSignatureSchemeTestDB(a *require.Assertions) *db.Accessor {
-	tmpname := fmt.Sprintf("%015x", crypto.RandUint64())
+	tmpname := fmt.Sprintf("%015x", cryptbase.RandUint64())
 	store, err := db.MakeAccessor(tmpname, false, true)
 	a.NoError(err)
 	a.NotNil(store)
@@ -504,7 +505,7 @@ func TestKeyregValidityOverLimit(t *testing.T) {
 	dilution := config.Consensus[protocol.ConsensusCurrentVersion].DefaultKeyDilution
 
 	var address basics.Address
-	crypto.RandBytes(address[:])
+	cryptbase.RandBytes(address[:])
 
 	store := createMerkleSignatureSchemeTestDB(a)
 	defer store.Close()
@@ -521,7 +522,7 @@ func TestFillDBWithParticipationKeys(t *testing.T) {
 	dilution := config.Consensus[protocol.ConsensusCurrentVersion].DefaultKeyDilution
 
 	var address basics.Address
-	crypto.RandBytes(address[:])
+	cryptbase.RandBytes(address[:])
 
 	store := createMerkleSignatureSchemeTestDB(a)
 	defer store.Close()
@@ -555,7 +556,7 @@ func TestKeyregValidityPeriod(t *testing.T) {
 	defer store.Close()
 	firstValid := basics.Round(0)
 	lastValid := basics.Round(maxValidPeriod)
-	crypto.RandBytes(address[:])
+	cryptbase.RandBytes(address[:])
 	_, err := FillDBWithParticipationKeys(*store, address, firstValid, lastValid, dilution)
 	a.NoError(err)
 

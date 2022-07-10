@@ -18,13 +18,13 @@ package ledgercore
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"sync"
 
 	"github.com/algorand/go-deadlock"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/stateproof"
 	"github.com/algorand/go-algorand/data/basics"
@@ -134,7 +134,7 @@ func (tr *VotersForRound) LoadTree(onlineTop TopOnlineAccounts, hdr bookkeeping.
 		addrToPos[acct.Address] = uint64(i)
 	}
 
-	tree, err := merklearray.BuildVectorCommitmentTree(participants, crypto.HashFactory{HashType: stateproof.HashType})
+	tree, err := merklearray.BuildVectorCommitmentTree(participants, cryptbase.HashFactory{HashType: stateproof.HashType})
 	if err != nil {
 		return err
 	}

@@ -19,13 +19,13 @@ package ledger
 import (
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
 	ledgertesting "github.com/algorand/go-algorand/ledger/testing"
@@ -39,7 +39,7 @@ func TestPutBlockTooOld(t *testing.T) {
 
 	genesisInitState, _, _ := ledgertesting.Genesis(10)
 
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	const inMem = true
 	cfg := config.GetDefaultLocal()
 	cfg.Archival = true

@@ -18,11 +18,11 @@ package stateproof
 
 import (
 	"encoding/binary"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/protocol"
@@ -45,7 +45,7 @@ func TestSignatureArrayWithEmptySlot(t *testing.T) {
 		sigslotCommit: sigslotCommit{Sig: sig, L: 60},
 	}
 
-	hfactory := crypto.HashFactory{HashType: HashType}
+	hfactory := cryptbase.HashFactory{HashType: HashType}
 	tree, err := merklearray.BuildVectorCommitmentTree(committableSignatureSlotArray(sigs), hfactory)
 
 	leftLeafHash := calculateHashOnSigLeaf(t, sig, 60)
@@ -84,7 +84,7 @@ func calculateHashOnSigLeaf(t *testing.T, sig merklesignature.Signature, lValue 
 
 	sigCommitment = append(sigCommitment, proofLenByte)
 
-	hash := crypto.HashFactory{HashType: HashType}.NewHash()
+	hash := cryptbase.HashFactory{HashType: HashType}.NewHash()
 	zeroDigest := make([]byte, hash.BlockSize())
 	for i := byte(0); i < (merklearray.MaxEncodedTreeDepth - proofLenByte); i++ {
 		sigCommitment = append(sigCommitment, zeroDigest...)

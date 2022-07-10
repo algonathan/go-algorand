@@ -18,14 +18,13 @@ package merklesignature
 
 import (
 	"context"
+	"github.com/algorand/go-algorand/crypto/falcon"
 	"runtime"
 	"sync"
-
-	"github.com/algorand/go-algorand/crypto"
 )
 
 // KeysBuilder Responsible for generate slice of falcon keys
-func KeysBuilder(numberOfKeys uint64) ([]crypto.FalconSigner, error) {
+func KeysBuilder(numberOfKeys uint64) ([]falcon.Signer, error) {
 	numOfKeysPerRoutine, _ := calculateRanges(numberOfKeys)
 
 	ctx, ctxCancel := context.WithCancel(context.Background())
@@ -36,7 +35,7 @@ func KeysBuilder(numberOfKeys uint64) ([]crypto.FalconSigner, error) {
 
 	var wg sync.WaitGroup
 	var endIdx uint64
-	keys := make([]crypto.FalconSigner, numberOfKeys)
+	keys := make([]falcon.Signer, numberOfKeys)
 
 	for i := uint64(0); i < numberOfKeys; i = endIdx {
 		endIdx = i + numOfKeysPerRoutine
@@ -47,7 +46,7 @@ func KeysBuilder(numberOfKeys uint64) ([]crypto.FalconSigner, error) {
 		}
 
 		wg.Add(1)
-		go func(startIdx, endIdx uint64, keys []crypto.FalconSigner) {
+		go func(startIdx, endIdx uint64, keys []falcon.Signer) {
 			defer wg.Done()
 			if err := generateKeysForRange(ctx, startIdx, endIdx, keys); err != nil {
 				// write to the error channel, if it's not full already.
@@ -64,7 +63,7 @@ func KeysBuilder(numberOfKeys uint64) ([]crypto.FalconSigner, error) {
 
 	select {
 	case err := <-errors:
-		return []crypto.FalconSigner{}, err
+		return []falcon.Signer{}, err
 	default:
 	}
 	return keys, nil
@@ -81,12 +80,12 @@ func calculateRanges(numberOfKeys uint64) (numOfKeysPerRoutine uint64, numOfRout
 	return
 }
 
-func generateKeysForRange(ctx context.Context, startIdx uint64, endIdx uint64, keys []crypto.FalconSigner) error {
+func generateKeysForRange(ctx context.Context, startIdx uint64, endIdx uint64, keys []falcon.Signer) error {
 	for k := startIdx; k < endIdx; k++ {
 		if ctx.Err() != nil {
 			break
 		}
-		sigAlgo, err := crypto.NewFalconSigner()
+		sigAlgo, err := falcon.NewFalconSigner()
 		if err != nil {
 			return err
 		}

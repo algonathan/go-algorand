@@ -17,11 +17,11 @@
 package transactions
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -45,9 +45,9 @@ func TestEncoding(t *testing.T) {
 	paymentBytes := protocol.Encode(&stxn1)
 	keyRegBytes := protocol.Encode(&stxn2)
 
-	bytes := make(map[crypto.Digest]bool)
-	bytes[crypto.Hash(paymentBytes)] = true
-	bytes[crypto.Hash(keyRegBytes)] = true
+	bytes := make(map[cryptbase.Digest]bool)
+	bytes[cryptbase.Hash(paymentBytes)] = true
+	bytes[cryptbase.Hash(keyRegBytes)] = true
 	require.Len(t, bytes, 2, "Encoding of a signed payment and a signed key reg were identical")
 
 	var decodedPayment, decodedKeyReg SignedTxn
@@ -82,8 +82,8 @@ func TestSignedTxnInBlockHash(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	var stib SignedTxnInBlock
-	crypto.RandBytes(stib.Txn.Sender[:])
-	require.Equal(t, crypto.HashObj(&stib), stib.Hash())
+	cryptbase.RandBytes(stib.Txn.Sender[:])
+	require.Equal(t, cryptbase.HashObj(&stib), stib.Hash())
 }
 
 //TODO: test multisig

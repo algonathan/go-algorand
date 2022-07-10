@@ -8,7 +8,7 @@ import (
 	"github.com/algorand/msgp/msgp"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // The following msgp objects are implemented in this file:
@@ -1315,7 +1315,7 @@ func (z *AccountData) MsgIsZero() bool {
 
 // MarshalMsg implements msgp.Marshaler
 func (z *Address) MarshalMsg(b []byte) []byte {
-	return ((*(crypto.Digest))(z)).MarshalMsg(b)
+	return ((*(cryptbase.Digest))(z)).MarshalMsg(b)
 }
 func (_ *Address) CanMarshalMsg(z interface{}) bool {
 	_, ok := (z).(*Address)
@@ -1324,7 +1324,7 @@ func (_ *Address) CanMarshalMsg(z interface{}) bool {
 
 // UnmarshalMsg implements msgp.Unmarshaler
 func (z *Address) UnmarshalMsg(bts []byte) ([]byte, error) {
-	return ((*(crypto.Digest))(z)).UnmarshalMsg(bts)
+	return ((*(cryptbase.Digest))(z)).UnmarshalMsg(bts)
 }
 func (_ *Address) CanUnmarshalMsg(z interface{}) bool {
 	_, ok := (z).(*Address)
@@ -1333,12 +1333,12 @@ func (_ *Address) CanUnmarshalMsg(z interface{}) bool {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *Address) Msgsize() int {
-	return ((*(crypto.Digest))(z)).Msgsize()
+	return ((*(cryptbase.Digest))(z)).Msgsize()
 }
 
 // MsgIsZero returns whether this is a zero value
 func (z *Address) MsgIsZero() bool {
-	return ((*(crypto.Digest))(z)).MsgIsZero()
+	return ((*(cryptbase.Digest))(z)).MsgIsZero()
 }
 
 // MarshalMsg implements msgp.Marshaler

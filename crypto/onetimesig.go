@@ -19,6 +19,7 @@ package crypto
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
@@ -137,7 +138,7 @@ type OneTimeSignatureSecrets struct {
 	// We keep track of an RNG, used to generate additional randomness.
 	// This is used purely for testing (fuzzing, specifically).  Except
 	// for testing, the RNG is SystemRNG.
-	rng RNG
+	rng cryptbase.RNG
 
 	// We use a read-write lock to guard against concurrent invocations,
 	// such as Sign() concurrently running with DeleteBefore*().
@@ -200,7 +201,7 @@ type ephemeralSubkey struct {
 // This range includes startBatch and excludes startBatch+numBatches.
 //
 // Randomness comes from the supplied RNG.
-func GenerateOneTimeSignatureSecretsRNG(startBatch uint64, numBatches uint64, rng RNG) *OneTimeSignatureSecrets {
+func GenerateOneTimeSignatureSecretsRNG(startBatch uint64, numBatches uint64, rng cryptbase.RNG) *OneTimeSignatureSecrets {
 	s := new(OneTimeSignatureSecrets)
 
 	master, ephemeralSec := ed25519GenerateKeyRNG(rng)
@@ -211,7 +212,7 @@ func GenerateOneTimeSignatureSecretsRNG(startBatch uint64, numBatches uint64, rn
 		batchnum := startBatch + i
 
 		newid := OneTimeSignatureSubkeyBatchID{SubKeyPK: pk, Batch: batchnum}
-		newsig := ed25519Sign(ephemeralSec, HashRep(newid))
+		newsig := ed25519Sign(ephemeralSec, cryptbase.HashRep(newid))
 
 		subkeys[i] = ephemeralSubkey{
 			PK:       pk,
@@ -230,30 +231,30 @@ func GenerateOneTimeSignatureSecretsRNG(startBatch uint64, numBatches uint64, rn
 // GenerateOneTimeSignatureSecrets is a version of GenerateOneTimeSignatureSecretsRNG
 // that uses the system-wide randomness source.
 func GenerateOneTimeSignatureSecrets(startBatch uint64, numBatches uint64) *OneTimeSignatureSecrets {
-	return GenerateOneTimeSignatureSecretsRNG(startBatch, numBatches, SystemRNG)
+	return GenerateOneTimeSignatureSecretsRNG(startBatch, numBatches, cryptbase.SystemRNG)
 }
 
 // getRNG returns the RNG for OneTimeSignatureSecrets.
 // If we serialized and de-serialized the OneTimeSignatureSecrets,
 // the private rng field might be nil.  Since rng is used only
 // for testing, in this case we return SystemRNG.
-func (s *OneTimeSignatureSecrets) getRNG() RNG {
+func (s *OneTimeSignatureSecrets) getRNG() cryptbase.RNG {
 	if s.rng != nil {
 		return s.rng
 	}
-	return SystemRNG
+	return cryptbase.SystemRNG
 }
 
 // Sign produces a OneTimeSignature of some Hashable message under some
 // OneTimeSignatureIdentifier.
-func (s *OneTimeSignatureSecrets) Sign(id OneTimeSignatureIdentifier, message Hashable) OneTimeSignature {
+func (s *OneTimeSignatureSecrets) Sign(id OneTimeSignatureIdentifier, message cryptbase.Hashable) OneTimeSignature {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	// Check if we already have a partial batch of subkeys.
 	if id.Batch+1 == s.FirstBatch && id.Offset >= s.FirstOffset && id.Offset-s.FirstOffset < uint64(len(s.Offsets)) {
 		offidx := id.Offset - s.FirstOffset
-		sig := ed25519Sign(s.Offsets[offidx].SK, HashRep(message))
+		sig := ed25519Sign(s.Offsets[offidx].SK, cryptbase.HashRep(message))
 		return OneTimeSignature{
 			Sig:    sig,
 			PK:     s.Offsets[offidx].PK,
@@ -268,7 +269,7 @@ func (s *OneTimeSignatureSecrets) Sign(id OneTimeSignatureIdentifier, message Ha
 		// Since we have not yet broken out this batch into per-offset keys,
 		// generate a fresh subkey right away, sign it, and use it.
 		pk, sk := ed25519GenerateKeyRNG(s.getRNG())
-		sig := ed25519Sign(sk, HashRep(message))
+		sig := ed25519Sign(sk, cryptbase.HashRep(message))
 
 		batchidx := id.Batch - s.FirstBatch
 		pksig := s.Batches[batchidx].PKSigNew
@@ -281,7 +282,7 @@ func (s *OneTimeSignatureSecrets) Sign(id OneTimeSignatureIdentifier, message Ha
 		return OneTimeSignature{
 			Sig:    sig,
 			PK:     pk,
-			PK1Sig: ed25519Sign(s.Batches[batchidx].SK, HashRep(pk1id)),
+			PK1Sig: ed25519Sign(s.Batches[batchidx].SK, cryptbase.HashRep(pk1id)),
 			PK2:    s.Batches[batchidx].PK,
 			PK2Sig: pksig,
 		}
@@ -308,7 +309,7 @@ func (s *OneTimeSignatureSecrets) Sign(id OneTimeSignatureIdentifier, message Ha
 // OneTimeSignatureVerifier and some OneTimeSignatureIdentifier.
 //
 // It returns true if this is the case; otherwise, it returns false.
-func (v OneTimeSignatureVerifier) Verify(id OneTimeSignatureIdentifier, message Hashable, sig OneTimeSignature) bool {
+func (v OneTimeSignatureVerifier) Verify(id OneTimeSignatureIdentifier, message cryptbase.Hashable, sig OneTimeSignature) bool {
 	offsetID := OneTimeSignatureSubkeyOffsetID{
 		SubKeyPK: sig.PK,
 		Batch:    id.Batch,
@@ -320,7 +321,7 @@ func (v OneTimeSignatureVerifier) Verify(id OneTimeSignatureIdentifier, message 
 	}
 
 	return batchVerificationImpl(
-		[][]byte{HashRep(batchID), HashRep(offsetID), HashRep(message)},
+		[][]byte{cryptbase.HashRep(batchID), cryptbase.HashRep(offsetID), cryptbase.HashRep(message)},
 		[]PublicKey{PublicKey(v), PublicKey(batchID.SubKeyPK), PublicKey(offsetID.SubKeyPK)},
 		[]Signature{Signature(sig.PK2Sig), Signature(sig.PK1Sig), Signature(sig.Sig)},
 	)
@@ -387,7 +388,7 @@ func (s *OneTimeSignatureSecrets) DeleteBeforeFineGrained(current OneTimeSignatu
 	s.FirstOffset = current.Offset
 	for off := current.Offset; off < numKeysPerBatch; off++ {
 		pk, sk := ed25519GenerateKeyRNG(s.getRNG())
-		pksig := ed25519Sign(s.Batches[0].SK, HashRep(OneTimeSignatureSubkeyOffsetID{
+		pksig := ed25519Sign(s.Batches[0].SK, cryptbase.HashRep(OneTimeSignatureSubkeyOffsetID{
 			SubKeyPK: pk,
 			Batch:    current.Batch,
 			Offset:   off,

@@ -22,6 +22,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/account"
 	"github.com/algorand/go-algorand/util/db"
 	"github.com/algorand/go-deadlock"
@@ -138,7 +139,7 @@ func makeNewEmptyBlock(t *testing.T, l *Ledger, GenesisID string, initAccounts m
 	require.NoError(t, err)
 
 	if proto.SupportGenesisHash {
-		blk.BlockHeader.GenesisHash = crypto.Hash([]byte(GenesisID))
+		blk.BlockHeader.GenesisHash = cryptbase.Hash([]byte(GenesisID))
 	}
 
 	initNextBlockHeader(&blk.BlockHeader, lastBlock, proto)
@@ -255,7 +256,7 @@ func TestLedgerBlockHeaders(t *testing.T) {
 	correctHeader.FeeSink = testSinkAddr
 
 	if proto.SupportGenesisHash {
-		correctHeader.GenesisHash = crypto.Hash([]byte(t.Name()))
+		correctHeader.GenesisHash = cryptbase.Hash([]byte(t.Name()))
 	}
 
 	initNextBlockHeader(&correctHeader, lastBlock, proto)
@@ -341,7 +342,7 @@ func TestLedgerBlockHeaders(t *testing.T) {
 	// TODO test rewards cases with changing poolAddr money, with changing round, and with changing total reward units
 
 	badBlock = bookkeeping.Block{BlockHeader: correctHeader}
-	badBlock.BlockHeader.TxnCommitments.NativeSha512_256Commitment = crypto.Hash([]byte{0})
+	badBlock.BlockHeader.TxnCommitments.NativeSha512_256Commitment = cryptbase.Hash([]byte{0})
 	a.Error(l.appendUnvalidated(badBlock), "added block header with empty transaction root")
 
 	badBlock = bookkeeping.Block{BlockHeader: correctHeader}
@@ -998,9 +999,9 @@ int 1                   // [1]
 
 			if test.groupped {
 				var group transactions.TxGroup
-				group.TxGroupHashes = []crypto.Digest{crypto.HashObj(appcall1), crypto.HashObj(appcall2)}
-				appcall1.Group = crypto.HashObj(group)
-				appcall2.Group = crypto.HashObj(group)
+				group.TxGroupHashes = []cryptbase.Digest{cryptbase.HashObj(appcall1), cryptbase.HashObj(appcall2)}
+				appcall1.Group = cryptbase.HashObj(group)
+				appcall2.Group = cryptbase.HashObj(group)
 			}
 
 			stx1 := sign(initSecrets, appcall1)
@@ -1060,7 +1061,7 @@ func testLedgerSingleTxApplyData(t *testing.T, version protocol.ConsensusVersion
 		FirstValid:  l.Latest() + 1,
 		LastValid:   l.Latest() + 10,
 		GenesisID:   t.Name(),
-		GenesisHash: crypto.Hash([]byte(t.Name())),
+		GenesisHash: cryptbase.Hash([]byte(t.Name())),
 	}
 
 	correctPayFields := transactions.PaymentTxnFields{
@@ -1256,7 +1257,7 @@ func testLedgerSingleTxApplyData(t *testing.T, version protocol.ConsensusVersion
 			correctHeader.FeeSink = testSinkAddr
 
 			if proto.SupportGenesisHash {
-				correctHeader.GenesisHash = crypto.Hash([]byte(t.Name()))
+				correctHeader.GenesisHash = cryptbase.Hash([]byte(t.Name()))
 			}
 
 			initNextBlockHeader(&correctHeader, lastBlock, proto)
@@ -1347,7 +1348,7 @@ func testLedgerRegressionFaultyLeaseFirstValidCheck2f3880f7(t *testing.T, versio
 		FirstValid:  l.Latest() + 1,
 		LastValid:   l.Latest() + 10,
 		GenesisID:   t.Name(),
-		GenesisHash: crypto.Hash([]byte(t.Name())),
+		GenesisHash: cryptbase.Hash([]byte(t.Name())),
 	}
 
 	correctPayFields := transactions.PaymentTxnFields{
@@ -1383,7 +1384,7 @@ func TestLedgerBlockHdrCaching(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	genesisInitState := getInitState()
 	const inMem = true
 	cfg := config.GetDefaultLocal()
@@ -1397,7 +1398,7 @@ func TestLedgerBlockHdrCaching(t *testing.T) {
 
 	for i := 0; i < 1024; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		err := l.AddBlock(blk, agreement.Certificate{})
 		a.NoError(err)
 
@@ -1435,7 +1436,7 @@ func (w nullWriter) Write(data []byte) (n int, err error) {
 func benchLedgerCache(b *testing.B, startRound basics.Round) {
 	a := require.New(b)
 
-	dbName := fmt.Sprintf("%s.%d", b.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", b.Name(), cryptbase.RandUint64())
 	genesisInitState := getInitState()
 	const inMem = false // benchmark actual DB stored in disk instead of on memory
 	cfg := config.GetDefaultLocal()
@@ -1462,7 +1463,7 @@ func benchLedgerCache(b *testing.B, startRound basics.Round) {
 	// Fill ledger (and its cache) with blocks
 	for i := 0; i < 1024; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		err := l.AddBlock(blk, agreement.Certificate{})
 		a.NoError(err)
 	}
@@ -1479,7 +1480,7 @@ func benchLedgerCache(b *testing.B, startRound basics.Round) {
 func TestLedgerReload(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	genesisInitState := getInitState()
 	const inMem = true
 	cfg := config.GetDefaultLocal()
@@ -1492,7 +1493,7 @@ func TestLedgerReload(t *testing.T) {
 	blk := genesisInitState.Block
 	for i := 0; i < 128; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		err = l.AddBlock(blk, agreement.Certificate{})
 		require.NoError(t, err)
 
@@ -1659,7 +1660,7 @@ func TestLedgerKeepsOldBlocksForStateProof(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	maxBlocks := int((config.Consensus[protocol.ConsensusFuture].StateProofRecoveryInterval + 1) * config.Consensus[protocol.ConsensusFuture].StateProofInterval)
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	genesisInitState, initKeys := ledgertesting.GenerateInitState(t, protocol.ConsensusFuture, 10000000000)
 
 	// place real values on the participation period, so we would create a commitment with some stake.
@@ -1670,9 +1671,9 @@ func TestLedgerKeepsOldBlocksForStateProof(t *testing.T) {
 		newAccount.VoteFirstValid = 1
 		newAccount.VoteLastValid = 10000
 		newAccount.VoteKeyDilution = 10
-		crypto.RandBytes(newAccount.VoteID[:])
-		crypto.RandBytes(newAccount.SelectionID[:])
-		crypto.RandBytes(newAccount.StateProofID[:])
+		cryptbase.RandBytes(newAccount.VoteID[:])
+		cryptbase.RandBytes(newAccount.SelectionID[:])
+		cryptbase.RandBytes(newAccount.StateProofID[:])
 		accountsWithValid[addr] = newAccount
 	}
 	genesisInitState.Accounts = accountsWithValid
@@ -1765,7 +1766,7 @@ func addDummyBlock(t *testing.T, addresses []basics.Address, proto config.Consen
 			FirstValid:  l.Latest() + 1,
 			LastValid:   l.Latest() + 10,
 			GenesisID:   t.Name(),
-			GenesisHash: crypto.Hash([]byte(t.Name())),
+			GenesisHash: cryptbase.Hash([]byte(t.Name())),
 			Note:        []byte{uint8(j)},
 		}
 
@@ -1790,7 +1791,7 @@ func TestLedgerMemoryLeak(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	t.Skip() // for manual runs only
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	genesisInitState, initKeys := ledgertesting.GenerateInitState(t, protocol.ConsensusCurrentVersion, 10000000000)
 	const inMem = false
 	cfg := config.GetDefaultLocal()
@@ -1836,7 +1837,7 @@ func TestLedgerMemoryLeak(t *testing.T) {
 				FirstValid:  l.Latest() + 1,
 				LastValid:   l.Latest() + 10,
 				GenesisID:   t.Name(),
-				GenesisHash: crypto.Hash([]byte(t.Name())),
+				GenesisHash: cryptbase.Hash([]byte(t.Name())),
 			}
 
 			assetCreateFields := transactions.AssetConfigTxnFields{
@@ -1937,11 +1938,11 @@ func TestLookupAgreement(t *testing.T) {
 		if addrOffline.IsZero() {
 			addrOffline = addr
 			ad.Status = basics.Offline
-			crypto.RandBytes(ad.VoteID[:]) // this is invalid but we set VoteID to ensure the account gets cleared
+			cryptbase.RandBytes(ad.VoteID[:]) // this is invalid but we set VoteID to ensure the account gets cleared
 			genesisInitState.Accounts[addr] = ad
 		} else if ad.Status == basics.Online {
 			addrOnline = addr
-			crypto.RandBytes(ad.VoteID[:])
+			cryptbase.RandBytes(ad.VoteID[:])
 			genesisInitState.Accounts[addr] = ad
 			break
 		}
@@ -2016,7 +2017,7 @@ func BenchmarkLedgerStartup(b *testing.B) {
 func TestLedgerReloadShrinkDeltas(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	genesisInitState, initKeys := ledgertesting.GenerateInitState(t, protocol.ConsensusCurrentVersion, 10_000_000_000)
 	proto := config.Consensus[protocol.ConsensusCurrentVersion]
 	const inMem = false
@@ -2068,7 +2069,7 @@ func TestLedgerReloadShrinkDeltas(t *testing.T) {
 				FirstValid:  latest + 1,
 				LastValid:   latest + maxValidity,
 				GenesisID:   t.Name(),
-				GenesisHash: crypto.Hash([]byte(t.Name())),
+				GenesisHash: cryptbase.Hash([]byte(t.Name())),
 			}
 
 			correctPayFields := transactions.PaymentTxnFields{
@@ -2196,7 +2197,7 @@ func TestLedgerMigrateV6ShrinkDeltas(t *testing.T) {
 	defer func() {
 		accountDBVersion = 7
 	}()
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	testProtocolVersion := protocol.ConsensusVersion("test-protocol-migrate-shrink-deltas")
 	proto := config.Consensus[protocol.ConsensusV31]
 	proto.RewardsRateRefreshInterval = 500
@@ -2279,7 +2280,7 @@ func TestLedgerMigrateV6ShrinkDeltas(t *testing.T) {
 	// run for maxBlocks rounds with random payment transactions
 	// generate numTxns txn per block
 	for i := 0; i < maxBlocks; i++ {
-		numTxns := crypto.RandUint64()%9 + 7
+		numTxns := cryptbase.RandUint64()%9 + 7
 		stxns := make([]transactions.SignedTxn, numTxns)
 		latest := l.Latest()
 		txnIDs[latest+1] = make(map[transactions.Txid]struct{})
@@ -2293,7 +2294,7 @@ func TestLedgerMigrateV6ShrinkDeltas(t *testing.T) {
 				FirstValid:  latest + 1,
 				LastValid:   latest + maxValidity,
 				GenesisID:   t.Name(),
-				GenesisHash: crypto.Hash([]byte(t.Name())),
+				GenesisHash: cryptbase.Hash([]byte(t.Name())),
 			}
 
 			tx := transactions.Transaction{
@@ -2515,7 +2516,7 @@ func TestLedgerTxTailCachedBlockHeaders(t *testing.T) {
 func TestLedgerKeyregFlip(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	genesisInitState, initKeys := ledgertesting.GenerateInitState(t, protocol.ConsensusCurrentVersion, 10_000_000_000)
 	const inMem = false
 	cfg := config.GetDefaultLocal()
@@ -2561,7 +2562,7 @@ func TestLedgerKeyregFlip(t *testing.T) {
 		stxns := make([]transactions.SignedTxn, numAccounts)
 		latest := l.Latest()
 		require.Equal(t, basics.Round(i), latest)
-		seed := int(crypto.RandUint63() % 1_000_000)
+		seed := int(cryptbase.RandUint63() % 1_000_000)
 		for j := 0; j < numAccounts; j++ {
 			txHeader := transactions.Header{
 				Sender:      addresses[j],
@@ -2569,7 +2570,7 @@ func TestLedgerKeyregFlip(t *testing.T) {
 				FirstValid:  latest + 1,
 				LastValid:   latest + 10,
 				GenesisID:   t.Name(),
-				GenesisHash: crypto.Hash([]byte(t.Name())),
+				GenesisHash: cryptbase.Hash([]byte(t.Name())),
 			}
 
 			keyregFields := transactions.KeyregTxnFields{

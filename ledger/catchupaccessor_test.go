@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"strings"
 	"testing"
@@ -28,7 +29,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
@@ -57,9 +57,9 @@ func createTestingEncodedChunks(accountsCount uint64) (encodedAccountChunks [][]
 		for i := uint64(0); i < chunkSize; i++ {
 			var randomAccount encodedBalanceRecordV6
 			accountData := baseAccountData{}
-			accountData.MicroAlgos.Raw = crypto.RandUint63()
+			accountData.MicroAlgos.Raw = cryptbase.RandUint63()
 			randomAccount.AccountData = protocol.Encode(&accountData)
-			crypto.RandBytes(randomAccount.Address[:])
+			cryptbase.RandBytes(randomAccount.Address[:])
 			binary.LittleEndian.PutUint64(randomAccount.Address[:], accounts+i)
 			balances.Balances[i] = randomAccount
 		}
@@ -100,7 +100,7 @@ func benchmarkRestoringFromCatchpointFileHelper(b *testing.B) {
 		TotalAccounts:     accountsCount,
 		TotalChunks:       (accountsCount + BalancesPerCatchpointFileChunk - 1) / BalancesPerCatchpointFileChunk,
 		Catchpoint:        "",
-		BlockHeaderDigest: crypto.Digest{},
+		BlockHeaderDigest: cryptbase.Digest{},
 	}
 	encodedFileHeader := protocol.Encode(&fileHeader)
 	var progress CatchpointCatchupAccessorProgress
@@ -256,7 +256,7 @@ func TestBuildMerkleTrie(t *testing.T) {
 		TotalAccounts:     accountsCount,
 		TotalChunks:       (accountsCount + BalancesPerCatchpointFileChunk - 1) / BalancesPerCatchpointFileChunk,
 		Catchpoint:        "",
-		BlockHeaderDigest: crypto.Digest{},
+		BlockHeaderDigest: cryptbase.Digest{},
 	}
 	encodedFileHeader := protocol.Encode(&fileHeader)
 	err = catchpointAccessor.ProgressStagingBalances(ctx, "content.msgpack", encodedFileHeader, &progress)

@@ -19,6 +19,7 @@ package main
 import (
 	"encoding/base32"
 	"encoding/base64"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 
 	"github.com/algorand/go-algorand/crypto"
@@ -118,7 +119,7 @@ The base64 encoding of the signature will always be printed to stdout. Optionall
 			reportErrorf(tealsignMutLsigArgs)
 		}
 
-		var progHash crypto.Digest
+		var progHash cryptbase.Digest
 		var stxn transactions.SignedTxn
 		if lsigTxnFilename != "" {
 			// If passed a SignedTxn with a logic sig, compute
@@ -139,7 +140,7 @@ The base64 encoding of the signature will always be printed to stdout. Optionall
 				reportErrorf(tealsignEmptyLogic)
 			}
 
-			progHash = crypto.HashObj(logic.Program(stxn.Lsig.Logic))
+			progHash = cryptbase.HashObj(logic.Program(stxn.Lsig.Logic))
 		} else {
 			// Otherwise, the contract address is the logic hash
 			parsedAddr, err := basics.UnmarshalChecksumAddress(contractAddr)

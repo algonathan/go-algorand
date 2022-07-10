@@ -38,14 +38,15 @@ package crypto
 import "C"
 import (
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"unsafe"
 )
 
 // BatchVerifier enqueues signatures to be validated in batch.
 type BatchVerifier struct {
-	messages   []Hashable          // contains a slice of messages to be hashed. Each message is varible length
-	publicKeys []SignatureVerifier // contains a slice of public keys. Each individual public key is 32 bytes.
-	signatures []Signature         // contains a slice of signatures keys. Each individual signature is 64 bytes.
+	messages   []cryptbase.Hashable // contains a slice of messages to be hashed. Each message is varible length
+	publicKeys []SignatureVerifier  // contains a slice of public keys. Each individual public key is 32 bytes.
+	signatures []Signature          // contains a slice of signatures keys. Each individual signature is 64 bytes.
 }
 
 const minBatchVerifierAlloc = 16
@@ -59,7 +60,7 @@ var (
 //export ed25519_randombytes_unsafe
 func ed25519_randombytes_unsafe(p unsafe.Pointer, len C.size_t) {
 	randBuf := (*[1 << 30]byte)(p)[:len:len]
-	RandBytes(randBuf)
+	cryptbase.RandBytes(randBuf)
 }
 
 // MakeBatchVerifier creates a BatchVerifier instance.
@@ -75,14 +76,14 @@ func MakeBatchVerifierWithHint(hint int) *BatchVerifier {
 		hint = minBatchVerifierAlloc
 	}
 	return &BatchVerifier{
-		messages:   make([]Hashable, 0, hint),
+		messages:   make([]cryptbase.Hashable, 0, hint),
 		publicKeys: make([]SignatureVerifier, 0, hint),
 		signatures: make([]Signature, 0, hint),
 	}
 }
 
 // EnqueueSignature enqueues a signature to be enqueued
-func (b *BatchVerifier) EnqueueSignature(sigVerifier SignatureVerifier, message Hashable, sig Signature) {
+func (b *BatchVerifier) EnqueueSignature(sigVerifier SignatureVerifier, message cryptbase.Hashable, sig Signature) {
 	// do we need to reallocate ?
 	if len(b.messages) == cap(b.messages) {
 		b.expand()
@@ -93,7 +94,7 @@ func (b *BatchVerifier) EnqueueSignature(sigVerifier SignatureVerifier, message 
 }
 
 func (b *BatchVerifier) expand() {
-	messages := make([]Hashable, len(b.messages), len(b.messages)*2)
+	messages := make([]cryptbase.Hashable, len(b.messages), len(b.messages)*2)
 	publicKeys := make([]SignatureVerifier, len(b.publicKeys), len(b.publicKeys)*2)
 	signatures := make([]Signature, len(b.signatures), len(b.signatures)*2)
 	copy(messages, b.messages)
@@ -118,7 +119,7 @@ func (b *BatchVerifier) Verify() error {
 
 	var messages = make([][]byte, b.GetNumberOfEnqueuedSignatures())
 	for i, m := range b.messages {
-		messages[i] = HashRep(m)
+		messages[i] = cryptbase.HashRep(m)
 	}
 	if batchVerificationImpl(messages, b.publicKeys, b.signatures) {
 		return nil

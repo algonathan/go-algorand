@@ -20,6 +20,7 @@ import (
 	"context"
 	"encoding/binary"
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"net/http"
 	"path"
 	"strconv"
@@ -34,7 +35,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
@@ -365,7 +365,7 @@ func (bs *BlockService) getRandomArchiver() (endpointAddress string) {
 	if len(httpPeers) == 0 {
 		return
 	}
-	randIndex := crypto.RandUint64() % uint64(len(httpPeers))
+	randIndex := cryptbase.RandUint64() % uint64(len(httpPeers))
 	endpointAddress = httpPeers[randIndex].GetAddress()
 	return
 }

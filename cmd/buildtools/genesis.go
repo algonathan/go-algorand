@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,7 +26,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/util"
@@ -263,8 +263,8 @@ func verifyGenesisHashes(src, release bookkeeping.Genesis, hashFile string) (err
 	srcHash := src.Hash()
 	releaseHash := release.Hash()
 
-	srcHashCrypo := crypto.HashObj(src)
-	releaseHashCrypto := crypto.HashObj(release)
+	srcHashCrypo := cryptbase.HashObj(src)
+	releaseHashCrypto := cryptbase.HashObj(release)
 
 	if srcHash != srcHashCrypo {
 		return fmt.Errorf("source hashes differ - genesis.json our hashing function isn't consistent")

@@ -20,6 +20,7 @@ import (
 	"crypto/rand"
 	"crypto/sha512"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 
 	"golang.org/x/crypto/hkdf"
@@ -256,6 +257,6 @@ func extractKeyWithIndex(derivationKey []byte, index uint64) (pk crypto.PublicKe
 }
 
 // fastHashWithSalt returns a salted hash of a password, using a fast hash function
-func fastHashWithSalt(password []byte, salt []byte) crypto.Digest {
-	return crypto.Hash(append(salt, password...))
+func fastHashWithSalt(password []byte, salt []byte) cryptbase.Digest {
+	return cryptbase.Hash(append(salt, password...))
 }

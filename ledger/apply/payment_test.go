@@ -17,6 +17,7 @@
 package apply
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
 
@@ -39,7 +40,7 @@ var spec = transactions.SpecialAddresses{
 
 func keypair() *crypto.SignatureSecrets {
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	s := crypto.GenerateSignatureSecrets(seed)
 	return s
 }
@@ -153,7 +154,7 @@ func TestPaymentValidation(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	payments, _, _, _ := generateTestObjects(100, 50)
-	genHash := crypto.Digest{0x42}
+	genHash := cryptbase.Digest{0x42}
 	for i, txn := range payments {
 		txn.GenesisHash = genHash
 		payments[i] = txn

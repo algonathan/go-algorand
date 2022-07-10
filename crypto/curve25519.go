@@ -35,6 +35,7 @@ import "C"
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/util/metrics"
@@ -86,11 +87,11 @@ type PublicKey ed25519PublicKey
 
 func ed25519GenerateKey() (public ed25519PublicKey, secret ed25519PrivateKey) {
 	var seed ed25519Seed
-	RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	return ed25519GenerateKeySeed(seed)
 }
 
-func ed25519GenerateKeyRNG(rng RNG) (public ed25519PublicKey, secret ed25519PrivateKey) {
+func ed25519GenerateKeyRNG(rng cryptbase.RNG) (public ed25519PublicKey, secret ed25519PrivateKey) {
 	var seed ed25519Seed
 	rng.RandBytes(seed[:])
 	return ed25519GenerateKeySeed(seed)
@@ -194,9 +195,9 @@ func GenerateSignatureSecrets(seed Seed) *SignatureSecrets {
 
 // Sign produces a cryptographic Signature of a Hashable message, given
 // cryptographic secrets.
-func (s *SignatureSecrets) Sign(message Hashable) Signature {
+func (s *SignatureSecrets) Sign(message cryptbase.Hashable) Signature {
 	cryptoSigSecretsSignTotal.Inc(nil)
-	return s.SignBytes(HashRep(message))
+	return s.SignBytes(cryptbase.HashRep(message))
 }
 
 // SignBytes signs a message directly, without first hashing.
@@ -211,9 +212,9 @@ func (s *SignatureSecrets) SignBytes(message []byte) Signature {
 //
 // It returns true if this is the case; otherwise, it returns false.
 //
-func (v SignatureVerifier) Verify(message Hashable, sig Signature) bool {
+func (v SignatureVerifier) Verify(message cryptbase.Hashable, sig Signature) bool {
 	cryptoSigSecretsVerifyTotal.Inc(nil)
-	return ed25519Verify(ed25519PublicKey(v), HashRep(message), ed25519Signature(sig))
+	return ed25519Verify(ed25519PublicKey(v), cryptbase.HashRep(message), ed25519Signature(sig))
 }
 
 // VerifyBytes verifies a signature, where the message is not hashed first.

@@ -19,13 +19,13 @@ package merklearray
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"hash"
 	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -42,7 +42,7 @@ func (m TestMessage) ToBeHashed() (protocol.HashID, []byte) {
 	return protocol.Message, []byte(m)
 }
 
-type TestData crypto.Digest
+type TestData cryptbase.Digest
 
 func (d TestData) ToBeHashed() (protocol.HashID, []byte) {
 	return protocol.Message, d[:]
@@ -60,7 +60,7 @@ func (a TestArray) Length() uint64 {
 	return uint64(len(a))
 }
 
-func (a TestArray) Marshal(pos uint64) (crypto.Hashable, error) {
+func (a TestArray) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	if pos >= uint64(len(a)) {
 		return nil, fmt.Errorf("pos %d larger than length %d", pos, len(a))
 	}
@@ -69,7 +69,7 @@ func (a TestArray) Marshal(pos uint64) (crypto.Hashable, error) {
 }
 
 type TestRepeatingArray struct {
-	item  crypto.Hashable
+	item  cryptbase.Hashable
 	count uint64
 }
 
@@ -77,7 +77,7 @@ func (a TestRepeatingArray) Length() uint64 {
 	return a.count
 }
 
-func (a TestRepeatingArray) Marshal(pos uint64) (crypto.Hashable, error) {
+func (a TestRepeatingArray) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	if pos >= a.count {
 		return nil, fmt.Errorf("pos %d larger than length %d", pos, a.count)
 	}
@@ -96,50 +96,50 @@ func TestMerkle(t *testing.T) {
 	}
 
 	for i := uint64(1); i < 1024; i = i + increment {
-		t.Run(fmt.Sprintf("hash#%s/Size#%d", crypto.Sha512_256.String(), i), func(t *testing.T) {
-			testMerkle(t, crypto.Sha512_256, i)
+		t.Run(fmt.Sprintf("hash#%s/Size#%d", cryptbase.Sha512_256.String(), i), func(t *testing.T) {
+			testMerkle(t, cryptbase.Sha512_256, i)
 		})
 	}
 
 	if !testing.Short() {
 		for i := uint64(1); i < 10; i++ {
-			t.Run(fmt.Sprintf("hash#%s/Size#%d", crypto.Sumhash.String(), i), func(t *testing.T) {
-				testMerkle(t, crypto.Sumhash, i)
+			t.Run(fmt.Sprintf("hash#%s/Size#%d", cryptbase.Sumhash.String(), i), func(t *testing.T) {
+				testMerkle(t, cryptbase.Sumhash, i)
 			})
 		}
 	} else {
-		t.Run(fmt.Sprintf("hash#%s/Size#%d", crypto.Sha512_256.String(), 10), func(t *testing.T) {
-			testMerkle(t, crypto.Sumhash, 10)
+		t.Run(fmt.Sprintf("hash#%s/Size#%d", cryptbase.Sha512_256.String(), 10), func(t *testing.T) {
+			testMerkle(t, cryptbase.Sumhash, 10)
 		})
 
 	}
 }
 
-func testMerkle(t *testing.T, hashtype crypto.HashType, size uint64) {
+func testMerkle(t *testing.T, hashtype cryptbase.HashType, size uint64) {
 	var junk TestData
-	crypto.RandBytes(junk[:])
+	cryptbase.RandBytes(junk[:])
 
 	a := make(TestArray, size)
 	for i := uint64(0); i < size; i++ {
-		crypto.RandBytes(a[i][:])
+		cryptbase.RandBytes(a[i][:])
 	}
 
-	tree, err := Build(a, crypto.HashFactory{HashType: hashtype})
+	tree, err := Build(a, cryptbase.HashFactory{HashType: hashtype})
 	require.NoError(t, err)
 
 	root := tree.Root()
 
 	var allpos []uint64
-	allmap := make(map[uint64]crypto.Hashable)
+	allmap := make(map[uint64]cryptbase.Hashable)
 
 	for i := uint64(0); i < size; i++ {
 		proof, err := tree.Prove([]uint64{i})
 		require.NoError(t, err)
 
-		err = Verify(root, map[uint64]crypto.Hashable{i: a[i]}, proof)
+		err = Verify(root, map[uint64]cryptbase.Hashable{i: a[i]}, proof)
 		require.NoError(t, err)
 
-		err = Verify(root, map[uint64]crypto.Hashable{i: junk}, proof)
+		err = Verify(root, map[uint64]cryptbase.Hashable{i: junk}, proof)
 		require.ErrorIs(t, err, ErrRootMismatch)
 
 		allpos = append(allpos, i)
@@ -152,13 +152,13 @@ func testMerkle(t *testing.T, hashtype crypto.HashType, size uint64) {
 	err = Verify(root, allmap, proof)
 	require.NoError(t, err)
 
-	err = Verify(root, map[uint64]crypto.Hashable{0: junk}, proof)
+	err = Verify(root, map[uint64]cryptbase.Hashable{0: junk}, proof)
 	require.ErrorIs(t, err, ErrRootMismatch)
 
 	var somepos []uint64
-	somemap := make(map[uint64]crypto.Hashable)
+	somemap := make(map[uint64]cryptbase.Hashable)
 	for i := 0; i < 10; i++ {
-		pos := crypto.RandUint64() % size
+		pos := cryptbase.RandUint64() % size
 		somepos = append(somepos, pos)
 		somemap[pos] = a[pos]
 	}
@@ -176,7 +176,7 @@ func (n nonmarshalable) Length() uint64 {
 	return uint64(len(n))
 }
 
-func (n nonmarshalable) Marshal(pos uint64) (crypto.Hashable, error) {
+func (n nonmarshalable) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	return nil, fmt.Errorf("can't be marshaled")
 }
 
@@ -184,7 +184,7 @@ func TestErrorInMarshal(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	a := nonmarshalable{1}
-	_, err := Build(&a, crypto.HashFactory{})
+	_, err := Build(&a, cryptbase.HashFactory{})
 	require.Error(t, err)
 }
 
@@ -193,27 +193,27 @@ func TestMerkleBuildEdgeCases(t *testing.T) {
 	a := require.New(t)
 
 	arr := make(TestArray, 0)
-	tree, err := Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	a.Len(tree.Levels, 0)
 	a.Equal(tree.NumOfElements, uint64(0))
 
 	root := tree.Root()
 
-	a.Equal(root, crypto.GenericDigest([]byte{}))
+	a.Equal(root, cryptbase.GenericDigest([]byte{}))
 }
 
 func TestMerkleVCBuildEdgeCases(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	h := crypto.HashFactory{HashType: crypto.Sha512_256}.NewHash()
+	h := cryptbase.HashFactory{HashType: cryptbase.Sha512_256}.NewHash()
 	h.Reset()
 	h.Write([]byte(protocol.MerkleVectorCommitmentBottomLeaf))
 	root2 := h.Sum(nil)
 
 	arr := make(TestArray, 0)
-	tree, err := BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	a.Len(tree.Levels, 1)
 	a.Equal(tree.NumOfElements, uint64(0))
@@ -228,10 +228,10 @@ func TestMerkleProveEdgeCases(t *testing.T) {
 
 	arr := make(TestArray, 4)
 	for i := uint64(0); i < 4; i++ {
-		crypto.RandBytes(arr[i][:])
+		cryptbase.RandBytes(arr[i][:])
 	}
 
-	tree, err := Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	_, err = tree.Prove([]uint64{4})
@@ -241,11 +241,11 @@ func TestMerkleProveEdgeCases(t *testing.T) {
 	// prove on nothing
 	proof, err := tree.Prove(nil)
 	a.NoError(err)
-	a.Equal(proof.Path, []crypto.GenericDigest(nil))
+	a.Equal(proof.Path, []cryptbase.GenericDigest(nil))
 	a.Equal(proof.TreeDepth, uint8(2))
 
 	arr = make(TestArray, 0)
-	tree, err = Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err = Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	_, err = tree.Prove([]uint64{0})
@@ -255,7 +255,7 @@ func TestMerkleProveEdgeCases(t *testing.T) {
 	// prove on nothing - now the tree is empty as well
 	proof, err = tree.Prove(nil)
 	a.NoError(err)
-	a.Equal(proof.Path, []crypto.GenericDigest(nil))
+	a.Equal(proof.Path, []cryptbase.GenericDigest(nil))
 	a.Equal(proof.TreeDepth, uint8(0))
 }
 
@@ -265,9 +265,9 @@ func TestMerkleVCProveEdgeCases(t *testing.T) {
 
 	arr := make(TestArray, 5)
 	for i := uint64(0); i < 5; i++ {
-		crypto.RandBytes(arr[i][:])
+		cryptbase.RandBytes(arr[i][:])
 	}
-	tree, err := BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	// element in the out of the inner array
@@ -283,11 +283,11 @@ func TestMerkleVCProveEdgeCases(t *testing.T) {
 	// prove on nothing
 	proof, err := tree.Prove(nil)
 	a.NoError(err)
-	a.Equal(proof.Path, []crypto.GenericDigest(nil))
+	a.Equal(proof.Path, []cryptbase.GenericDigest(nil))
 	a.Equal(proof.TreeDepth, uint8(3))
 
 	arr = make(TestArray, 0)
-	tree, err = BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err = BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	_, err = tree.Prove([]uint64{0})
@@ -297,7 +297,7 @@ func TestMerkleVCProveEdgeCases(t *testing.T) {
 	// prove on nothing - now the tree is empty as well
 	proof, err = tree.Prove(nil)
 	a.NoError(err)
-	a.Equal(proof.Path, []crypto.GenericDigest(nil))
+	a.Equal(proof.Path, []cryptbase.GenericDigest(nil))
 	a.Equal(proof.TreeDepth, uint8(0))
 }
 
@@ -307,9 +307,9 @@ func TestMerkleVerifyEdgeCases(t *testing.T) {
 
 	arr := make(TestArray, 4)
 	for i := uint64(0); i < 4; i++ {
-		crypto.RandBytes(arr[i][:])
+		cryptbase.RandBytes(arr[i][:])
 	}
-	tree, err := Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	proof, err := tree.Prove([]uint64{3})
@@ -317,11 +317,11 @@ func TestMerkleVerifyEdgeCases(t *testing.T) {
 
 	root := tree.Root()
 
-	err = Verify(root, map[uint64]crypto.Hashable{4: arr[3]}, proof)
+	err = Verify(root, map[uint64]cryptbase.Hashable{4: arr[3]}, proof)
 	a.Error(err)
 	require.ErrorIs(t, err, ErrPosOutOfBound)
 
-	err = Verify(root, map[uint64]crypto.Hashable{3: arr[3], 4: arr[3]}, proof)
+	err = Verify(root, map[uint64]cryptbase.Hashable{3: arr[3], 4: arr[3]}, proof)
 	a.Error(err)
 	require.ErrorIs(t, err, ErrPosOutOfBound)
 
@@ -329,7 +329,7 @@ func TestMerkleVerifyEdgeCases(t *testing.T) {
 	a.Error(err)
 	a.ErrorIs(ErrProofIsNil, err)
 
-	trivialProof := Proof{TreeDepth: 2, HashFactory: crypto.HashFactory{HashType: crypto.Sha512_256}}
+	trivialProof := Proof{TreeDepth: 2, HashFactory: cryptbase.HashFactory{HashType: cryptbase.Sha512_256}}
 	err = Verify(root, nil, &trivialProof)
 	a.NoError(err)
 
@@ -342,15 +342,15 @@ func TestMerkleVerifyEdgeCases(t *testing.T) {
 
 	arr = make(TestArray, 1)
 	for i := uint64(0); i < 1; i++ {
-		crypto.RandBytes(arr[i][:])
+		cryptbase.RandBytes(arr[i][:])
 	}
 
-	tree, err = Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err = Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	proof, err = tree.Prove([]uint64{0})
 	a.NoError(err)
-	a.Equal(trivialProof.Path, []crypto.GenericDigest(nil))
-	err = Verify(tree.Root(), map[uint64]crypto.Hashable{0: arr[0]}, proof)
+	a.Equal(trivialProof.Path, []cryptbase.GenericDigest(nil))
+	err = Verify(tree.Root(), map[uint64]cryptbase.Hashable{0: arr[0]}, proof)
 	a.NoError(err)
 }
 
@@ -360,9 +360,9 @@ func TestProveDuplicateLeaves(t *testing.T) {
 
 	arr := make(TestArray, 4)
 	for i := uint64(0); i < 4; i++ {
-		crypto.RandBytes(arr[i][:])
+		cryptbase.RandBytes(arr[i][:])
 	}
-	tree, err := Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	proof, err := tree.Prove([]uint64{3, 3})
@@ -370,10 +370,10 @@ func TestProveDuplicateLeaves(t *testing.T) {
 
 	root := tree.Root()
 
-	err = Verify(root, map[uint64]crypto.Hashable{3: arr[3]}, proof)
+	err = Verify(root, map[uint64]cryptbase.Hashable{3: arr[3]}, proof)
 	a.NoError(err)
 
-	tree, err = BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err = BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	proof, err = tree.Prove([]uint64{3, 3})
@@ -381,7 +381,7 @@ func TestProveDuplicateLeaves(t *testing.T) {
 
 	root = tree.Root()
 
-	err = VerifyVectorCommitment(root, map[uint64]crypto.Hashable{3: arr[3]}, proof)
+	err = VerifyVectorCommitment(root, map[uint64]cryptbase.Hashable{3: arr[3]}, proof)
 	a.NoError(err)
 }
 
@@ -391,9 +391,9 @@ func TestMerkleVCVerifyEdgeCases(t *testing.T) {
 
 	arr := make(TestArray, 4)
 	for i := uint64(0); i < 4; i++ {
-		crypto.RandBytes(arr[i][:])
+		cryptbase.RandBytes(arr[i][:])
 	}
-	tree, err := BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	proof, err := tree.Prove([]uint64{3})
@@ -401,11 +401,11 @@ func TestMerkleVCVerifyEdgeCases(t *testing.T) {
 
 	root := tree.Root()
 
-	err = VerifyVectorCommitment(root, map[uint64]crypto.Hashable{4: arr[3]}, proof)
+	err = VerifyVectorCommitment(root, map[uint64]cryptbase.Hashable{4: arr[3]}, proof)
 	a.Error(err)
 	require.ErrorIs(t, err, ErrPosOutOfBound)
 
-	err = VerifyVectorCommitment(root, map[uint64]crypto.Hashable{3: arr[3], 4: arr[3]}, proof)
+	err = VerifyVectorCommitment(root, map[uint64]cryptbase.Hashable{3: arr[3], 4: arr[3]}, proof)
 	a.Error(err)
 	require.ErrorIs(t, err, ErrPosOutOfBound)
 
@@ -413,7 +413,7 @@ func TestMerkleVCVerifyEdgeCases(t *testing.T) {
 	a.Error(err)
 	a.ErrorIs(ErrProofIsNil, err)
 
-	trivialProof := Proof{TreeDepth: 2, HashFactory: crypto.HashFactory{HashType: crypto.Sha512_256}}
+	trivialProof := Proof{TreeDepth: 2, HashFactory: cryptbase.HashFactory{HashType: cryptbase.Sha512_256}}
 	err = VerifyVectorCommitment(root, nil, &trivialProof)
 	a.NoError(err)
 
@@ -426,15 +426,15 @@ func TestMerkleVCVerifyEdgeCases(t *testing.T) {
 
 	arr = make(TestArray, 1)
 	for i := uint64(0); i < 1; i++ {
-		crypto.RandBytes(arr[i][:])
+		cryptbase.RandBytes(arr[i][:])
 	}
 
-	tree, err = Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err = Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	proof, err = tree.Prove([]uint64{0})
 	a.NoError(err)
-	a.Equal(trivialProof.Path, []crypto.GenericDigest(nil))
-	err = VerifyVectorCommitment(tree.Root(), map[uint64]crypto.Hashable{0: arr[0]}, proof)
+	a.Equal(trivialProof.Path, []cryptbase.GenericDigest(nil))
+	err = VerifyVectorCommitment(tree.Root(), map[uint64]cryptbase.Hashable{0: arr[0]}, proof)
 	a.NoError(err)
 }
 
@@ -443,19 +443,19 @@ func TestMerkleVCVerifyEdgeCases(t *testing.T) {
 func TestGenericDigest(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	err := testWithSize(t, crypto.MaxHashDigestSize)
+	err := testWithSize(t, cryptbase.MaxHashDigestSize)
 	require.NoError(t, err)
 
-	err = testWithSize(t, crypto.MaxHashDigestSize+1)
+	err = testWithSize(t, cryptbase.MaxHashDigestSize+1)
 	require.Error(t, err)
 }
 
 func testWithSize(t *testing.T, size int) error {
-	gd := make(crypto.GenericDigest, size)
+	gd := make(cryptbase.GenericDigest, size)
 	gd[8] = 88
 
 	var wgd Proof
-	wgd.Path = make([]crypto.GenericDigest, 1000)
+	wgd.Path = make([]cryptbase.GenericDigest, 1000)
 	wgd.Path[0] = gd
 
 	bytes := protocol.Encode(&wgd)
@@ -498,7 +498,7 @@ func TestSizeLimitsMerkle(t *testing.T) {
 				numElts := uint64(1) << (depth - eltCoefficient)
 				positions := getRegularPositions(numElts, uint64(1)<<depth)
 
-				tree, proof := testMerkelSizeLimits(t, crypto.Sha512_256, size, positions)
+				tree, proof := testMerkelSizeLimits(t, cryptbase.Sha512_256, size, positions)
 				require.Equal(t, (uint64(1)<<(depth-eltCoefficient))*eltCoefficient, uint64(len(proof.Path)))
 
 				// encode/decode
@@ -537,7 +537,7 @@ func TestSizeLimitsMerkle(t *testing.T) {
 				numElts := uint64(1) << (depth - eltCoefficient)
 				positions := getRandomPositions(numElts, numElts)
 
-				_, proof := testMerkelSizeLimits(t, crypto.Sha512_256, size, positions)
+				_, proof := testMerkelSizeLimits(t, cryptbase.Sha512_256, size, positions)
 				require.GreaterOrEqual(t, (uint64(1)<<(depth-eltCoefficient))*eltCoefficient, uint64(len(proof.Path)))
 
 				if len(proof.Path) > MaxNumLeavesOnEncodedTree {
@@ -555,7 +555,7 @@ func TestSizeLimitsMerkle(t *testing.T) {
 
 	// case of a tree with leaves 2^16 + 1
 	size := (uint64(1) << MaxEncodedTreeDepth) + 1
-	tree, _ := testMerkelSizeLimits(t, crypto.Sha512_256, size, []uint64{})
+	tree, _ := testMerkelSizeLimits(t, cryptbase.Sha512_256, size, []uint64{})
 	bytes := protocol.Encode(tree)
 	var outTree Tree
 	err := protocol.Decode(bytes, &outTree)
@@ -566,18 +566,18 @@ func TestSizeLimitsMerkle(t *testing.T) {
 	runtime.GC()
 }
 
-func testMerkelSizeLimits(t *testing.T, hashtype crypto.HashType, size uint64, positions []uint64) (*Tree, *Proof) {
+func testMerkelSizeLimits(t *testing.T, hashtype cryptbase.HashType, size uint64, positions []uint64) (*Tree, *Proof) {
 	a := make(TestArray, size)
 	for i := uint64(0); i < size; i++ {
-		crypto.RandBytes(a[i][:])
+		cryptbase.RandBytes(a[i][:])
 	}
 
-	tree, err := Build(a, crypto.HashFactory{HashType: hashtype})
+	tree, err := Build(a, cryptbase.HashFactory{HashType: hashtype})
 	require.NoError(t, err)
 
 	root := tree.Root()
 
-	posMap := make(map[uint64]crypto.Hashable)
+	posMap := make(map[uint64]cryptbase.Hashable)
 	for _, j := range positions {
 		posMap[j] = a[j]
 	}
@@ -766,12 +766,12 @@ var VCKATs = []KATElement{
 func TestMerkleTreeKATs(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	testMerkleTreeKATsAux(t, KATsSHA512_256, crypto.Sha512_256)
-	testMerkleTreeKATsAux(t, KATsSUMHASH, crypto.Sumhash)
-	testMerkleTreeKATsAux(t, KATsSHA256, crypto.Sha256)
+	testMerkleTreeKATsAux(t, KATsSHA512_256, cryptbase.Sha512_256)
+	testMerkleTreeKATsAux(t, KATsSUMHASH, cryptbase.Sumhash)
+	testMerkleTreeKATsAux(t, KATsSHA256, cryptbase.Sha256)
 }
 
-func testMerkleTreeKATsAux(t *testing.T, KATs []KATElement, hashType crypto.HashType) {
+func testMerkleTreeKATsAux(t *testing.T, KATs []KATElement, hashType cryptbase.HashType) {
 	for j := 0; j < len(KATs); j++ {
 		a := make(TestArray, len(KATs[j].elements))
 		for i := 0; i < len(KATs[j].elements); i++ {
@@ -780,7 +780,7 @@ func testMerkleTreeKATsAux(t *testing.T, KATs []KATElement, hashType crypto.Hash
 			copy(a[i][:], decodedBytes)
 		}
 		root := KATs[j].expectedRoot
-		tree, err := Build(a, crypto.HashFactory{HashType: hashType})
+		tree, err := Build(a, cryptbase.HashFactory{HashType: hashType})
 		require.NoError(t, err)
 		root2 := hex.EncodeToString(tree.Root())
 		require.Equal(t, root, root2, "mismatched roots on KATs %s index %d", hashType.String(), j)
@@ -798,7 +798,7 @@ func TestVCKATs(t *testing.T) {
 			copy(a[i][:], decodedBytes)
 		}
 		root := VCKATs[j].expectedRoot
-		tree, err := BuildVectorCommitmentTree(a, crypto.HashFactory{HashType: crypto.Sha512_256})
+		tree, err := BuildVectorCommitmentTree(a, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 		require.NoError(t, err)
 		root2 := hex.EncodeToString(tree.Root())
 		require.Equal(t, root, root2, "mismatched roots on VCKATs index %d", j)
@@ -810,14 +810,14 @@ func TestMerkleTreeInternalNodeWithOneChild(t *testing.T) {
 
 	a := make(TestArray, 5)
 	for i := uint64(0); i < 5; i++ {
-		crypto.RandBytes(a[i][:])
+		cryptbase.RandBytes(a[i][:])
 	}
-	h := crypto.HashFactory{HashType: crypto.Sha512_256}.NewHash()
-	leaf0Hash := crypto.GenericHashObj(h, a[0])
-	leaf1Hash := crypto.GenericHashObj(h, a[1])
-	leaf2Hash := crypto.GenericHashObj(h, a[2])
-	leaf3Hash := crypto.GenericHashObj(h, a[3])
-	leaf4Hash := crypto.GenericHashObj(h, a[4])
+	h := cryptbase.HashFactory{HashType: cryptbase.Sha512_256}.NewHash()
+	leaf0Hash := cryptbase.GenericHashObj(h, a[0])
+	leaf1Hash := cryptbase.GenericHashObj(h, a[1])
+	leaf2Hash := cryptbase.GenericHashObj(h, a[2])
+	leaf3Hash := cryptbase.GenericHashObj(h, a[3])
+	leaf4Hash := cryptbase.GenericHashObj(h, a[4])
 
 	internalNode0Hash := hashInternalNode(h, leaf0Hash, leaf1Hash)
 	internalNode1Hash := hashInternalNode(h, leaf2Hash, leaf3Hash)
@@ -826,7 +826,7 @@ func TestMerkleTreeInternalNodeWithOneChild(t *testing.T) {
 	internalNode01Hash := hashInternalNode(h, internalNode2Hash, nil)
 	rootHash := hashInternalNode(h, internalNode00Hash, internalNode01Hash)
 
-	tree, err := Build(a, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(a, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	require.NoError(t, err)
 
 	root2 := tree.Root()
@@ -838,19 +838,19 @@ func TestMerkleTreeInternalNodeFullTree(t *testing.T) {
 
 	a := make(TestArray, 4)
 	for i := uint64(0); i < 4; i++ {
-		crypto.RandBytes(a[i][:])
+		cryptbase.RandBytes(a[i][:])
 	}
-	h := crypto.HashFactory{HashType: crypto.Sha512_256}.NewHash()
-	leaf0Hash := crypto.GenericHashObj(h, a[0])
-	leaf1Hash := crypto.GenericHashObj(h, a[1])
-	leaf2Hash := crypto.GenericHashObj(h, a[2])
-	leaf3Hash := crypto.GenericHashObj(h, a[3])
+	h := cryptbase.HashFactory{HashType: cryptbase.Sha512_256}.NewHash()
+	leaf0Hash := cryptbase.GenericHashObj(h, a[0])
+	leaf1Hash := cryptbase.GenericHashObj(h, a[1])
+	leaf2Hash := cryptbase.GenericHashObj(h, a[2])
+	leaf3Hash := cryptbase.GenericHashObj(h, a[3])
 
 	internalNode0Hash := hashInternalNode(h, leaf0Hash, leaf1Hash)
 	internalNode1Hash := hashInternalNode(h, leaf2Hash, leaf3Hash)
 	rootHash := hashInternalNode(h, internalNode0Hash, internalNode1Hash)
 
-	tree, err := Build(a, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(a, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	require.NoError(t, err)
 
 	root2 := tree.Root()
@@ -883,7 +883,7 @@ func getRandomPositions(numElets, max uint64) (res []uint64) {
 	used := make([]bool, max)
 	for i := uint64(0); i < numElets; i++ {
 
-		pos := crypto.RandUint64() % max
+		pos := cryptbase.RandUint64() % max
 		for used[pos] {
 			pos = (pos + 1) % max
 		}
@@ -897,44 +897,44 @@ func TestMerkleVC(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	for i := uint64(1); i < 32; i++ {
-		t.Run(fmt.Sprintf("hash#%s/Size#%d", crypto.Sha512_256.String(), i), func(t *testing.T) {
-			testMerkleVC(t, crypto.Sha512_256, i)
+		t.Run(fmt.Sprintf("hash#%s/Size#%d", cryptbase.Sha512_256.String(), i), func(t *testing.T) {
+			testMerkleVC(t, cryptbase.Sha512_256, i)
 		})
 	}
 
 	for i := uint64(1); i < 8; i++ {
-		t.Run(fmt.Sprintf("hash#%s/Size#%d", crypto.Sumhash.String(), i), func(t *testing.T) {
-			testMerkleVC(t, crypto.Sumhash, i)
+		t.Run(fmt.Sprintf("hash#%s/Size#%d", cryptbase.Sumhash.String(), i), func(t *testing.T) {
+			testMerkleVC(t, cryptbase.Sumhash, i)
 		})
 	}
 
 }
 
-func testMerkleVC(t *testing.T, hashtype crypto.HashType, size uint64) {
+func testMerkleVC(t *testing.T, hashtype cryptbase.HashType, size uint64) {
 	var junk TestData
-	crypto.RandBytes(junk[:])
+	cryptbase.RandBytes(junk[:])
 
 	a := make(TestArray, size)
 	for i := uint64(0); i < size; i++ {
-		crypto.RandBytes(a[i][:])
+		cryptbase.RandBytes(a[i][:])
 	}
 
-	tree, err := BuildVectorCommitmentTree(a, crypto.HashFactory{HashType: hashtype})
+	tree, err := BuildVectorCommitmentTree(a, cryptbase.HashFactory{HashType: hashtype})
 	require.NoError(t, err)
 
 	root := tree.Root()
 
 	var allpos []uint64
-	allmap := make(map[uint64]crypto.Hashable)
+	allmap := make(map[uint64]cryptbase.Hashable)
 
 	for i := uint64(0); i < size; i++ {
 		proof, err := tree.Prove([]uint64{i})
 		require.NoError(t, err)
 
-		err = VerifyVectorCommitment(root, map[uint64]crypto.Hashable{i: a[i]}, proof)
+		err = VerifyVectorCommitment(root, map[uint64]cryptbase.Hashable{i: a[i]}, proof)
 		require.NoError(t, err)
 
-		err = VerifyVectorCommitment(root, map[uint64]crypto.Hashable{i: junk}, proof)
+		err = VerifyVectorCommitment(root, map[uint64]cryptbase.Hashable{i: junk}, proof)
 		require.ErrorIs(t, err, ErrRootMismatch)
 
 		allpos = append(allpos, i)
@@ -947,13 +947,13 @@ func testMerkleVC(t *testing.T, hashtype crypto.HashType, size uint64) {
 	err = VerifyVectorCommitment(root, allmap, proof)
 	require.NoError(t, err)
 
-	err = VerifyVectorCommitment(root, map[uint64]crypto.Hashable{0: junk}, proof)
+	err = VerifyVectorCommitment(root, map[uint64]cryptbase.Hashable{0: junk}, proof)
 	require.ErrorIs(t, err, ErrRootMismatch)
 
 	var somepos []uint64
-	somemap := make(map[uint64]crypto.Hashable)
+	somemap := make(map[uint64]cryptbase.Hashable)
 	for i := 0; i < 10; i++ {
-		pos := crypto.RandUint64() % size
+		pos := cryptbase.RandUint64() % size
 		somepos = append(somepos, pos)
 		somemap[pos] = a[pos]
 	}
@@ -973,10 +973,10 @@ func TestMerkleTreeOneLeaf(t *testing.T) {
 
 	copy(a[0][:], []byte{0x1, 0x2})
 
-	h := crypto.HashFactory{HashType: crypto.Sha512_256}.NewHash()
-	rootHash := crypto.GenericHashObj(h, a[0])
+	h := cryptbase.HashFactory{HashType: cryptbase.Sha512_256}.NewHash()
+	rootHash := cryptbase.GenericHashObj(h, a[0])
 
-	tree, err := Build(a, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(a, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	require.NoError(t, err)
 
 	root2 := tree.Root()
@@ -990,10 +990,10 @@ func TestVCOneLeaf(t *testing.T) {
 
 	copy(a[0][:], []byte{0x1, 0x2})
 
-	h := crypto.HashFactory{HashType: crypto.Sha512_256}.NewHash()
-	rootHash := crypto.GenericHashObj(h, a[0])
+	h := cryptbase.HashFactory{HashType: cryptbase.Sha512_256}.NewHash()
+	rootHash := cryptbase.GenericHashObj(h, a[0])
 
-	tree, err := BuildVectorCommitmentTree(a, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := BuildVectorCommitmentTree(a, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	require.NoError(t, err)
 
 	root2 := tree.Root()
@@ -1011,16 +1011,16 @@ func TestTreeDepthField(t *testing.T) {
 	size := uint64(0)
 	arr := make(TestArray, size)
 	for i := uint64(0); i < size; i++ {
-		crypto.RandBytes(arr[i][:])
+		cryptbase.RandBytes(arr[i][:])
 	}
 
-	tree, err := BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	p, err := tree.Prove([]uint64{})
 	require.NoError(t, err)
 	require.Equal(t, p.TreeDepth, uint8(0))
 
-	tree, err = Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err = Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	p, err = tree.Prove([]uint64{})
 	require.NoError(t, err)
@@ -1031,16 +1031,16 @@ func TestTreeDepthField(t *testing.T) {
 		size = uint64(sizes[i])
 		arr = make(TestArray, size)
 		for i := uint64(0); i < size; i++ {
-			crypto.RandBytes(arr[i][:])
+			cryptbase.RandBytes(arr[i][:])
 		}
 
-		tree, err = BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+		tree, err = BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 		a.NoError(err)
 		p, err = tree.Prove([]uint64{})
 		require.NoError(t, err)
 		require.Equal(t, p.TreeDepth, uint8(expectedDepth[i]))
 
-		tree, err = Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+		tree, err = Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 		a.NoError(err)
 		p, err = tree.Prove([]uint64{})
 		require.NoError(t, err)
@@ -1050,7 +1050,7 @@ func TestTreeDepthField(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, p.TreeDepth, uint8(expectedDepth[i]))
 
-		tree, err = Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+		tree, err = Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 		a.NoError(err)
 		p, err = tree.Prove([]uint64{uint64(i)})
 		require.NoError(t, err)
@@ -1063,44 +1063,44 @@ func TestTreeNumOfLeavesField(t *testing.T) {
 	a := require.New(t)
 
 	arr := make(TestArray, 1)
-	crypto.RandBytes(arr[0][:])
-	tree, err := Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	cryptbase.RandBytes(arr[0][:])
+	tree, err := Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	a.Equal(tree.NumOfElements, uint64(1))
 
 	arr = make(TestArray, 2)
-	crypto.RandBytes(arr[0][:])
-	crypto.RandBytes(arr[1][:])
-	tree, err = Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	cryptbase.RandBytes(arr[0][:])
+	cryptbase.RandBytes(arr[1][:])
+	tree, err = Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	a.Equal(tree.NumOfElements, uint64(2))
 
 	arr = make(TestArray, 3)
-	crypto.RandBytes(arr[0][:])
-	crypto.RandBytes(arr[1][:])
-	crypto.RandBytes(arr[2][:])
-	tree, err = Build(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	cryptbase.RandBytes(arr[0][:])
+	cryptbase.RandBytes(arr[1][:])
+	cryptbase.RandBytes(arr[2][:])
+	tree, err = Build(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	a.Equal(tree.NumOfElements, uint64(3))
 
 	arr = make(TestArray, 1)
-	crypto.RandBytes(arr[0][:])
-	tree, err = BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	cryptbase.RandBytes(arr[0][:])
+	tree, err = BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	a.Equal(tree.NumOfElements, uint64(1))
 
 	arr = make(TestArray, 2)
-	crypto.RandBytes(arr[0][:])
-	crypto.RandBytes(arr[1][:])
-	tree, err = BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	cryptbase.RandBytes(arr[0][:])
+	cryptbase.RandBytes(arr[1][:])
+	tree, err = BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	a.Equal(tree.NumOfElements, uint64(2))
 
 	arr = make(TestArray, 3)
-	crypto.RandBytes(arr[0][:])
-	crypto.RandBytes(arr[1][:])
-	crypto.RandBytes(arr[2][:])
-	tree, err = BuildVectorCommitmentTree(arr, crypto.HashFactory{HashType: crypto.Sha512_256})
+	cryptbase.RandBytes(arr[0][:])
+	cryptbase.RandBytes(arr[1][:])
+	cryptbase.RandBytes(arr[2][:])
+	tree, err = BuildVectorCommitmentTree(arr, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 	a.Equal(tree.NumOfElements, uint64(3))
 }
@@ -1111,10 +1111,10 @@ func TestProveSingleLeaf(t *testing.T) {
 	size := uint64(15)
 	a := make(TestArray, size)
 	for i := uint64(0); i < size; i++ {
-		crypto.RandBytes(a[i][:])
+		cryptbase.RandBytes(a[i][:])
 	}
 
-	tree, err := Build(a, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(a, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	require.NoError(t, err)
 
 	root := tree.Root()
@@ -1128,7 +1128,7 @@ func TestProveSingleLeaf(t *testing.T) {
 
 		require.Equal(t, singleLeafproof.ToProof(), proof)
 
-		err = Verify(root, map[uint64]crypto.Hashable{i: a[i]}, singleLeafproof.ToProof())
+		err = Verify(root, map[uint64]cryptbase.Hashable{i: a[i]}, singleLeafproof.ToProof())
 		require.NoError(t, err)
 	}
 }
@@ -1139,10 +1139,10 @@ func TestVCProveSingleLeaf(t *testing.T) {
 	size := uint64(15)
 	a := make(TestArray, size)
 	for i := uint64(0); i < size; i++ {
-		crypto.RandBytes(a[i][:])
+		cryptbase.RandBytes(a[i][:])
 	}
 
-	tree, err := BuildVectorCommitmentTree(a, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := BuildVectorCommitmentTree(a, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	require.NoError(t, err)
 
 	root := tree.Root()
@@ -1156,21 +1156,21 @@ func TestVCProveSingleLeaf(t *testing.T) {
 
 		require.Equal(t, singleLeafproof.ToProof(), proof)
 
-		err = VerifyVectorCommitment(root, map[uint64]crypto.Hashable{i: a[i]}, singleLeafproof.ToProof())
+		err = VerifyVectorCommitment(root, map[uint64]cryptbase.Hashable{i: a[i]}, singleLeafproof.ToProof())
 		require.NoError(t, err)
 	}
 }
 
 func BenchmarkMerkleCommit(b *testing.B) {
-	b.Run("sha512_256", func(b *testing.B) { merkleCommitBench(b, crypto.Sha512_256) })
-	b.Run("sumhash", func(b *testing.B) { merkleCommitBench(b, crypto.Sumhash) })
-	b.Run("sha256", func(b *testing.B) { merkleCommitBench(b, crypto.Sha256) })
+	b.Run("sha512_256", func(b *testing.B) { merkleCommitBench(b, cryptbase.Sha512_256) })
+	b.Run("sumhash", func(b *testing.B) { merkleCommitBench(b, cryptbase.Sumhash) })
+	b.Run("sha256", func(b *testing.B) { merkleCommitBench(b, cryptbase.Sha256) })
 }
 
-func merkleCommitBench(b *testing.B, hashType crypto.HashType) {
+func merkleCommitBench(b *testing.B, hashType cryptbase.HashType) {
 	for sz := 10; sz <= 100000; sz *= 100 {
 		msg := make(TestBuf, sz)
-		crypto.RandBytes(msg[:])
+		cryptbase.RandBytes(msg[:])
 
 		for cnt := 10; cnt <= 10000000; cnt *= 10 {
 			var a TestRepeatingArray
@@ -1179,7 +1179,7 @@ func merkleCommitBench(b *testing.B, hashType crypto.HashType) {
 
 			b.Run(fmt.Sprintf("Item%d/Count%d", sz, cnt), func(b *testing.B) {
 				for i := 0; i < b.N; i++ {
-					tree, err := Build(a, crypto.HashFactory{HashType: hashType})
+					tree, err := Build(a, cryptbase.HashFactory{HashType: hashType})
 					require.NoError(b, err)
 					tree.Root()
 				}
@@ -1189,19 +1189,19 @@ func merkleCommitBench(b *testing.B, hashType crypto.HashType) {
 }
 
 func BenchmarkMerkleProve1M(b *testing.B) {
-	b.Run("sha512_256", func(b *testing.B) { benchmarkMerkleProve1M(b, crypto.Sha512_256) })
-	b.Run("sumhash", func(b *testing.B) { benchmarkMerkleProve1M(b, crypto.Sumhash) })
-	b.Run("sha256", func(b *testing.B) { benchmarkMerkleProve1M(b, crypto.Sha256) })
+	b.Run("sha512_256", func(b *testing.B) { benchmarkMerkleProve1M(b, cryptbase.Sha512_256) })
+	b.Run("sumhash", func(b *testing.B) { benchmarkMerkleProve1M(b, cryptbase.Sumhash) })
+	b.Run("sha256", func(b *testing.B) { benchmarkMerkleProve1M(b, cryptbase.Sha256) })
 }
 
-func benchmarkMerkleProve1M(b *testing.B, hashType crypto.HashType) {
+func benchmarkMerkleProve1M(b *testing.B, hashType cryptbase.HashType) {
 	msg := TestMessage("Hello world")
 
 	var a TestRepeatingArray
 	a.item = msg
 	a.count = 1024 * 1024
 
-	tree, err := Build(a, crypto.HashFactory{HashType: hashType})
+	tree, err := Build(a, cryptbase.HashFactory{HashType: hashType})
 	require.NoError(b, err)
 
 	b.ResetTimer()
@@ -1215,19 +1215,19 @@ func benchmarkMerkleProve1M(b *testing.B, hashType crypto.HashType) {
 }
 
 func BenchmarkMerkleVerify1M(b *testing.B) {
-	b.Run("sha512_256", func(b *testing.B) { benchmarkMerkleVerify1M(b, crypto.Sha512_256) })
-	b.Run("sumhash", func(b *testing.B) { benchmarkMerkleVerify1M(b, crypto.Sumhash) })
-	b.Run("sha256", func(b *testing.B) { benchmarkMerkleVerify1M(b, crypto.Sha256) })
+	b.Run("sha512_256", func(b *testing.B) { benchmarkMerkleVerify1M(b, cryptbase.Sha512_256) })
+	b.Run("sumhash", func(b *testing.B) { benchmarkMerkleVerify1M(b, cryptbase.Sumhash) })
+	b.Run("sha256", func(b *testing.B) { benchmarkMerkleVerify1M(b, cryptbase.Sha256) })
 }
 
-func benchmarkMerkleVerify1M(b *testing.B, hashType crypto.HashType) {
+func benchmarkMerkleVerify1M(b *testing.B, hashType cryptbase.HashType) {
 	msg := TestMessage("Hello world")
 
 	var a TestRepeatingArray
 	a.item = msg
 	a.count = 1024 * 1024
 
-	tree, err := Build(a, crypto.HashFactory{HashType: hashType})
+	tree, err := Build(a, cryptbase.HashFactory{HashType: hashType})
 	require.NoError(b, err)
 	root := tree.Root()
 
@@ -1240,7 +1240,7 @@ func benchmarkMerkleVerify1M(b *testing.B, hashType crypto.HashType) {
 	b.ResetTimer()
 
 	for i := uint64(0); i < uint64(b.N); i++ {
-		err := Verify(root, map[uint64]crypto.Hashable{i % a.count: msg}, proofs[i])
+		err := Verify(root, map[uint64]cryptbase.Hashable{i % a.count: msg}, proofs[i])
 		require.NoError(b, err)
 	}
 }

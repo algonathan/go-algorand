@@ -17,12 +17,12 @@
 package bookkeeping
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -34,8 +34,8 @@ func TestTxnMerkleElemHash(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	var tme txnMerkleElem
-	crypto.RandBytes(tme.stib.SignedTxn.Txn.Header.Sender[:])
-	require.Equal(t, crypto.HashObj(&tme), tme.Hash())
+	cryptbase.RandBytes(tme.stib.SignedTxn.Txn.Header.Sender[:])
+	require.Equal(t, cryptbase.HashObj(&tme), tme.Hash())
 }
 
 func TestTxnMerkle(t *testing.T) {
@@ -44,7 +44,7 @@ func TestTxnMerkle(t *testing.T) {
 	for ntxn := uint64(0); ntxn < 128; ntxn++ {
 		var b Block
 		b.CurrentProtocol = protocol.ConsensusCurrentVersion
-		crypto.RandBytes(b.BlockHeader.GenesisHash[:])
+		cryptbase.RandBytes(b.BlockHeader.GenesisHash[:])
 
 		var elems []txnMerkleElem
 
@@ -68,7 +68,7 @@ func TestTxnMerkle(t *testing.T) {
 			b.Payset = append(b.Payset, stib)
 
 			var e txnMerkleElem
-			e.hashType = crypto.Sha512_256
+			e.hashType = cryptbase.Sha512_256
 			e.txn = txn
 			e.stib = stib
 			elems = append(elems, e)
@@ -81,7 +81,7 @@ func TestTxnMerkle(t *testing.T) {
 		for i := uint64(0); i < ntxn; i++ {
 			proof, err := tree.Prove([]uint64{i})
 			require.NoError(t, err)
-			elemVerif := make(map[uint64]crypto.Hashable)
+			elemVerif := make(map[uint64]cryptbase.Hashable)
 			elemVerif[i] = &elems[i]
 			err = merklearray.Verify(root, elemVerif, proof)
 			require.NoError(t, err)
@@ -95,7 +95,7 @@ func TestBlock_TxnMerkleTreeSHA256(t *testing.T) {
 	for ntxn := uint64(0); ntxn < 128; ntxn++ {
 		var b Block
 		b.CurrentProtocol = protocol.ConsensusFuture
-		crypto.RandBytes(b.BlockHeader.GenesisHash[:])
+		cryptbase.RandBytes(b.BlockHeader.GenesisHash[:])
 
 		var elems []txnMerkleElem
 
@@ -119,7 +119,7 @@ func TestBlock_TxnMerkleTreeSHA256(t *testing.T) {
 			b.Payset = append(b.Payset, stib)
 
 			var e txnMerkleElem
-			e.hashType = crypto.Sha256
+			e.hashType = cryptbase.Sha256
 			e.txn = txn
 			e.stib = stib
 			elems = append(elems, e)
@@ -132,7 +132,7 @@ func TestBlock_TxnMerkleTreeSHA256(t *testing.T) {
 		for i := uint64(0); i < ntxn; i++ {
 			proof, err := tree.Prove([]uint64{i})
 			require.NoError(t, err)
-			elemVerif := make(map[uint64]crypto.Hashable)
+			elemVerif := make(map[uint64]cryptbase.Hashable)
 			elemVerif[i] = &elems[i]
 			err = merklearray.VerifyVectorCommitment(root, elemVerif, proof)
 			require.NoError(t, err)
@@ -143,7 +143,7 @@ func TestBlock_TxnMerkleTreeSHA256(t *testing.T) {
 func BenchmarkTxnRoots(b *testing.B) {
 	var blk Block
 	blk.CurrentProtocol = protocol.ConsensusCurrentVersion
-	crypto.RandBytes(blk.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(blk.BlockHeader.GenesisHash[:])
 
 	proto := config.Consensus[blk.CurrentProtocol]
 
@@ -154,12 +154,12 @@ func BenchmarkTxnRoots(b *testing.B) {
 				GenesisHash: blk.BlockHeader.GenesisHash,
 			},
 			PaymentTxnFields: transactions.PaymentTxnFields{
-				Amount: basics.MicroAlgos{Raw: crypto.RandUint64()},
+				Amount: basics.MicroAlgos{Raw: cryptbase.RandUint64()},
 			},
 		}
 
-		crypto.RandBytes(txn.Sender[:])
-		crypto.RandBytes(txn.PaymentTxnFields.Receiver[:])
+		cryptbase.RandBytes(txn.Sender[:])
+		cryptbase.RandBytes(txn.PaymentTxnFields.Receiver[:])
 
 		sigtxn := transactions.SignedTxn{Txn: txn}
 		ad := transactions.ApplyData{}
@@ -174,7 +174,7 @@ func BenchmarkTxnRoots(b *testing.B) {
 		}
 	}
 
-	var r crypto.Digest
+	var r cryptbase.Digest
 
 	b.Run("FlatCommit", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -195,14 +195,14 @@ func BenchmarkTxnRoots(b *testing.B) {
 	_ = r
 }
 
-func txnMerkleToRawAppend(txid [crypto.DigestSize]byte, stib [crypto.DigestSize]byte) []byte {
-	buf := make([]byte, 0, 2*crypto.DigestSize)
+func txnMerkleToRawAppend(txid [cryptbase.DigestSize]byte, stib [cryptbase.DigestSize]byte) []byte {
+	buf := make([]byte, 0, 2*cryptbase.DigestSize)
 	buf = append(buf, txid[:]...)
 	return append(buf, stib[:]...)
 }
 func BenchmarkTxnMerkleToRaw(b *testing.B) {
-	digest1 := crypto.Hash([]byte{1, 2, 3})
-	digest2 := crypto.Hash([]byte{4, 5, 6})
+	digest1 := cryptbase.Hash([]byte{1, 2, 3})
+	digest2 := cryptbase.Hash([]byte{4, 5, 6})
 
 	b.Run("copy", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {

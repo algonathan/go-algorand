@@ -20,10 +20,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"sync"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	sp "github.com/algorand/go-algorand/crypto/stateproof"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -599,7 +599,7 @@ type BlockEvaluator struct {
 
 	prevHeader  bookkeeping.BlockHeader // cached
 	proto       config.ConsensusParams
-	genesisHash crypto.Digest
+	genesisHash cryptbase.Digest
 
 	block        bookkeeping.Block
 	blockTxBytes int
@@ -615,7 +615,7 @@ type BlockEvaluator struct {
 // LedgerForEvaluator defines the ledger interface needed by the evaluator.
 type LedgerForEvaluator interface {
 	LedgerForCowBase
-	GenesisHash() crypto.Digest
+	GenesisHash() cryptbase.Digest
 	GenesisProto() config.ConsensusParams
 	LatestTotals() (basics.Round, ledgercore.AccountTotals, error)
 	VotersForStateProof(basics.Round) (*ledgercore.VotersForRound, error)
@@ -805,7 +805,7 @@ func (eval *BlockEvaluator) workaroundOverspentRewards(rewardPoolBalance ledgerc
 		return rewardPoolBalance, nil
 	}
 	// verify that we're patching the correct genesis ( i.e. testnet )
-	testnetGenesisHash, _ := crypto.DigestFromString("JBR3KGFEWPEE5SAQ6IWU6EEBZMHXD4CZU6WCBXWGF57XBZIJHIRA")
+	testnetGenesisHash, _ := cryptbase.DigestFromString("JBR3KGFEWPEE5SAQ6IWU6EEBZMHXD4CZU6WCBXWGF57XBZIJHIRA")
 	if eval.genesisHash != testnetGenesisHash {
 		return rewardPoolBalance, nil
 	}
@@ -870,9 +870,9 @@ func (eval *BlockEvaluator) TestTransactionGroup(txgroup []transactions.SignedTx
 
 		if !txn.Txn.Group.IsZero() {
 			txWithoutGroup := txn.Txn
-			txWithoutGroup.Group = crypto.Digest{}
+			txWithoutGroup.Group = cryptbase.Digest{}
 
-			group.TxGroupHashes = append(group.TxGroupHashes, crypto.Digest(txWithoutGroup.ID()))
+			group.TxGroupHashes = append(group.TxGroupHashes, cryptbase.Digest(txWithoutGroup.ID()))
 		} else if len(txgroup) > 1 {
 			return fmt.Errorf("transactionGroup: [%d] had zero Group but was submitted in a group of %d", gi, len(txgroup))
 		}
@@ -880,9 +880,9 @@ func (eval *BlockEvaluator) TestTransactionGroup(txgroup []transactions.SignedTx
 
 	// If we had a non-zero Group value, check that all group members are present.
 	if group.TxGroupHashes != nil {
-		if txgroup[0].Txn.Group != crypto.HashObj(group) {
+		if txgroup[0].Txn.Group != cryptbase.HashObj(group) {
 			return fmt.Errorf("transactionGroup: incomplete group: %v != %v (%v)",
-				txgroup[0].Txn.Group, crypto.HashObj(group), group)
+				txgroup[0].Txn.Group, cryptbase.HashObj(group), group)
 		}
 	}
 
@@ -980,9 +980,9 @@ func (eval *BlockEvaluator) transactionGroup(txgroup []transactions.SignedTxnWit
 
 		if !txad.SignedTxn.Txn.Group.IsZero() {
 			txWithoutGroup := txad.SignedTxn.Txn
-			txWithoutGroup.Group = crypto.Digest{}
+			txWithoutGroup.Group = cryptbase.Digest{}
 
-			group.TxGroupHashes = append(group.TxGroupHashes, crypto.Digest(txWithoutGroup.ID()))
+			group.TxGroupHashes = append(group.TxGroupHashes, cryptbase.Digest(txWithoutGroup.ID()))
 		} else if len(txgroup) > 1 {
 			return fmt.Errorf("transactionGroup: [%d] had zero Group but was submitted in a group of %d", gi, len(txgroup))
 		}
@@ -990,9 +990,9 @@ func (eval *BlockEvaluator) transactionGroup(txgroup []transactions.SignedTxnWit
 
 	// If we had a non-zero Group value, check that all group members are present.
 	if group.TxGroupHashes != nil {
-		if txgroup[0].SignedTxn.Txn.Group != crypto.HashObj(group) {
+		if txgroup[0].SignedTxn.Txn.Group != cryptbase.HashObj(group) {
 			return fmt.Errorf("transactionGroup: incomplete group: %v != %v (%v)",
-				txgroup[0].SignedTxn.Txn.Group, crypto.HashObj(group), group)
+				txgroup[0].SignedTxn.Txn.Group, cryptbase.HashObj(group), group)
 		}
 	}
 
@@ -1200,7 +1200,7 @@ func (eval *BlockEvaluator) applyTransaction(tx transactions.Transaction, balanc
 
 // stateProofVotersAndTotal returns the expected values of StateProofVotersCommitment
 // and StateProofVotersTotalWeight for a block.
-func (eval *BlockEvaluator) stateProofVotersAndTotal() (root crypto.GenericDigest, total basics.MicroAlgos, err error) {
+func (eval *BlockEvaluator) stateProofVotersAndTotal() (root cryptbase.GenericDigest, total basics.MicroAlgos, err error) {
 	if eval.proto.StateProofInterval == 0 {
 		return
 	}

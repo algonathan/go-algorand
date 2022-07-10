@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with go-algorand.  If not, see <https://www.gnu.org/licenses/>.
 
-package crypto
+package falcon
 
 import (
 	cfalcon "github.com/algorand/falcon"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 const (
@@ -29,68 +30,68 @@ const (
 )
 
 type (
-	// FalconPublicKey is a wrapper for cfalcon.PublicKeySizey (used for packing)
-	FalconPublicKey [cfalcon.PublicKeySize]byte
-	// FalconPrivateKey is a wrapper for cfalcon.PrivateKeySize (used for packing)
-	FalconPrivateKey [cfalcon.PrivateKeySize]byte
-	// FalconSeed represents the seed which is being used to generate Falcon keys
-	FalconSeed [FalconSeedSize]byte
-	// FalconSignature represents a Falcon signature in a compressed-form
-	//msgp:allocbound FalconSignature FalconMaxSignatureSize
-	FalconSignature []byte
+	// PublicKey is a wrapper for cfalcon.PublicKeySizey (used for packing)
+	PublicKey [cfalcon.PublicKeySize]byte
+	// PrivateKey is a wrapper for cfalcon.PrivateKeySize (used for packing)
+	PrivateKey [cfalcon.PrivateKeySize]byte
+	// Seed represents the seed which is being used to generate Falcon keys
+	Seed [FalconSeedSize]byte
+	// Signature represents a Falcon signature in a compressed-form
+	//msgp:allocbound Signature FalconMaxSignatureSize
+	Signature []byte
 )
 
-// FalconSigner is the implementation of Signer for the Falcon signature scheme.
-type FalconSigner struct {
+// Signer is the implementation of Signer for the Falcon signature scheme.
+type Signer struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-	PublicKey  FalconPublicKey  `codec:"pk"`
-	PrivateKey FalconPrivateKey `codec:"sk"`
+	PublicKey  PublicKey  `codec:"pk"`
+	PrivateKey PrivateKey `codec:"sk"`
 }
 
 // GenerateFalconSigner Generates a Falcon Signer.
-func GenerateFalconSigner(seed FalconSeed) (FalconSigner, error) {
+func GenerateFalconSigner(seed Seed) (Signer, error) {
 	pk, sk, err := cfalcon.GenerateKey(seed[:])
-	return FalconSigner{
-		PublicKey:  FalconPublicKey(pk),
-		PrivateKey: FalconPrivateKey(sk),
+	return Signer{
+		PublicKey:  PublicKey(pk),
+		PrivateKey: PrivateKey(sk),
 	}, err
 }
 
 // Sign receives a message and generates a signature over that message.
-func (d *FalconSigner) Sign(message Hashable) (FalconSignature, error) {
-	hs := Hash(HashRep(message))
+func (d *Signer) Sign(message cryptbase.Hashable) (Signature, error) {
+	hs := cryptbase.Hash(cryptbase.HashRep(message))
 	return d.SignBytes(hs[:])
 }
 
 // SignBytes receives bytes and signs over them.
-func (d *FalconSigner) SignBytes(data []byte) (FalconSignature, error) {
+func (d *Signer) SignBytes(data []byte) (Signature, error) {
 	signedData, err := (*cfalcon.PrivateKey)(&d.PrivateKey).SignCompressed(data)
-	return FalconSignature(signedData), err
+	return Signature(signedData), err
 }
 
 // GetVerifyingKey Outputs a verifying key object which is serializable.
-func (d *FalconSigner) GetVerifyingKey() *FalconVerifier {
-	return &FalconVerifier{
+func (d *Signer) GetVerifyingKey() *Verifier {
+	return &Verifier{
 		PublicKey: d.PublicKey,
 	}
 }
 
-// FalconVerifier implements the type Verifier interface for the falcon signature scheme.
-type FalconVerifier struct {
+// Verifier implements the type Verifier interface for the falcon signature scheme.
+type Verifier struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-	PublicKey FalconPublicKey `codec:"k"`
+	PublicKey PublicKey `codec:"k"`
 }
 
 // Verify follows falcon algorithm to verify a signature.
-func (d *FalconVerifier) Verify(message Hashable, sig FalconSignature) error {
-	hs := Hash(HashRep(message))
+func (d *Verifier) Verify(message cryptbase.Hashable, sig Signature) error {
+	hs := cryptbase.Hash(cryptbase.HashRep(message))
 	return d.VerifyBytes(hs[:], sig)
 }
 
 // VerifyBytes follows falcon algorithm to verify a signature.
-func (d *FalconVerifier) VerifyBytes(data []byte, sig FalconSignature) error {
+func (d *Verifier) VerifyBytes(data []byte, sig Signature) error {
 	// The wrapper, currently, support only the compress form signature. so we can
 	// assume that the signature given is in a compress form
 	falconSig := cfalcon.CompressedSignature(sig)
@@ -98,29 +99,29 @@ func (d *FalconVerifier) VerifyBytes(data []byte, sig FalconSignature) error {
 }
 
 // GetFixedLengthHashableRepresentation is used to fetch a plain serialized version of the public data (without the use of the msgpack).
-func (d *FalconVerifier) GetFixedLengthHashableRepresentation() []byte {
+func (d *Verifier) GetFixedLengthHashableRepresentation() []byte {
 	return d.PublicKey[:]
 }
 
 // NewFalconSigner creates a falconSigner that is used to sign and verify falcon signatures
-func NewFalconSigner() (*FalconSigner, error) {
-	var seed FalconSeed
-	RandBytes(seed[:])
+func NewFalconSigner() (*Signer, error) {
+	var seed Seed
+	cryptbase.RandBytes(seed[:])
 	signer, err := GenerateFalconSigner(seed)
 	if err != nil {
-		return &FalconSigner{}, err
+		return &Signer{}, err
 	}
 	return &signer, nil
 }
 
 // GetFixedLengthHashableRepresentation returns a serialized version of the signature
-func (s FalconSignature) GetFixedLengthHashableRepresentation() ([]byte, error) {
+func (s Signature) GetFixedLengthHashableRepresentation() ([]byte, error) {
 	compressedSignature := cfalcon.CompressedSignature(s)
 	ctSignature, err := compressedSignature.ConvertToCT()
 	return ctSignature[:], err
 }
 
 // IsSaltVersionEqual of the signature matches the given version
-func (s FalconSignature) IsSaltVersionEqual(version byte) bool {
+func (s Signature) IsSaltVersionEqual(version byte) bool {
 	return (*cfalcon.CompressedSignature)(&s).SaltVersion() == version
 }

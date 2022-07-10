@@ -14,23 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with go-algorand.  If not, see <https://www.gnu.org/licenses/>.
 
-package crypto
+package cryptbase
 
-import "bytes"
+import (
+	"testing"
 
-// GenericDigest is a digest that implements CustomSizeDigest, and can be used as hash output.
-//msgp:allocbound GenericDigest MaxHashDigestSize
-type GenericDigest []byte
+	"github.com/algorand/go-algorand/test/partitiontest"
+	"github.com/stretchr/testify/require"
+)
 
-// ToSlice is used inside the Tree itself when interacting with TreeDigest
-func (d GenericDigest) ToSlice() []byte { return d }
+func TestEncodeDecode(t *testing.T) {
+	partitiontest.PartitionTest(t)
+	toBeHashed := []byte("this is a test")
+	hashed := Hash(toBeHashed)
+	hashedStr := hashed.String()
+	recovered, err := DigestFromString(hashedStr)
 
-// IsEqual compare two digests
-func (d GenericDigest) IsEqual(other GenericDigest) bool {
-	return bytes.Equal(d, other)
+	require.Equal(t, nil, err)
+	require.Equal(t, recovered, hashed)
 }
 
-// IsEmpty checks wether the generic digest is an empty one or not
-func (d GenericDigest) IsEmpty() bool {
-	return len(d) == 0
+func TestDigest_IsZero(t *testing.T) {
+	partitiontest.PartitionTest(t)
+	d := Digest{}
+	require.True(t, d.IsZero())
+	require.Zero(t, d)
+
+	d2 := Digest{}
+	RandBytes(d2[:])
+	require.False(t, d2.IsZero())
+	require.NotZero(t, d2)
+
 }

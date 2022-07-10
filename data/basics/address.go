@@ -20,8 +20,7 @@ import (
 	"bytes"
 	"encoding/base32"
 	"fmt"
-
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // NOTE: Another (partial) implementation of `basics.Address` is in `data/abi`.
@@ -43,7 +42,7 @@ import (
 
 type (
 	// Address is a unique identifier corresponding to ownership of money
-	Address crypto.Digest
+	Address cryptbase.Digest
 )
 
 const (
@@ -55,7 +54,7 @@ var base32Encoder = base32.StdEncoding.WithPadding(base32.NoPadding)
 // GetChecksum returns the checksum as []byte
 // Checksum in Algorand are the last 4 bytes of the shortAddress Hash. H(Address)[28:]
 func (addr Address) GetChecksum() []byte {
-	shortAddressHash := crypto.Hash(addr[:])
+	shortAddressHash := cryptbase.Hash(addr[:])
 	checksum := shortAddressHash[len(shortAddressHash)-checksumLength:]
 	return checksum
 }
@@ -99,11 +98,11 @@ func UnmarshalChecksumAddress(address string) (Address, error) {
 
 // String returns a string representation of Address
 func (addr Address) String() string {
-	addrWithChecksum := make([]byte, crypto.DigestSize+checksumLength)
-	copy(addrWithChecksum[:crypto.DigestSize], addr[:])
+	addrWithChecksum := make([]byte, cryptbase.DigestSize+checksumLength)
+	copy(addrWithChecksum[:cryptbase.DigestSize], addr[:])
 	// calling addr.GetChecksum() here takes 20ns more than just rolling it out, so we'll just repeat that code.
-	shortAddressHash := crypto.Hash(addr[:])
-	copy(addrWithChecksum[crypto.DigestSize:], shortAddressHash[len(shortAddressHash)-checksumLength:])
+	shortAddressHash := cryptbase.Hash(addr[:])
+	copy(addrWithChecksum[cryptbase.DigestSize:], shortAddressHash[len(shortAddressHash)-checksumLength:])
 	return base32Encoder.EncodeToString(addrWithChecksum)
 }
 

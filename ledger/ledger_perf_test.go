@@ -20,6 +20,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -140,17 +141,17 @@ func benchmarkFullBlocks(params testParams, b *testing.B) {
 
 	dbTempDir, err := ioutil.TempDir("", "testdir"+b.Name())
 	require.NoError(b, err)
-	dbName := fmt.Sprintf("%s.%d", b.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", b.Name(), cryptbase.RandUint64())
 	dbPrefix := filepath.Join(dbTempDir, dbName)
 	defer os.RemoveAll(dbTempDir)
 
 	genesisInitState := getInitState()
 
 	// Use future protocol
-	genesisInitState.Block.BlockHeader.GenesisHash = crypto.Digest{}
+	genesisInitState.Block.BlockHeader.GenesisHash = cryptbase.Digest{}
 	genesisInitState.Block.CurrentProtocol = protocol.ConsensusFuture
-	genesisInitState.GenesisHash = crypto.Digest{1}
-	genesisInitState.Block.BlockHeader.GenesisHash = crypto.Digest{1}
+	genesisInitState.GenesisHash = cryptbase.Digest{1}
+	genesisInitState.Block.BlockHeader.GenesisHash = cryptbase.Digest{1}
 
 	creator := basics.Address{}
 	_, err = rand.Read(creator[:])
@@ -177,7 +178,7 @@ func benchmarkFullBlocks(params testParams, b *testing.B) {
 	require.NoError(b, err)
 
 	// open second ledger
-	dbName = fmt.Sprintf("%s.%d.2", b.Name(), crypto.RandUint64())
+	dbName = fmt.Sprintf("%s.%d.2", b.Name(), cryptbase.RandUint64())
 	dbPrefix = filepath.Join(dbTempDir, dbName)
 	l1, err := OpenLedger(logging.Base(), dbPrefix, inMem, genesisInitState, cfg)
 	require.NoError(b, err)
@@ -192,7 +193,7 @@ func benchmarkFullBlocks(params testParams, b *testing.B) {
 	onCompletion := transactions.OptInOC
 	for i := 0; i < numBlocks+2; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		blk.BlockHeader.GenesisID = "x"
 
 		// If this is the zeroth block, add a blank one to both ledgers
@@ -252,7 +253,7 @@ func benchmarkFullBlocks(params testParams, b *testing.B) {
 			for k := uint64(0); k < numApps; k++ {
 				tx.Sender = creator
 				tx.Note = []byte(fmt.Sprintf("%d,%d,%d", i, j, k))
-				tx.GenesisHash = crypto.Digest{1}
+				tx.GenesisHash = cryptbase.Digest{1}
 
 				// add tx to block
 				var stxn transactions.SignedTxn
@@ -282,7 +283,7 @@ func benchmarkFullBlocks(params testParams, b *testing.B) {
 					tx.OnCompletion = transactions.OptInOC
 					tx.Sender = acct
 					tx.Note = []byte(fmt.Sprintf("%d,%d,%d", i, j, k))
-					tx.GenesisHash = crypto.Digest{1}
+					tx.GenesisHash = cryptbase.Digest{1}
 					k++
 
 					// add tx to block

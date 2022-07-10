@@ -17,11 +17,11 @@
 package stateproof
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -133,7 +133,7 @@ func TestVerifyZeroProvenWeight(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	partcommit := crypto.GenericDigest{}
+	partcommit := cryptbase.GenericDigest{}
 	_, err := MkVerifier(partcommit, 0, stateProofStrengthTargetForTests)
 	a.ErrorIs(err, ErrIllegalInputForLnApprox)
 }

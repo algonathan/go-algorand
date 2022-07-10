@@ -19,6 +19,7 @@ package ledger
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -56,9 +57,9 @@ func init() {
 type BenchTxnGenerator interface {
 	// Prepare should be used for making pre-benchmark ledger initialization
 	// like accounts funding, assets or apps creation
-	Prepare(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh crypto.Digest) ([]transactions.SignedTxn, int)
+	Prepare(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh cryptbase.Digest) ([]transactions.SignedTxn, int)
 	// Txn generates a single transaction
-	Txn(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh crypto.Digest) transactions.SignedTxn
+	Txn(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh cryptbase.Digest) transactions.SignedTxn
 }
 
 // BenchPaymentTxnGenerator generates payment transactions
@@ -66,11 +67,11 @@ type BenchPaymentTxnGenerator struct {
 	counter int
 }
 
-func (g *BenchPaymentTxnGenerator) Prepare(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh crypto.Digest) ([]transactions.SignedTxn, int) {
+func (g *BenchPaymentTxnGenerator) Prepare(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh cryptbase.Digest) ([]transactions.SignedTxn, int) {
 	return nil, 0
 }
 
-func (g *BenchPaymentTxnGenerator) Txn(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh crypto.Digest) transactions.SignedTxn {
+func (g *BenchPaymentTxnGenerator) Txn(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh cryptbase.Digest) transactions.SignedTxn {
 	sender := g.counter % len(addrs)
 	receiver := (g.counter + 1) % len(addrs)
 	// The following would create more random selection of accounts, and prevent a cache of half of the accounts..
@@ -111,7 +112,7 @@ type benchAppOptInsTxnGenerator struct {
 	AppsOptedIn           map[basics.Address]map[basics.AppIndex]struct{}
 }
 
-func (g *benchAppOptInsTxnGenerator) Prepare(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh crypto.Digest) ([]transactions.SignedTxn, int) {
+func (g *benchAppOptInsTxnGenerator) Prepare(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh cryptbase.Digest) ([]transactions.SignedTxn, int) {
 	maxLocalSchemaEntries := g.MaxLocalSchemaEntries
 	maxAppsOptedIn := g.MaxAppsOptedIn
 
@@ -189,7 +190,7 @@ func (g *benchAppOptInsTxnGenerator) Prepare(tb testing.TB, addrs []basics.Addre
 	return append(createTxns, optInTxns...), maxTxnPerBlock
 }
 
-func (g *benchAppOptInsTxnGenerator) Txn(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh crypto.Digest) transactions.SignedTxn {
+func (g *benchAppOptInsTxnGenerator) Txn(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh cryptbase.Digest) transactions.SignedTxn {
 	switch g.TransactionsType {
 	case protocol.PaymentTx:
 		return g.generatePaymentTransaction(tb, addrs, keys, rnd, gh)
@@ -201,7 +202,7 @@ func (g *benchAppOptInsTxnGenerator) Txn(tb testing.TB, addrs []basics.Address, 
 	}
 }
 
-func (g *benchAppOptInsTxnGenerator) generatePaymentTransaction(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh crypto.Digest) transactions.SignedTxn {
+func (g *benchAppOptInsTxnGenerator) generatePaymentTransaction(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh cryptbase.Digest) transactions.SignedTxn {
 	idx := rand.Intn(len(g.OptedInAcctsIndices))
 	senderIdx := g.OptedInAcctsIndices[idx]
 	sender := addrs[senderIdx]
@@ -226,7 +227,7 @@ func (g *benchAppOptInsTxnGenerator) generatePaymentTransaction(tb testing.TB, a
 	return stxn
 }
 
-func (g *benchAppOptInsTxnGenerator) generateAppCallTransaction(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh crypto.Digest) transactions.SignedTxn {
+func (g *benchAppOptInsTxnGenerator) generateAppCallTransaction(tb testing.TB, addrs []basics.Address, keys []*crypto.SignatureSecrets, rnd basics.Round, gh cryptbase.Digest) transactions.SignedTxn {
 	var senderIdx int
 	for {
 		idx := rand.Intn(len(g.OptedInAcctsIndices))
@@ -430,7 +431,7 @@ func benchmarkBlockEvaluator(b *testing.B, inMem bool, withCrypto bool, proto pr
 	defer func() { deadlock.Opts.Disable = deadlockDisable }()
 	start := time.Now()
 	genesisInitState, addrs, keys := ledgertesting.GenesisWithProto(100000, proto)
-	dbName := fmt.Sprintf("%s.%d", b.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", b.Name(), cryptbase.RandUint64())
 	cparams := config.Consensus[genesisInitState.Block.CurrentProtocol]
 	cparams.MaxTxnBytesPerBlock = 1000000000 // very big, no limit
 	config.Consensus[protocol.ConsensusVersion(dbName)] = cparams

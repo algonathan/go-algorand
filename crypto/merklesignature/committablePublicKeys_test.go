@@ -18,12 +18,13 @@ package merklesignature
 
 import (
 	"encoding/binary"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
+	"github.com/algorand/go-algorand/crypto/falcon"
 	"hash"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -35,7 +36,7 @@ func hashBytes(hash hash.Hash, m []byte) []byte {
 	return outhash
 }
 
-func calculateHashOnKeyLeaf(key *crypto.FalconSigner, round uint64) []byte {
+func calculateHashOnKeyLeaf(key *falcon.Signer, round uint64) []byte {
 	binaryRound := make([]byte, 8)
 	binary.LittleEndian.PutUint64(binaryRound, round)
 
@@ -50,7 +51,7 @@ func calculateHashOnKeyLeaf(key *crypto.FalconSigner, round uint64) []byte {
 	keyCommitment = append(keyCommitment, binaryRound...)
 	keyCommitment = append(keyCommitment, verifyingRawKey...)
 
-	factory := crypto.HashFactory{HashType: MerkleSignatureSchemeHashFunction}
+	factory := cryptbase.HashFactory{HashType: MerkleSignatureSchemeHashFunction}
 
 	hashValue := hashBytes(factory.NewHash(), keyCommitment)
 	return hashValue
@@ -62,7 +63,7 @@ func calculateHashOnInternalNode(leftNode, rightNode []byte) []byte {
 	copy(buf[len(protocol.MerkleArrayNode):], leftNode[:])
 	copy(buf[len(protocol.MerkleArrayNode)+len(leftNode):], rightNode[:])
 
-	factory := crypto.HashFactory{HashType: MerkleSignatureSchemeHashFunction}
+	factory := cryptbase.HashFactory{HashType: MerkleSignatureSchemeHashFunction}
 	hashValue := hashBytes(factory.NewHash(), buf)
 	return hashValue
 }

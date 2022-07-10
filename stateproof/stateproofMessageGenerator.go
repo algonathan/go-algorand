@@ -19,9 +19,9 @@ package stateproof
 import (
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/stateproof"
 	"github.com/algorand/go-algorand/data/basics"
@@ -42,7 +42,7 @@ func (b blockHeadersArray) Length() uint64 {
 	return uint64(len(b))
 }
 
-func (b blockHeadersArray) Marshal(pos uint64) (crypto.Hashable, error) {
+func (b blockHeadersArray) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	if pos >= b.Length() {
 		return nil, fmt.Errorf("%w: pos - %d, array length - %d", errOutOfBound, pos, b.Length())
 	}
@@ -88,7 +88,7 @@ func calculateLnProvenWeight(latestRoundInInterval *bookkeeping.BlockHeader, pro
 	return lnProvenWeight, nil
 }
 
-func createHeaderCommitment(l BlockHeaderFetcher, proto *config.ConsensusParams, latestRoundHeader *bookkeeping.BlockHeader) (crypto.GenericDigest, error) {
+func createHeaderCommitment(l BlockHeaderFetcher, proto *config.ConsensusParams, latestRoundHeader *bookkeeping.BlockHeader) (cryptbase.GenericDigest, error) {
 	stateProofInterval := proto.StateProofInterval
 
 	if latestRoundHeader.Round < basics.Round(stateProofInterval) {
@@ -97,13 +97,13 @@ func createHeaderCommitment(l BlockHeaderFetcher, proto *config.ConsensusParams,
 
 	blkHdrArr, err := FetchLightHeaders(l, stateProofInterval, latestRoundHeader.Round)
 	if err != nil {
-		return crypto.GenericDigest{}, err
+		return cryptbase.GenericDigest{}, err
 	}
 
 	// Build merkle tree from encoded headers
 	tree, err := merklearray.BuildVectorCommitmentTree(
 		blockHeadersArray(blkHdrArr),
-		crypto.HashFactory{HashType: crypto.Sha256},
+		cryptbase.HashFactory{HashType: cryptbase.Sha256},
 	)
 	if err != nil {
 		return nil, err
@@ -135,7 +135,7 @@ func GenerateProofOfLightBlockHeaders(stateProofInterval uint64, blkHdrArr block
 
 	tree, err := merklearray.BuildVectorCommitmentTree(
 		blkHdrArr,
-		crypto.HashFactory{HashType: crypto.Sha256},
+		cryptbase.HashFactory{HashType: cryptbase.Sha256},
 	)
 	if err != nil {
 		return nil, err

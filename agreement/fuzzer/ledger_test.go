@@ -19,6 +19,7 @@ package fuzzer
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 
 	"github.com/algorand/go-algorand/agreement"
@@ -42,7 +43,7 @@ func init() {
 	rand.Seed(randseed)
 	for i := 0; i < 64; i++ {
 		prngSeed := []byte(fmt.Sprintf("Fuzzer-OTSS-PRNG-%d", i))
-		rng := crypto.MakePRNG(prngSeed)
+		rng := cryptbase.MakePRNG(prngSeed)
 		readOnlyParticipationVotes = append(readOnlyParticipationVotes, crypto.GenerateOneTimeSignatureSecretsRNG(0, 1000, rng))
 	}
 }
@@ -58,7 +59,7 @@ func generatePseudoRandomVRF(keynum int) *crypto.VRFSecrets {
 	}
 }
 
-func randomBlockHash() (h crypto.Digest) {
+func randomBlockHash() (h cryptbase.Digest) {
 	rand.Read(h[:])
 	return
 }
@@ -213,7 +214,7 @@ func (l *testLedger) Seed(r basics.Round) (committee.Seed, error) {
 	return b.Seed(), nil
 }
 
-func (l *testLedger) LookupDigest(r basics.Round) (crypto.Digest, error) {
+func (l *testLedger) LookupDigest(r basics.Round) (cryptbase.Digest, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

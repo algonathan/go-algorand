@@ -17,7 +17,7 @@
 package logic
 
 import (
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/protocol"
 )
 
@@ -31,7 +31,7 @@ func (lsl Program) ToBeHashed() (protocol.HashID, []byte) {
 
 // HashProgram takes program bytes and returns the Digest
 // This Digest can be used as an Address for a logic controlled account.
-func HashProgram(program []byte) crypto.Digest {
+func HashProgram(program []byte) cryptbase.Digest {
 	pb := Program(program)
-	return crypto.HashObj(&pb)
+	return cryptbase.HashObj(&pb)
 }

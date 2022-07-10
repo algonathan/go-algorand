@@ -19,6 +19,7 @@ package catchup
 import (
 	"context"
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"sync"
 	"sync/atomic"
@@ -30,7 +31,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -718,8 +718,8 @@ func (m *mockedLedger) Seed(basics.Round) (committee.Seed, error) {
 	return committee.Seed{}, errors.New("not needed for mockedLedger")
 }
 
-func (m *mockedLedger) LookupDigest(basics.Round) (crypto.Digest, error) {
-	return crypto.Digest{}, errors.New("not needed for mockedLedger")
+func (m *mockedLedger) LookupDigest(basics.Round) (cryptbase.Digest, error) {
+	return cryptbase.Digest{}, errors.New("not needed for mockedLedger")
 }
 
 func (m *mockedLedger) LookupAgreement(basics.Round, basics.Address) (basics.OnlineAccountData, error) {

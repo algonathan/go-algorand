@@ -21,6 +21,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
+	"github.com/algorand/go-algorand/crypto/falcon"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +33,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/agreement"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	v2 "github.com/algorand/go-algorand/daemon/algod/api/server/v2"
@@ -135,7 +136,7 @@ func addBlockHelper(t *testing.T) (v2.Handlers, echo.Context, *httptest.Response
 	// make an app call txn with eval delta
 	lsig := transactions.LogicSig{Logic: retOneProgram} // int 1
 	program := logic.Program(lsig.Logic)
-	lhash := crypto.HashObj(&program)
+	lhash := cryptbase.HashObj(&program)
 	var sender basics.Address
 	copy(sender[:], lhash[:])
 	stx := transactions.SignedTxn{
@@ -803,10 +804,10 @@ func TestAppendParticipationKeys(t *testing.T) {
 	t.Run("Happy path", func(t *testing.T) {
 		// Create test object to append.
 		keys := make(account.StateProofKeys, 2)
-		testKey1 := crypto.FalconSigner{}
+		testKey1 := falcon.Signer{}
 		testKey1.PrivateKey[0] = 100
 
-		testKey2 := crypto.FalconSigner{}
+		testKey2 := falcon.Signer{}
 		testKey2.PrivateKey[0] = 101
 
 		keys[0] = merklesignature.KeyRoundPair{Round: 100, Key: &testKey1}
@@ -882,10 +883,10 @@ func TestAppendParticipationKeys(t *testing.T) {
 		}
 
 		keys := make(account.StateProofKeys, 2)
-		testKey1 := crypto.FalconSigner{}
+		testKey1 := falcon.Signer{}
 		testKey1.PrivateKey[0] = 100
 
-		testKey2 := crypto.FalconSigner{}
+		testKey2 := falcon.Signer{}
 		testKey2.PrivateKey[0] = 101
 
 		keys[0] = merklesignature.KeyRoundPair{Round: 100, Key: &testKey1}
@@ -910,14 +911,14 @@ func TestAppendParticipationKeys(t *testing.T) {
 
 // TxnMerkleElemRaw this struct helps creates a hashable struct from the bytes
 type TxnMerkleElemRaw struct {
-	Txn  crypto.Digest // txn id
-	Stib crypto.Digest // hash value of transactions.SignedTxnInBlock
+	Txn  cryptbase.Digest // txn id
+	Stib cryptbase.Digest // hash value of transactions.SignedTxnInBlock
 }
 
-func txnMerkleToRaw(txid [crypto.DigestSize]byte, stib [crypto.DigestSize]byte) (buf []byte) {
-	buf = make([]byte, 2*crypto.DigestSize)
+func txnMerkleToRaw(txid [cryptbase.DigestSize]byte, stib [cryptbase.DigestSize]byte) (buf []byte) {
+	buf = make([]byte, 2*cryptbase.DigestSize)
 	copy(buf[:], txid[:])
-	copy(buf[crypto.DigestSize:], stib[:])
+	copy(buf[cryptbase.DigestSize:], stib[:])
 	return
 }
 
@@ -949,9 +950,9 @@ func TestGetProofDefault(t *testing.T) {
 	singleLeafProof, err := merklearray.ProofDataToSingleLeafProof(resp.Hashtype, resp.Treedepth, resp.Proof)
 	a.NoError(err)
 
-	element := TxnMerkleElemRaw{Txn: crypto.Digest(txid)}
+	element := TxnMerkleElemRaw{Txn: cryptbase.Digest(txid)}
 	copy(element.Stib[:], resp.Stibhash[:])
-	elems := make(map[uint64]crypto.Hashable)
+	elems := make(map[uint64]cryptbase.Hashable)
 	elems[0] = &element
 
 	// Verifies that the default proof is using SHA512_256

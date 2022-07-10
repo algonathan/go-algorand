@@ -18,12 +18,12 @@ package network
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -40,7 +40,7 @@ func makeMsgPool(N int, peers []Peer) (out []IncomingMessage) {
 			break
 		}
 
-		msgData := crypto.Hash([]byte{byte(msgIndex & 0xff), byte((msgIndex >> 8) & 0xff), byte((msgIndex >> 16) & 0xff), byte((msgIndex >> 24) & 0xff)})
+		msgData := cryptbase.Hash([]byte{byte(msgIndex & 0xff), byte((msgIndex >> 8) & 0xff), byte((msgIndex >> 16) & 0xff), byte((msgIndex >> 24) & 0xff)})
 		msg := IncomingMessage{
 			Tag:  protocol.AgreementVoteTag,
 			Data: msgData[:],

@@ -18,6 +18,7 @@ package data
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
 	"time"
@@ -99,7 +100,7 @@ func BenchmarkTxHandlerProcessDecoded(b *testing.B) {
 		}
 	}
 	backlogPool := execpool.MakeBacklog(nil, 0, execpool.LowPriority, nil)
-	txHandler := MakeTxHandler(tp, l, &mocks.MockNetwork{}, "", crypto.Digest{}, backlogPool)
+	txHandler := MakeTxHandler(tp, l, &mocks.MockNetwork{}, "", cryptbase.Digest{}, backlogPool)
 	b.StartTimer()
 	for _, signedTxn := range signedTransactions {
 		txHandler.processDecoded([]transactions.SignedTxn{signedTxn})

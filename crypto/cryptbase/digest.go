@@ -14,14 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with go-algorand.  If not, see <https://www.gnu.org/licenses/>.
 
-package crypto
+package cryptbase
 
-import (
-	"testing"
-)
+import "bytes"
 
-func BenchmarkRandUint64(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		RandUint64()
-	}
+// GenericDigest is a digest that implements CustomSizeDigest, and can be used as hash output.
+//msgp:allocbound GenericDigest MaxHashDigestSize
+type GenericDigest []byte
+
+// ToSlice is used inside the Tree itself when interacting with TreeDigest
+func (d GenericDigest) ToSlice() []byte { return d }
+
+// IsEqual compare two digests
+func (d GenericDigest) IsEqual(other GenericDigest) bool {
+	return bytes.Equal(d, other)
+}
+
+// IsEmpty checks wether the generic digest is an empty one or not
+func (d GenericDigest) IsEmpty() bool {
+	return len(d) == 0
 }

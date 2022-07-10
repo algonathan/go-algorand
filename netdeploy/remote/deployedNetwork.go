@@ -19,6 +19,7 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -92,7 +93,7 @@ type netState struct {
 	appsPerAcct  int
 
 	genesisID   string
-	genesisHash crypto.Digest
+	genesisHash cryptbase.Digest
 	poolAddr    basics.Address
 	sinkAddr    basics.Address
 
@@ -483,7 +484,7 @@ func getGenesisAlloc(name string, allocation []bookkeeping.GenesisAllocation) bo
 
 func keypair() *crypto.SignatureSecrets {
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	s := crypto.GenerateSignatureSecrets(seed)
 	return s
 }
@@ -522,7 +523,7 @@ func createBlock(src basics.Address, prev bookkeeping.Block, roundTxnCnt uint64,
 
 	block := bookkeeping.Block{
 		BlockHeader: bookkeeping.BlockHeader{
-			TimeStamp:   prev.TimeStamp + int64(crypto.RandUint64()%100*1000),
+			TimeStamp:   prev.TimeStamp + int64(cryptbase.RandUint64()%100*1000),
 			GenesisID:   bootstrappedNet.genesisID,
 			GenesisHash: bootstrappedNet.genesisHash,
 			Round:       bootstrappedNet.round,

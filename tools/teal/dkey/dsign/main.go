@@ -23,6 +23,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 
@@ -63,7 +64,7 @@ func main() {
 		failFast(err)
 
 		dsig := sec.Sign(logic.Msg{
-			ProgramHash: crypto.HashObj(logic.Program(pdata)),
+			ProgramHash: cryptbase.HashObj(logic.Program(pdata)),
 			Data:        ddata,
 		})
 
@@ -85,7 +86,7 @@ func main() {
 
 		txID := txn.ID()
 		dsig := sec.Sign(logic.Msg{
-			ProgramHash: crypto.HashObj(logic.Program(lsig.Logic)),
+			ProgramHash: cryptbase.HashObj(logic.Program(lsig.Logic)),
 			Data:        txID[:],
 		})
 		lsig.Args = [][]byte{dsig[:]}

@@ -8,7 +8,7 @@ import (
 	"github.com/algorand/msgp/msgp"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -918,7 +918,7 @@ func (z *Block) MsgIsZero() bool {
 
 // MarshalMsg implements msgp.Marshaler
 func (z *BlockHash) MarshalMsg(b []byte) []byte {
-	return ((*(crypto.Digest))(z)).MarshalMsg(b)
+	return ((*(cryptbase.Digest))(z)).MarshalMsg(b)
 }
 func (_ *BlockHash) CanMarshalMsg(z interface{}) bool {
 	_, ok := (z).(*BlockHash)
@@ -927,7 +927,7 @@ func (_ *BlockHash) CanMarshalMsg(z interface{}) bool {
 
 // UnmarshalMsg implements msgp.Unmarshaler
 func (z *BlockHash) UnmarshalMsg(bts []byte) ([]byte, error) {
-	return ((*(crypto.Digest))(z)).UnmarshalMsg(bts)
+	return ((*(cryptbase.Digest))(z)).UnmarshalMsg(bts)
 }
 func (_ *BlockHash) CanUnmarshalMsg(z interface{}) bool {
 	_, ok := (z).(*BlockHash)
@@ -936,12 +936,12 @@ func (_ *BlockHash) CanUnmarshalMsg(z interface{}) bool {
 
 // Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
 func (z *BlockHash) Msgsize() int {
-	return ((*(crypto.Digest))(z)).Msgsize()
+	return ((*(cryptbase.Digest))(z)).Msgsize()
 }
 
 // MsgIsZero returns whether this is a zero value
 func (z *BlockHash) MsgIsZero() bool {
-	return ((*(crypto.Digest))(z)).MsgIsZero()
+	return ((*(cryptbase.Digest))(z)).MsgIsZero()
 }
 
 // MarshalMsg implements msgp.Marshaler

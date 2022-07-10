@@ -21,6 +21,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
@@ -29,16 +30,16 @@ import (
 )
 
 // Txid is a hash used to uniquely identify individual transactions
-type Txid crypto.Digest
+type Txid cryptbase.Digest
 
 // String converts txid to a pretty-printable string
 func (txid Txid) String() string {
-	return fmt.Sprintf("%v", crypto.Digest(txid))
+	return fmt.Sprintf("%v", cryptbase.Digest(txid))
 }
 
 // UnmarshalText initializes the Address from an array of bytes.
 func (txid *Txid) UnmarshalText(text []byte) error {
-	d, err := crypto.DigestFromString(string(text))
+	d, err := cryptbase.DigestFromString(string(text))
 	*txid = Txid(d)
 	return err
 }
@@ -59,12 +60,12 @@ type Header struct {
 	LastValid   basics.Round      `codec:"lv"`
 	Note        []byte            `codec:"note,allocbound=config.MaxTxnNoteBytes"` // Uniqueness or app-level data about txn
 	GenesisID   string            `codec:"gen"`
-	GenesisHash crypto.Digest     `codec:"gh"`
+	GenesisHash cryptbase.Digest  `codec:"gh"`
 
 	// Group specifies that this transaction is part of a
 	// transaction group (and, if so, specifies the hash
 	// of a TxGroup).
-	Group crypto.Digest `codec:"grp"`
+	Group cryptbase.Digest `codec:"grp"`
 
 	// Lease enforces mutual exclusion of transactions.  If this field is
 	// nonzero, then once the transaction is confirmed, it acquires the
@@ -163,7 +164,7 @@ type TxGroup struct {
 	// valid.  Each hash in the list is a hash of a transaction with
 	// the `Group` field omitted.
 	// These are all `Txid` which is equivalent to `crypto.Digest`
-	TxGroupHashes []crypto.Digest `codec:"txlist,allocbound=config.MaxTxGroupSize"`
+	TxGroupHashes []cryptbase.Digest `codec:"txlist,allocbound=config.MaxTxGroupSize"`
 }
 
 // ToBeHashed implements the crypto.Hashable interface.
@@ -180,11 +181,11 @@ func (tx Transaction) ToBeHashed() (protocol.HashID, []byte) {
 func (tx Transaction) ID() Txid {
 	enc := tx.MarshalMsg(append(protocol.GetEncodingBuf(), []byte(protocol.Transaction)...))
 	defer protocol.PutEncodingBuf(enc)
-	return Txid(crypto.Hash(enc))
+	return Txid(cryptbase.Hash(enc))
 }
 
 // IDSha256 returns the digest (i.e., hash) of the transaction.
-func (tx Transaction) IDSha256() crypto.Digest {
+func (tx Transaction) IDSha256() cryptbase.Digest {
 	enc := tx.MarshalMsg(append(protocol.GetEncodingBuf(), []byte(protocol.Transaction)...))
 	defer protocol.PutEncodingBuf(enc)
 	return sha256.Sum256(enc)
@@ -200,7 +201,7 @@ func (tx Transaction) InnerID(parent Txid, index int) Txid {
 	input = append(input, buf...)
 	enc := tx.MarshalMsg(input)
 	defer protocol.PutEncodingBuf(enc)
-	return Txid(crypto.Hash(enc))
+	return Txid(cryptbase.Hash(enc))
 }
 
 // Sign signs a transaction using a given Account's secrets.
@@ -252,15 +253,15 @@ func (tx Header) Alive(tc TxnContext) error {
 	// Check genesis hash
 	if proto.SupportGenesisHash {
 		genesisHash := tc.GenesisHash()
-		if tx.GenesisHash != (crypto.Digest{}) && tx.GenesisHash != genesisHash {
+		if tx.GenesisHash != (cryptbase.Digest{}) && tx.GenesisHash != genesisHash {
 			return fmt.Errorf("tx.GenesisHash <%s> does not match expected <%s>",
 				tx.GenesisHash, genesisHash)
 		}
-		if proto.RequireGenesisHash && tx.GenesisHash == (crypto.Digest{}) {
+		if proto.RequireGenesisHash && tx.GenesisHash == (cryptbase.Digest{}) {
 			return fmt.Errorf("required tx.GenesisHash is missing")
 		}
 	} else {
-		if tx.GenesisHash != (crypto.Digest{}) {
+		if tx.GenesisHash != (cryptbase.Digest{}) {
 			return fmt.Errorf("tx.GenesisHash <%s> not allowed", tx.GenesisHash)
 		}
 	}
@@ -584,7 +585,7 @@ func (tx Transaction) WellFormed(spec SpecialAddresses, proto config.ConsensusPa
 	if !proto.SupportTransactionLeases && (tx.Lease != [32]byte{}) {
 		return fmt.Errorf("transaction tried to acquire lease %v but protocol does not support transaction leases", tx.Lease)
 	}
-	if !proto.SupportTxGroups && (tx.Group != crypto.Digest{}) {
+	if !proto.SupportTxGroups && (tx.Group != cryptbase.Digest{}) {
 		return fmt.Errorf("transaction has group but groups not yet enabled")
 	}
 	if !proto.SupportRekeying && (tx.RekeyTo != basics.Address{}) {
@@ -714,7 +715,7 @@ type TxnContext interface {
 	Round() basics.Round
 	ConsensusProtocol() config.ConsensusParams
 	GenesisID() string
-	GenesisHash() crypto.Digest
+	GenesisHash() cryptbase.Digest
 }
 
 // ProgramVersion extracts the version of an AVM program from its bytecode
@@ -780,7 +781,7 @@ type ExplicitTxnContext struct {
 	ExplicitRound basics.Round
 	Proto         config.ConsensusParams
 	GenID         string
-	GenHash       crypto.Digest
+	GenHash       cryptbase.Digest
 }
 
 // Round implements the TxnContext interface
@@ -799,6 +800,6 @@ func (tc ExplicitTxnContext) GenesisID() string {
 }
 
 // GenesisHash implements the TxnContext interface
-func (tc ExplicitTxnContext) GenesisHash() crypto.Digest {
+func (tc ExplicitTxnContext) GenesisHash() cryptbase.Digest {
 	return tc.GenHash
 }

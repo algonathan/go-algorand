@@ -20,12 +20,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 func (b BlockHash) String() string {
-	return fmt.Sprintf("blk-%v", crypto.Digest(b))
+	return fmt.Sprintf("blk-%v", cryptbase.Digest(b))
 }
 
 // MarshalText returns the BlockHash string as an array of bytes
@@ -38,7 +37,7 @@ func (b *BlockHash) UnmarshalText(text []byte) error {
 	if len(text) < 4 || !bytes.Equal(text[0:4], []byte("blk-")) {
 		return errors.New("unrecognized blockhash format")
 	}
-	d, err := crypto.DigestFromString(string(text[4:]))
+	d, err := cryptbase.DigestFromString(string(text[4:]))
 	*b = BlockHash(d)
 	return err
 }

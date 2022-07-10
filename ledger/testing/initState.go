@@ -17,6 +17,7 @@
 package testing
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -103,12 +104,12 @@ func GenerateInitState(tb testing.TB, proto protocol.ConsensusVersion, baseAlgoP
 	require.NoError(tb, err)
 
 	if params.SupportGenesisHash {
-		initBlock.BlockHeader.GenesisHash = crypto.Hash([]byte(tb.Name()))
+		initBlock.BlockHeader.GenesisHash = cryptbase.Hash([]byte(tb.Name()))
 	}
 
 	genesisInitState.Block = initBlock
 	genesisInitState.Accounts = initAccounts
-	genesisInitState.GenesisHash = crypto.Hash([]byte(tb.Name()))
+	genesisInitState.GenesisHash = cryptbase.Hash([]byte(tb.Name()))
 
 	return
 }

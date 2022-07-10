@@ -22,6 +22,8 @@ import (
 	"encoding/base32"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
+	"github.com/algorand/go-algorand/crypto/falcon"
 	"time"
 
 	"github.com/algorand/go-deadlock"
@@ -39,11 +41,11 @@ const defaultTimeout = 5 * time.Second
 
 // ParticipationID identifies a particular set of participation keys.
 //msgp:ignore ParticipationID
-type ParticipationID crypto.Digest
+type ParticipationID cryptbase.Digest
 
 // IsZero returns true if the ParticipationID is all zero bytes.
 func (pid ParticipationID) IsZero() bool {
-	return (crypto.Digest(pid)).IsZero()
+	return (cryptbase.Digest(pid)).IsZero()
 }
 
 // String prints a b32 version of this ID.
@@ -796,7 +798,7 @@ func (db *participationDB) GetStateProofForRound(id ParticipationID, round basic
 
 	// Init stateproof fields after being able to retrieve key from database
 	result.StateProofSecrets = &merklesignature.Signer{}
-	result.StateProofSecrets.SigningKey = &crypto.FalconSigner{}
+	result.StateProofSecrets.SigningKey = &falcon.Signer{}
 	result.StateProofSecrets.Round = uint64(round)
 
 	err = protocol.Decode(rawStateProofKey, result.StateProofSecrets.SigningKey)

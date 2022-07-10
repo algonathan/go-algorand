@@ -18,6 +18,7 @@ package agreement
 
 import (
 	"context"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"os"
 	"testing"
@@ -31,7 +32,7 @@ import (
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
-func makeCertTesting(digest crypto.Digest, votes []vote, equiVotes []equivocationVote) Certificate {
+func makeCertTesting(digest cryptbase.Digest, votes []vote, equiVotes []equivocationVote) Certificate {
 	var proposal proposalValue
 	proposal.BlockDigest = digest
 	return makeBundle(config.Consensus[protocol.ConsensusCurrentVersion], proposal, votes, equiVotes).Certificate()
@@ -243,7 +244,7 @@ func TestCertificateNotEnoughVotesToCert(t *testing.T) {
 	round := ledger.NextRound()
 	period := period(0)
 
-	var lastHash crypto.Digest
+	var lastHash cryptbase.Digest
 	rand.Read(lastHash[:])
 
 	votes := make([]vote, 0)

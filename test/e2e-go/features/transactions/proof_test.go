@@ -17,11 +17,11 @@
 package transactions
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"path/filepath"
 	"testing"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/framework/fixtures"
@@ -31,14 +31,14 @@ import (
 
 // TxnMerkleElemRaw this struct helps creates a hashable struct from the bytes
 type TxnMerkleElemRaw struct {
-	Txn  crypto.Digest // txn id
-	Stib crypto.Digest // hash value of transactions.SignedTxnInBlock
+	Txn  cryptbase.Digest // txn id
+	Stib cryptbase.Digest // hash value of transactions.SignedTxnInBlock
 }
 
-func txnMerkleToRaw(txid [crypto.DigestSize]byte, stib [crypto.DigestSize]byte) (buf []byte) {
-	buf = make([]byte, 2*crypto.DigestSize)
+func txnMerkleToRaw(txid [cryptbase.DigestSize]byte, stib [cryptbase.DigestSize]byte) (buf []byte) {
+	buf = make([]byte, 2*cryptbase.DigestSize)
 	copy(buf[:], txid[:])
-	copy(buf[crypto.DigestSize:], stib[:])
+	copy(buf[cryptbase.DigestSize:], stib[:])
 	return
 }
 
@@ -98,16 +98,16 @@ func TestTxnMerkleProof(t *testing.T) {
 	blk, err := client.BookkeepingBlock(confirmedTx.ConfirmedRound)
 	a.NoError(err)
 
-	proofresp, proof, err := fixture.TransactionProof(txid.String(), confirmedTx.ConfirmedRound, crypto.Sha512_256)
+	proofresp, proof, err := fixture.TransactionProof(txid.String(), confirmedTx.ConfirmedRound, cryptbase.Sha512_256)
 	a.NoError(err)
 
-	proofrespSHA256, proofSHA256, err := fixture.TransactionProof(txid.String(), confirmedTx.ConfirmedRound, crypto.Sha256)
+	proofrespSHA256, proofSHA256, err := fixture.TransactionProof(txid.String(), confirmedTx.ConfirmedRound, cryptbase.Sha256)
 	a.NoError(err)
 
-	element := TxnMerkleElemRaw{Txn: crypto.Digest(txid)}
+	element := TxnMerkleElemRaw{Txn: cryptbase.Digest(txid)}
 	copy(element.Stib[:], proofresp.Stibhash[:])
 
-	elems := make(map[uint64]crypto.Hashable)
+	elems := make(map[uint64]cryptbase.Hashable)
 
 	elems[proofresp.Idx] = &element
 	err = merklearray.Verify(blk.TxnCommitments.NativeSha512_256Commitment.ToSlice(), elems, proof.ToProof())
@@ -116,10 +116,10 @@ func TestTxnMerkleProof(t *testing.T) {
 		a.NoError(err)
 	}
 
-	element = TxnMerkleElemRaw{Txn: crypto.Digest(txidSHA256)}
+	element = TxnMerkleElemRaw{Txn: cryptbase.Digest(txidSHA256)}
 	copy(element.Stib[:], proofrespSHA256.Stibhash[:])
 
-	elems = make(map[uint64]crypto.Hashable)
+	elems = make(map[uint64]cryptbase.Hashable)
 
 	elems[proofrespSHA256.Idx] = &element
 	err = merklearray.VerifyVectorCommitment(blk.TxnCommitments.Sha256Commitment.ToSlice(), elems, proofSHA256.ToProof())
@@ -182,6 +182,6 @@ func TestTxnMerkleProofSHA256(t *testing.T) {
 	proto := config.Consensus[blk.CurrentProtocol]
 	a.False(proto.EnableSHA256TxnCommitmentHeader)
 
-	a.NotEqual(crypto.Digest{}, blk.TxnCommitments.NativeSha512_256Commitment)
-	a.Equal(crypto.Digest{}, blk.TxnCommitments.Sha256Commitment) // should be empty since not yet supported
+	a.NotEqual(cryptbase.Digest{}, blk.TxnCommitments.NativeSha512_256Commitment)
+	a.Equal(cryptbase.Digest{}, blk.TxnCommitments.Sha256Commitment) // should be empty since not yet supported
 }

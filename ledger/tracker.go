@@ -21,12 +21,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"reflect"
 	"sync"
 	"time"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/internal"
@@ -141,7 +141,7 @@ type ledgerForTracker interface {
 	Latest() basics.Round
 	Block(basics.Round) (bookkeeping.Block, error)
 	BlockHdr(basics.Round) (bookkeeping.BlockHeader, error)
-	GenesisHash() crypto.Digest
+	GenesisHash() cryptbase.Digest
 	GenesisProto() config.ConsensusParams
 	GenesisProtoVersion() protocol.ConsensusVersion
 	GenesisAccounts() map[basics.Address]basics.AccountData
@@ -253,11 +253,11 @@ type deferredCommitContext struct {
 	updatingBalancesDuration time.Duration
 
 	// Block hashes for the committed rounds range.
-	committedRoundDigests []crypto.Digest
+	committedRoundDigests []cryptbase.Digest
 
 	// on catchpoint rounds, the transaction tail would fill up this field with the hash of the recent 1001 rounds
 	// of the txtail data. The catchpointTracker would be able to use that for calculating the catchpoint label.
-	txTailHash crypto.Digest
+	txTailHash cryptbase.Digest
 
 	// serialized rounds deltas to be committed
 	txTailDeltas [][]byte

@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"os"
 	"strings"
@@ -28,7 +29,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/logging"
@@ -53,7 +53,7 @@ func shortaddr(addr basics.Address) string {
 	return fmt.Sprintf("%s..", addr.String()[0:8])
 }
 
-func shortdigest(d crypto.Digest) string {
+func shortdigest(d cryptbase.Digest) string {
 	if *longFlag {
 		return d.String()
 	}
@@ -96,7 +96,7 @@ func (dh *dumpHandler) Handle(msg network.IncomingMessage) network.OutgoingMessa
 			goto print
 		}
 
-		data = fmt.Sprintf("proposal %s", shortdigest(crypto.Digest(p.Block.Hash())))
+		data = fmt.Sprintf("proposal %s", shortdigest(cryptbase.Digest(p.Block.Hash())))
 
 	case protocol.TxnTag:
 		dec := protocol.NewDecoderBytes(msg.Data)

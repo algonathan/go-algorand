@@ -17,27 +17,18 @@
 package crypto
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
-
-	"github.com/algorand/go-algorand/protocol"
 )
 
-type TestingHashable struct {
-	data []byte
-}
-
-func (s TestingHashable) ToBeHashed() (protocol.HashID, []byte) {
-	return protocol.TestHashable, s.data
-}
-
-func randString() (b TestingHashable) {
+func randString() (b cryptbase.TestingHashable) {
 	d := make([]byte, 20)
 	_, err := rand.Read(d)
 	if err != nil {
 		panic(err)
 	}
-	return TestingHashable{d}
+	return cryptbase.TestingHashable{Data: d}
 }
 
 func signVerify(t *testing.T, c *SignatureSecrets, c2 *SignatureSecrets) {
@@ -89,11 +80,11 @@ func proveVerifyVrf(t *testing.T, c *VRFSecrets, c2 *VRFSecrets) {
 
 func BenchmarkHash(b *testing.B) {
 	s := randString()
-	d := Hash(s.data)
+	d := cryptbase.Hash(s.Data)
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		d = Hash(d[:])
+		d = cryptbase.Hash(d[:])
 	}
 	_ = d
 }

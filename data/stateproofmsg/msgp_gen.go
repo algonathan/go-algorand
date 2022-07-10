@@ -5,7 +5,7 @@ package stateproofmsg
 import (
 	"github.com/algorand/msgp/msgp"
 
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 )
 
 // The following msgp objects are implemented in this file:
@@ -102,8 +102,8 @@ func (z *Message) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "struct-from-array", "BlockHeadersCommitment")
 				return
 			}
-			if zb0003 > crypto.Sha256Size {
-				err = msgp.ErrOverflow(uint64(zb0003), uint64(crypto.Sha256Size))
+			if zb0003 > cryptbase.Sha256Size {
+				err = msgp.ErrOverflow(uint64(zb0003), uint64(cryptbase.Sha256Size))
 				return
 			}
 			(*z).BlockHeadersCommitment, bts, err = msgp.ReadBytesBytes(bts, (*z).BlockHeadersCommitment)
@@ -120,8 +120,8 @@ func (z *Message) UnmarshalMsg(bts []byte) (o []byte, err error) {
 				err = msgp.WrapError(err, "struct-from-array", "VotersCommitment")
 				return
 			}
-			if zb0004 > crypto.SumhashDigestSize {
-				err = msgp.ErrOverflow(uint64(zb0004), uint64(crypto.SumhashDigestSize))
+			if zb0004 > cryptbase.SumhashDigestSize {
+				err = msgp.ErrOverflow(uint64(zb0004), uint64(cryptbase.SumhashDigestSize))
 				return
 			}
 			(*z).VotersCommitment, bts, err = msgp.ReadBytesBytes(bts, (*z).VotersCommitment)
@@ -184,8 +184,8 @@ func (z *Message) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					err = msgp.WrapError(err, "BlockHeadersCommitment")
 					return
 				}
-				if zb0005 > crypto.Sha256Size {
-					err = msgp.ErrOverflow(uint64(zb0005), uint64(crypto.Sha256Size))
+				if zb0005 > cryptbase.Sha256Size {
+					err = msgp.ErrOverflow(uint64(zb0005), uint64(cryptbase.Sha256Size))
 					return
 				}
 				(*z).BlockHeadersCommitment, bts, err = msgp.ReadBytesBytes(bts, (*z).BlockHeadersCommitment)
@@ -200,8 +200,8 @@ func (z *Message) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					err = msgp.WrapError(err, "VotersCommitment")
 					return
 				}
-				if zb0006 > crypto.SumhashDigestSize {
-					err = msgp.ErrOverflow(uint64(zb0006), uint64(crypto.SumhashDigestSize))
+				if zb0006 > cryptbase.SumhashDigestSize {
+					err = msgp.ErrOverflow(uint64(zb0006), uint64(cryptbase.SumhashDigestSize))
 					return
 				}
 				(*z).VotersCommitment, bts, err = msgp.ReadBytesBytes(bts, (*z).VotersCommitment)

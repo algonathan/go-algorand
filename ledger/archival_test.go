@@ -21,6 +21,7 @@ import (
 	"crypto/rand"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	mathrand "math/rand"
 	"os"
@@ -35,7 +36,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -89,7 +89,7 @@ func (wl *wrappedLedger) trackerLog() logging.Logger {
 	return wl.l.trackerLog()
 }
 
-func (wl *wrappedLedger) GenesisHash() crypto.Digest {
+func (wl *wrappedLedger) GenesisHash() cryptbase.Digest {
 	return wl.l.GenesisHash()
 }
 
@@ -117,7 +117,7 @@ func getInitState() (genesisInitState ledgercore.InitState) {
 
 	genesisInitState.Accounts = accts
 	genesisInitState.Block = blk
-	genesisInitState.GenesisHash = crypto.Digest{}
+	genesisInitState.GenesisHash = cryptbase.Digest{}
 	return genesisInitState
 }
 
@@ -139,7 +139,7 @@ func TestArchival(t *testing.T) {
 		t.Skip("Skipping the TestArchival as it tend to randomally fail on travis linux-amd64")
 	}
 
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	genesisInitState := getInitState()
 	const inMem = true
 	cfg := config.GetDefaultLocal()
@@ -157,11 +157,11 @@ func TestArchival(t *testing.T) {
 
 	for i := 0; i < 2000; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		wl.l.AddBlock(blk, agreement.Certificate{})
 
 		// Don't bother checking the trackers every round -- it's too slow..
-		if crypto.RandUint64()%23 > 0 {
+		if cryptbase.RandUint64()%23 > 0 {
 			continue
 		}
 
@@ -200,7 +200,7 @@ func TestArchivalRestart(t *testing.T) {
 
 	dbTempDir, err := ioutil.TempDir("", "testdir"+t.Name())
 	require.NoError(t, err)
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	dbPrefix := filepath.Join(dbTempDir, dbName)
 	defer os.RemoveAll(dbTempDir)
 
@@ -216,7 +216,7 @@ func TestArchivalRestart(t *testing.T) {
 	const maxBlocks = 2000
 	for i := 0; i < maxBlocks; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		l.AddBlock(blk, agreement.Certificate{})
 	}
 	l.WaitForCommit(blk.Round())
@@ -350,17 +350,17 @@ func TestArchivalCreatables(t *testing.T) {
 
 	dbTempDir, err := ioutil.TempDir("", "testdir"+t.Name())
 	require.NoError(t, err)
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	dbPrefix := filepath.Join(dbTempDir, dbName)
 	defer os.RemoveAll(dbTempDir)
 
 	genesisInitState := getInitState()
 
 	// Enable assets
-	genesisInitState.Block.BlockHeader.GenesisHash = crypto.Digest{}
+	genesisInitState.Block.BlockHeader.GenesisHash = cryptbase.Digest{}
 	genesisInitState.Block.CurrentProtocol = protocol.ConsensusFuture
-	genesisInitState.GenesisHash = crypto.Digest{1}
-	genesisInitState.Block.BlockHeader.GenesisHash = crypto.Digest{1}
+	genesisInitState.GenesisHash = cryptbase.Digest{1}
+	genesisInitState.Block.BlockHeader.GenesisHash = cryptbase.Digest{1}
 
 	type ActionEnum uint64
 	const AssetCreated ActionEnum = 0
@@ -400,7 +400,7 @@ func TestArchivalCreatables(t *testing.T) {
 	// create apps and assets
 	for i := 0; i < maxBlocks; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 
 		// make a transaction that will create an asset or application
 		creatorEncoded := creators[i].String()
@@ -575,7 +575,7 @@ func TestArchivalCreatables(t *testing.T) {
 
 	// start mining a block with the deletion txns
 	blk.BlockHeader.Round++
-	blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+	blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 
 	// make a payset
 	var payset transactions.Payset
@@ -629,7 +629,7 @@ func TestArchivalCreatables(t *testing.T) {
 	// Mine another maxBlocks blocks
 	for i := 0; i < maxBlocks; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		blk.Payset = nil
 		err = l.AddBlock(blk, agreement.Certificate{})
 		require.NoError(t, err)
@@ -703,16 +703,16 @@ func TestArchivalFromNonArchival(t *testing.T) {
 	}()
 	dbTempDir, err := ioutil.TempDir(os.TempDir(), "testdir")
 	require.NoError(t, err)
-	dbName := fmt.Sprintf("%s.%d", t.Name(), crypto.RandUint64())
+	dbName := fmt.Sprintf("%s.%d", t.Name(), cryptbase.RandUint64())
 	dbPrefix := filepath.Join(dbTempDir, dbName)
 	defer os.RemoveAll(dbTempDir)
 
 	genesisInitState := getInitState()
 
-	genesisInitState.Block.BlockHeader.GenesisHash = crypto.Digest{}
+	genesisInitState.Block.BlockHeader.GenesisHash = cryptbase.Digest{}
 	genesisInitState.Block.CurrentProtocol = protocol.ConsensusFuture
-	genesisInitState.GenesisHash = crypto.Digest{1}
-	genesisInitState.Block.BlockHeader.GenesisHash = crypto.Digest{1}
+	genesisInitState.GenesisHash = cryptbase.Digest{1}
+	genesisInitState.Block.BlockHeader.GenesisHash = cryptbase.Digest{1}
 
 	balanceRecords := []basics.BalanceRecord{}
 
@@ -741,7 +741,7 @@ func TestArchivalFromNonArchival(t *testing.T) {
 	const maxBlocks = 2000
 	for i := 0; i < maxBlocks; i++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		blk.Payset = transactions.Payset{}
 
 		for j := 0; j < 5; j++ {

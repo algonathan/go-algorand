@@ -18,13 +18,13 @@ package stateproof
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -34,13 +34,13 @@ func TestCoinFixedLengthHash(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	var sigcom = make(crypto.GenericDigest, HashSize)
-	var partcom = make(crypto.GenericDigest, HashSize)
+	var sigcom = make(cryptbase.GenericDigest, HashSize)
+	var partcom = make(cryptbase.GenericDigest, HashSize)
 	var data MessageHash
 
-	crypto.RandBytes(sigcom[:])
-	crypto.RandBytes(partcom[:])
-	crypto.RandBytes(data[:])
+	cryptbase.RandBytes(sigcom[:])
+	cryptbase.RandBytes(partcom[:])
+	cryptbase.RandBytes(data[:])
 
 	choice := coinChoiceSeed{
 		partCommitment: partcom,
@@ -50,7 +50,7 @@ func TestCoinFixedLengthHash(t *testing.T) {
 		data:           data,
 	}
 
-	rep := crypto.HashRep(&choice)
+	rep := cryptbase.HashRep(&choice)
 	a.Equal(180, len(rep))
 }
 
@@ -58,13 +58,13 @@ func TestHashCoin(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
 	var slots [32]uint64
-	var sigcom = make(crypto.GenericDigest, HashSize)
-	var partcom = make(crypto.GenericDigest, HashSize)
+	var sigcom = make(cryptbase.GenericDigest, HashSize)
+	var partcom = make(cryptbase.GenericDigest, HashSize)
 	var msgHash MessageHash
 
-	crypto.RandBytes(sigcom[:])
-	crypto.RandBytes(partcom[:])
-	crypto.RandBytes(msgHash[:])
+	cryptbase.RandBytes(sigcom[:])
+	cryptbase.RandBytes(partcom[:])
+	cryptbase.RandBytes(msgHash[:])
 
 	choice := coinChoiceSeed{
 		signedWeight:   uint64(len(slots)),
@@ -94,13 +94,13 @@ func TestHashCoin(t *testing.T) {
 }
 
 func BenchmarkHashCoin(b *testing.B) {
-	var sigcom = make(crypto.GenericDigest, HashSize)
-	var partcom = make(crypto.GenericDigest, HashSize)
+	var sigcom = make(cryptbase.GenericDigest, HashSize)
+	var partcom = make(cryptbase.GenericDigest, HashSize)
 	var msgHash MessageHash
 
-	crypto.RandBytes(sigcom[:])
-	crypto.RandBytes(partcom[:])
-	crypto.RandBytes(msgHash[:])
+	cryptbase.RandBytes(sigcom[:])
+	cryptbase.RandBytes(partcom[:])
+	cryptbase.RandBytes(msgHash[:])
 
 	choice := coinChoiceSeed{
 		signedWeight:   1025,
@@ -116,13 +116,13 @@ func BenchmarkHashCoin(b *testing.B) {
 }
 
 func BenchmarkHashCoinGenerate(b *testing.B) {
-	var sigcom = make(crypto.GenericDigest, HashSize)
-	var partcom = make(crypto.GenericDigest, HashSize)
+	var sigcom = make(cryptbase.GenericDigest, HashSize)
+	var partcom = make(cryptbase.GenericDigest, HashSize)
 	var msgHash MessageHash
 
-	crypto.RandBytes(sigcom[:])
-	crypto.RandBytes(partcom[:])
-	crypto.RandBytes(msgHash[:])
+	cryptbase.RandBytes(sigcom[:])
+	cryptbase.RandBytes(partcom[:])
+	cryptbase.RandBytes(msgHash[:])
 
 	choice := coinChoiceSeed{
 		signedWeight:   1025,
@@ -150,13 +150,13 @@ func TestGenerateCoinHashKATs(t *testing.T) {
 	const numReveals = 1000
 	const signedWt = 1 << 10
 	var coinslots [numReveals]uint64
-	var sigcom = make(crypto.GenericDigest, HashSize)
-	var partcom = make(crypto.GenericDigest, HashSize)
+	var sigcom = make(cryptbase.GenericDigest, HashSize)
+	var partcom = make(cryptbase.GenericDigest, HashSize)
 	var data MessageHash
 
-	crypto.RandBytes(sigcom[:])
-	crypto.RandBytes(partcom[:])
-	crypto.RandBytes(data[:])
+	cryptbase.RandBytes(sigcom[:])
+	cryptbase.RandBytes(partcom[:])
+	cryptbase.RandBytes(data[:])
 
 	choice := coinChoiceSeed{
 		partCommitment: partcom,
@@ -177,7 +177,7 @@ func TestGenerateCoinHashKATs(t *testing.T) {
 	concatString := fmt.Sprint(coinslots)
 	toPrint := strings.Join(strings.Split(concatString, " "), ", ")
 	fmt.Printf("coinvalues: %v \n", toPrint)
-	concatString = fmt.Sprint(crypto.HashRep(&choice))
+	concatString = fmt.Sprint(cryptbase.HashRep(&choice))
 	toPrint = strings.Join(strings.Split(concatString, " "), ", ")
 	fmt.Printf("seed: %v \n", toPrint)
 }

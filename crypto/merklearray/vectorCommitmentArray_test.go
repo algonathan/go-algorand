@@ -17,11 +17,11 @@
 package merklearray
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -86,7 +86,7 @@ func TestIndexing(t *testing.T) {
 func vcSizeInnerTest(size uint64) *vectorCommitmentArray {
 	testArray := make(TestArray, size)
 	for i := uint64(0); i < size; i++ {
-		crypto.RandBytes(testArray[i][:])
+		cryptbase.RandBytes(testArray[i][:])
 	}
 	return generateVectorCommitmentArray(testArray)
 }
@@ -180,11 +180,11 @@ func TestVcArrayPadding(t *testing.T) {
 
 	testArray := make(TestArray, 11)
 	for i := uint64(0); i < 11; i++ {
-		crypto.RandBytes(testArray[i][:])
+		cryptbase.RandBytes(testArray[i][:])
 	}
 	vc := generateVectorCommitmentArray(testArray)
 
-	h := crypto.HashFactory{HashType: crypto.Sha512_256}.NewHash()
+	h := cryptbase.HashFactory{HashType: cryptbase.Sha512_256}.NewHash()
 	leafBytes := make([]byte, len(protocol.Message)+h.Size())
 	copy(leafBytes, protocol.Message)
 	copy(leafBytes[len(protocol.Message):], testArray[1][:])

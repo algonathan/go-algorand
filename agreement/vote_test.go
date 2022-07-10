@@ -17,6 +17,7 @@
 package agreement
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"testing"
 
@@ -32,7 +33,7 @@ import (
 )
 
 // error is set if this address is not selected
-func makeVoteTesting(addr basics.Address, vrfSecs *crypto.VRFSecrets, otSecs crypto.OneTimeSigner, ledger Ledger, round basics.Round, period period, step step, digest crypto.Digest) (vote, error) {
+func makeVoteTesting(addr basics.Address, vrfSecs *crypto.VRFSecrets, otSecs crypto.OneTimeSigner, ledger Ledger, round basics.Round, period period, step step, digest cryptbase.Digest) (vote, error) {
 	var proposal proposalValue
 	proposal.BlockDigest = digest
 	rv := rawVote{Sender: addr, Round: round, Period: period, Step: step, Proposal: proposal}

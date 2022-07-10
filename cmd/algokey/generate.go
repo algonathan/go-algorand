@@ -18,6 +18,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/spf13/cobra"
 
@@ -39,7 +40,7 @@ var generateCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, _ []string) {
 		var seed crypto.Seed
-		crypto.RandBytes(seed[:])
+		cryptbase.RandBytes(seed[:])
 
 		mnemonic := computeMnemonic(seed)
 

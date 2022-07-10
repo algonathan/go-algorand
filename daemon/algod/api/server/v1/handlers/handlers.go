@@ -21,6 +21,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"net/http"
 	"strconv"
@@ -110,7 +111,7 @@ func txEncode(tx transactions.Transaction, ad transactions.ApplyData) (v1.Transa
 	res.GenesisID = tx.GenesisID
 	res.GenesisHash = tx.GenesisHash[:]
 
-	if tx.Group != (crypto.Digest{}) {
+	if tx.Group != (cryptbase.Digest{}) {
 		res.Group = tx.Group[:]
 	}
 
@@ -483,9 +484,9 @@ func computeAppIndexFromTxn(tx node.TxnWithStatus, l *data.Ledger) uint64 {
 
 func blockEncode(b bookkeeping.Block, c agreement.Certificate) (v1.Block, error) {
 	block := v1.Block{
-		Hash:              crypto.Digest(b.Hash()).String(),
-		PreviousBlockHash: crypto.Digest(b.Branch).String(),
-		Seed:              crypto.Digest(b.Seed()).String(),
+		Hash:              cryptbase.Digest(b.Hash()).String(),
+		PreviousBlockHash: cryptbase.Digest(b.Branch).String(),
+		Seed:              cryptbase.Digest(b.Seed()).String(),
 		Proposer:          c.Proposal.OriginalProposer.String(),
 		Round:             uint64(b.Round()),
 		TransactionsRoot:  b.TxnCommitments.NativeSha512_256Commitment.String(), // No need to support SHA256 in API V1

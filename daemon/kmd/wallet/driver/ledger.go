@@ -22,6 +22,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"sort"
 	"strings"
@@ -267,7 +268,7 @@ func (lw *LedgerWallet) Metadata() (wallet.Metadata, error) {
 }
 
 // ListKeys implements the Wallet interface.
-func (lw *LedgerWallet) ListKeys() ([]crypto.Digest, error) {
+func (lw *LedgerWallet) ListKeys() ([]cryptbase.Digest, error) {
 	lw.mu.Lock()
 	defer lw.mu.Unlock()
 
@@ -276,48 +277,48 @@ func (lw *LedgerWallet) ListKeys() ([]crypto.Digest, error) {
 		return nil, err
 	}
 
-	var addr crypto.Digest
+	var addr cryptbase.Digest
 	copy(addr[:], reply)
-	return []crypto.Digest{addr}, nil
+	return []cryptbase.Digest{addr}, nil
 }
 
 // ImportKey implements the Wallet interface.
-func (lw *LedgerWallet) ImportKey(sk crypto.PrivateKey) (crypto.Digest, error) {
-	return crypto.Digest{}, errNotSupported
+func (lw *LedgerWallet) ImportKey(sk crypto.PrivateKey) (cryptbase.Digest, error) {
+	return cryptbase.Digest{}, errNotSupported
 }
 
 // ExportKey implements the Wallet interface.
-func (lw *LedgerWallet) ExportKey(pk crypto.Digest, pw []byte) (crypto.PrivateKey, error) {
+func (lw *LedgerWallet) ExportKey(pk cryptbase.Digest, pw []byte) (crypto.PrivateKey, error) {
 	return crypto.PrivateKey{}, errNotSupported
 }
 
 // GenerateKey implements the Wallet interface.
-func (lw *LedgerWallet) GenerateKey(displayMnemonic bool) (crypto.Digest, error) {
-	return crypto.Digest{}, errNotSupported
+func (lw *LedgerWallet) GenerateKey(displayMnemonic bool) (cryptbase.Digest, error) {
+	return cryptbase.Digest{}, errNotSupported
 }
 
 // DeleteKey implements the Wallet interface.
-func (lw *LedgerWallet) DeleteKey(pk crypto.Digest, pw []byte) error {
+func (lw *LedgerWallet) DeleteKey(pk cryptbase.Digest, pw []byte) error {
 	return errNotSupported
 }
 
 // ImportMultisigAddr implements the Wallet interface.
-func (lw *LedgerWallet) ImportMultisigAddr(version, threshold uint8, pks []crypto.PublicKey) (crypto.Digest, error) {
-	return crypto.Digest{}, errNotSupported
+func (lw *LedgerWallet) ImportMultisigAddr(version, threshold uint8, pks []crypto.PublicKey) (cryptbase.Digest, error) {
+	return cryptbase.Digest{}, errNotSupported
 }
 
 // LookupMultisigPreimage implements the Wallet interface.
-func (lw *LedgerWallet) LookupMultisigPreimage(crypto.Digest) (version, threshold uint8, pks []crypto.PublicKey, err error) {
+func (lw *LedgerWallet) LookupMultisigPreimage(cryptbase.Digest) (version, threshold uint8, pks []crypto.PublicKey, err error) {
 	return 0, 0, nil, errNotSupported
 }
 
 // ListMultisigAddrs implements the Wallet interface.
-func (lw *LedgerWallet) ListMultisigAddrs() (addrs []crypto.Digest, err error) {
+func (lw *LedgerWallet) ListMultisigAddrs() (addrs []cryptbase.Digest, err error) {
 	return nil, nil
 }
 
 // DeleteMultisigAddr implements the Wallet interface.
-func (lw *LedgerWallet) DeleteMultisigAddr(addr crypto.Digest, pw []byte) error {
+func (lw *LedgerWallet) DeleteMultisigAddr(addr cryptbase.Digest, pw []byte) error {
 	return errNotSupported
 }
 
@@ -359,7 +360,7 @@ func (lw *LedgerWallet) SignTransaction(tx transactions.Transaction, pk crypto.P
 }
 
 // SignProgram implements the Wallet interface.
-func (lw *LedgerWallet) SignProgram(data []byte, src crypto.Digest, pw []byte) ([]byte, error) {
+func (lw *LedgerWallet) SignProgram(data []byte, src cryptbase.Digest, pw []byte) ([]byte, error) {
 	sig, err := lw.signProgramHelper(data)
 	if err != nil {
 		return nil, err
@@ -369,7 +370,7 @@ func (lw *LedgerWallet) SignProgram(data []byte, src crypto.Digest, pw []byte) (
 }
 
 // MultisigSignTransaction implements the Wallet interface.
-func (lw *LedgerWallet) MultisigSignTransaction(tx transactions.Transaction, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte, signer crypto.Digest) (crypto.MultisigSig, error) {
+func (lw *LedgerWallet) MultisigSignTransaction(tx transactions.Transaction, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte, signer cryptbase.Digest) (crypto.MultisigSig, error) {
 	isValidKey := false
 	for i := 0; i < len(partial.Subsigs); i++ {
 		subsig := &partial.Subsigs[i]
@@ -399,7 +400,7 @@ func (lw *LedgerWallet) MultisigSignTransaction(tx transactions.Transaction, pk 
 }
 
 // MultisigSignProgram implements the Wallet interface.
-func (lw *LedgerWallet) MultisigSignProgram(data []byte, src crypto.Digest, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte) (crypto.MultisigSig, error) {
+func (lw *LedgerWallet) MultisigSignProgram(data []byte, src cryptbase.Digest, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte) (crypto.MultisigSig, error) {
 	isValidKey := false
 	for i := 0; i < len(partial.Subsigs); i++ {
 		subsig := &partial.Subsigs[i]

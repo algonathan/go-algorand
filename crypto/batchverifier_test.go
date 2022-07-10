@@ -17,6 +17,7 @@
 package crypto
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -30,7 +31,7 @@ func TestBatchVerifierSingle(t *testing.T) {
 	bv := MakeBatchVerifier()
 	msg := randString()
 	var s Seed
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	sigSecrets := GenerateSignatureSecrets(s)
 	sig := sigSecrets.Sign(msg)
 	bv.EnqueueSignature(sigSecrets.SignatureVerifier, msg, sig)
@@ -39,7 +40,7 @@ func TestBatchVerifierSingle(t *testing.T) {
 	// test expected failure
 	bv = MakeBatchVerifier()
 	msg = randString()
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 	sigSecrets = GenerateSignatureSecrets(s)
 	sig = sigSecrets.Sign(msg)
 	// break the signature:
@@ -57,7 +58,7 @@ func TestBatchVerifierBulk(t *testing.T) {
 
 		for i := 0; i < n; i++ {
 			msg := randString()
-			RandBytes(s[:])
+			cryptbase.RandBytes(s[:])
 			sigSecrets := GenerateSignatureSecrets(s)
 			sig := sigSecrets.Sign(msg)
 			bv.EnqueueSignature(sigSecrets.SignatureVerifier, msg, sig)
@@ -73,7 +74,7 @@ func TestBatchVerifierBulkWithExpand(t *testing.T) {
 	n := 64
 	bv := MakeBatchVerifier()
 	var s Seed
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 
 	for i := 0; i < n; i++ {
 		msg := randString()
@@ -89,7 +90,7 @@ func TestBatchVerifierWithInvalidSiganture(t *testing.T) {
 	n := 64
 	bv := MakeBatchVerifier()
 	var s Seed
-	RandBytes(s[:])
+	cryptbase.RandBytes(s[:])
 
 	for i := 0; i < n-1; i++ {
 		msg := randString()

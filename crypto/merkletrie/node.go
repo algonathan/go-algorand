@@ -19,10 +19,9 @@ package merkletrie
 import (
 	"bytes"
 	"encoding/binary"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"sort"
 	"unsafe"
-
-	"github.com/algorand/go-algorand/crypto"
 )
 
 type childEntry struct {
@@ -249,7 +248,7 @@ func (n *node) calculateHash(cache *merkleTrieCache) error {
 		hashAccumulator = append(hashAccumulator, child.hashIndex)           // adding the first byte of the child
 		hashAccumulator = append(hashAccumulator, childNode.hash...)         // adding the reminder of the child
 	}
-	hash := crypto.Hash(hashAccumulator)
+	hash := cryptbase.Hash(hashAccumulator)
 	n.hash = hash[:]
 	return nil
 }

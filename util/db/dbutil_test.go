@@ -21,6 +21,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -31,7 +32,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -120,7 +120,7 @@ func TestInMemoryUniqueDB(t *testing.T) {
 func TestDBConcurrency(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	fn := fmt.Sprintf("/tmp/%s.%d.sqlite3", t.Name(), crypto.RandUint64())
+	fn := fmt.Sprintf("/tmp/%s.%d.sqlite3", t.Name(), cryptbase.RandUint64())
 	defer cleanupSqliteDb(t, fn)
 
 	acc, err := MakeAccessor(fn, false, false)
@@ -248,7 +248,7 @@ func TestDBConcurrencyRW(t *testing.T) {
 		}
 	}
 
-	fn := fmt.Sprintf("/%s.%d.sqlite3", t.Name(), crypto.RandUint64())
+	fn := fmt.Sprintf("/%s.%d.sqlite3", t.Name(), cryptbase.RandUint64())
 	fn = filepath.Join(dbFolder, fn)
 	defer cleanupSqliteDb(t, fn)
 

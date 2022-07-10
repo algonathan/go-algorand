@@ -19,6 +19,7 @@ package testing
 import (
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
@@ -87,7 +88,7 @@ func GenesisWithProto(naccts int, proto protocol.ConsensusVersion) (ledgercore.I
 	blk.BlockHeader.GenesisID = "test"
 	blk.FeeSink = testSinkAddr
 	blk.RewardsPool = testPoolAddr
-	crypto.RandBytes(blk.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(blk.BlockHeader.GenesisHash[:])
 
 	addrs := make([]basics.Address, 0, naccts)
 	keys := make([]*crypto.SignatureSecrets, 0, naccts)
@@ -97,7 +98,7 @@ func GenesisWithProto(naccts int, proto protocol.ConsensusVersion) (ledgercore.I
 	amount := 10 * 1000000000 * 1000000 / uint64(naccts+2)
 
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	for i := 0; i < naccts; i++ {
 		seed[0] = byte(i)
 		seed[1] = byte(i >> 8)

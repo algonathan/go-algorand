@@ -19,6 +19,7 @@ package data
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"sync"
 	"testing"
 
@@ -106,12 +107,12 @@ func testGenerateInitState(tb testing.TB, proto protocol.ConsensusVersion) (gene
 	initBlock.TxnCommitments, err = initBlock.PaysetCommit()
 	require.NoError(tb, err)
 	if params.SupportGenesisHash {
-		initBlock.BlockHeader.GenesisHash = crypto.Hash([]byte(tb.Name()))
+		initBlock.BlockHeader.GenesisHash = cryptbase.Hash([]byte(tb.Name()))
 	}
 
 	genesisInitState.Block = initBlock
 	genesisInitState.Accounts = initAccounts
-	genesisInitState.GenesisHash = crypto.Hash([]byte(tb.Name()))
+	genesisInitState.GenesisHash = cryptbase.Hash([]byte(tb.Name()))
 
 	return
 }
@@ -172,7 +173,7 @@ func TestLedgerCirculation(t *testing.T) {
 
 	for rnd := basics.Round(1); rnd < basics.Round(600); rnd++ {
 		blk.BlockHeader.Round++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		var tx transactions.Transaction
 		tx.Sender = sourceAccount
 		tx.Fee = basics.MicroAlgos{Raw: 10000}
@@ -274,7 +275,7 @@ func TestLedgerSeed(t *testing.T) {
 		blk.BlockHeader.Seed[0] = byte(uint64(rnd))
 		blk.BlockHeader.Seed[1] = byte(uint64(rnd) / 256)
 		blk.BlockHeader.Seed[2] = byte(uint64(rnd) / 65536)
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		require.NoError(t, l.AddBlock(blk, agreement.Certificate{}))
 		l.WaitForCommit(rnd)
 		if rnd < basics.Round(16) {
@@ -360,7 +361,7 @@ func TestConsensusVersion(t *testing.T) {
 		blk.BlockHeader.Seed[0] = byte(uint64(rnd))
 		blk.BlockHeader.Seed[1] = byte(uint64(rnd) / 256)
 		blk.BlockHeader.Seed[2] = byte(uint64(rnd) / 65536)
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		blk.BlockHeader.CurrentProtocol = previousProtocol
 		require.NoError(t, l.AddBlock(blk, agreement.Certificate{}))
 		l.WaitForCommit(rnd)
@@ -394,7 +395,7 @@ func TestConsensusVersion(t *testing.T) {
 	blk.BlockHeader.Seed[0] = byte(uint64(rnd))
 	blk.BlockHeader.Seed[1] = byte(uint64(rnd) / 256)
 	blk.BlockHeader.Seed[2] = byte(uint64(rnd) / 65536)
-	blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+	blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 	blk.BlockHeader.CurrentProtocol = previousProtocol
 	blk.BlockHeader.NextProtocol = protocol.ConsensusCurrentVersion
 	blk.BlockHeader.NextProtocolVoteBefore = basics.Round(rnd) + basics.Round(consensusParams.UpgradeVoteRounds)
@@ -414,7 +415,7 @@ func TestConsensusVersion(t *testing.T) {
 		blk.BlockHeader.Seed[1] = byte(uint64(rnd) / 256)
 		blk.BlockHeader.Seed[2] = byte(uint64(rnd) / 65536)
 		blk.BlockHeader.NextProtocolApprovals++
-		blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+		blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 		require.NoError(t, l.AddBlock(blk, agreement.Certificate{}))
 		l.WaitForCommit(rnd + 1)
 	}
@@ -488,7 +489,7 @@ func TestLedgerErrorValidate(t *testing.T) {
 	blk.CurrentProtocol = protocol.ConsensusCurrentVersion
 	blk.RewardsPool = testPoolAddr
 	blk.FeeSink = testSinkAddr
-	blk.BlockHeader.GenesisHash = crypto.Hash([]byte(t.Name()))
+	blk.BlockHeader.GenesisHash = cryptbase.Hash([]byte(t.Name()))
 
 	accts := make(map[basics.Address]basics.AccountData)
 	accts[testPoolAddr] = basics.MakeAccountData(basics.NotParticipating, basics.MicroAlgos{Raw: 0})
@@ -497,7 +498,7 @@ func TestLedgerErrorValidate(t *testing.T) {
 	genesisInitState := ledgercore.InitState{
 		Accounts:    accts,
 		Block:       blk,
-		GenesisHash: crypto.Hash([]byte(t.Name())),
+		GenesisHash: cryptbase.Hash([]byte(t.Name())),
 	}
 
 	expectedMessages := make(chan string, 100)
@@ -651,7 +652,7 @@ func getEmptyBlock(afterRound basics.Round, l *ledger.Ledger, genesisID string, 
 	}
 
 	if proto.SupportGenesisHash {
-		blk.BlockHeader.GenesisHash = crypto.Hash([]byte(genesisID))
+		blk.BlockHeader.GenesisHash = cryptbase.Hash([]byte(genesisID))
 	}
 
 	blk.RewardsPool = testPoolAddr

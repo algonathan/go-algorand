@@ -18,7 +18,7 @@ package stateproof
 
 import (
 	"context"
-	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/data/account"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -38,7 +38,7 @@ type TransactionSender interface {
 type Ledger interface {
 	Latest() basics.Round
 	Wait(basics.Round) chan struct{}
-	GenesisHash() crypto.Digest
+	GenesisHash() cryptbase.Digest
 	BlockHdr(basics.Round) (bookkeeping.BlockHeader, error)
 	VotersForStateProof(basics.Round) (*ledgercore.VotersForRound, error)
 }

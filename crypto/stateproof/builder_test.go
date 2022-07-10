@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"hash"
 	"math/bits"
 	"testing"
@@ -28,7 +29,6 @@ import (
 
 	"github.com/algorand/falcon"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/data/basics"
@@ -47,7 +47,7 @@ func (m testMessage) IntoStateProofMessageHash() MessageHash {
 type paramsForTest struct {
 	sp                   StateProof
 	provenWeight         uint64
-	partCommitment       crypto.GenericDigest
+	partCommitment       cryptbase.GenericDigest
 	numberOfParticipnets uint64
 	data                 MessageHash
 }
@@ -116,7 +116,7 @@ func generateProofForTesting(a *require.Assertions, doLargeTest bool) paramsForT
 		sigs = append(sigs, sig)
 	}
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), crypto.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	b, err := MkBuilder(data, stateProofIntervalForTests, uint64(totalWeight/2), parts, partcom, stateProofStrengthTargetForTests)
@@ -184,7 +184,7 @@ func generateRandomParticipant(a *require.Assertions) basics.Participant {
 
 	p := basics.Participant{
 		PK:     *key.GetVerifier(),
-		Weight: crypto.RandUint64(),
+		Weight: cryptbase.RandUint64(),
 	}
 	return p
 }
@@ -203,7 +203,7 @@ func calculateHashOnPartLeaf(part basics.Participant) []byte {
 	partCommitment = append(partCommitment, keyLifetimeBytes...)
 	partCommitment = append(partCommitment, publicKeyBytes.Commitment[:]...)
 
-	factory := crypto.HashFactory{HashType: HashType}
+	factory := cryptbase.HashFactory{HashType: HashType}
 	hashValue := hashBytes(factory.NewHash(), partCommitment)
 	return hashValue
 }
@@ -214,7 +214,7 @@ func calculateHashOnInternalNode(leftNode, rightNode []byte) []byte {
 	copy(buf[len(protocol.MerkleArrayNode):], leftNode[:])
 	copy(buf[len(protocol.MerkleArrayNode)+len(leftNode):], rightNode[:])
 
-	factory := crypto.HashFactory{HashType: HashType}
+	factory := cryptbase.HashFactory{HashType: HashType}
 	hashValue := hashBytes(factory.NewHash(), buf)
 	return hashValue
 }
@@ -230,7 +230,7 @@ func TestParticipationCommitmentBinaryFormat(t *testing.T) {
 	parts = append(parts, generateRandomParticipant(a))
 	parts = append(parts, generateRandomParticipant(a))
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), crypto.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	partCommitmentRoot := partcom.Root()
@@ -245,7 +245,7 @@ func TestParticipationCommitmentBinaryFormat(t *testing.T) {
 
 	calcRoot := calculateHashOnInternalNode(inner1, inner2)
 
-	a.Equal(partCommitmentRoot, crypto.GenericDigest(calcRoot))
+	a.Equal(partCommitmentRoot, cryptbase.GenericDigest(calcRoot))
 
 }
 
@@ -277,7 +277,7 @@ func TestSignatureCommitmentBinaryFormat(t *testing.T) {
 
 	}
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), crypto.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	b, err := MkBuilder(data, stateProofIntervalForTests, uint64(totalWeight/(2*numPart)), parts, partcom, stateProofStrengthTargetForTests)
@@ -303,7 +303,7 @@ func TestSignatureCommitmentBinaryFormat(t *testing.T) {
 
 	calcRoot := calculateHashOnInternalNode(inner1, inner2)
 
-	a.Equal(sProof.SigCommit, crypto.GenericDigest(calcRoot))
+	a.Equal(sProof.SigCommit, cryptbase.GenericDigest(calcRoot))
 
 }
 
@@ -397,7 +397,7 @@ func verifyMerklePath(idx uint64, pathLe byte, sigBytes []byte, parsedBytes int,
 			innerNodeBytes = append(innerNodeBytes, siblingHash...)
 		}
 		idxDirection = idxDirection >> 1
-		leafHash = hashBytes(crypto.HashFactory{HashType: HashType}.NewHash(), innerNodeBytes)
+		leafHash = hashBytes(cryptbase.HashFactory{HashType: HashType}.NewHash(), innerNodeBytes)
 	}
 	return leafHash
 }
@@ -411,7 +411,7 @@ func hashEphemeralPublicKeyLeaf(round uint64, falconPK [falcon.PublicKeySize]byt
 	ephemeralPublicKeyBytes = append(ephemeralPublicKeyBytes, []byte{0, 0}...)
 	ephemeralPublicKeyBytes = append(ephemeralPublicKeyBytes, sigRoundAsBytes[:]...)
 	ephemeralPublicKeyBytes = append(ephemeralPublicKeyBytes, falconPK[:]...)
-	leafHash := hashBytes(crypto.HashFactory{HashType: HashType}.NewHash(), ephemeralPublicKeyBytes)
+	leafHash := hashBytes(cryptbase.HashFactory{HashType: HashType}.NewHash(), ephemeralPublicKeyBytes)
 	return leafHash
 }
 
@@ -458,7 +458,7 @@ func TestBuilder_AddRejectsInvalidSigVersion(t *testing.T) {
 	parts = append(parts, createParticipantSliceWithWeight(totalWeight, npartHi, key.GetVerifier())...)
 	parts = append(parts, createParticipantSliceWithWeight(totalWeight, npartLo, key.GetVerifier())...)
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), crypto.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	builder, err := MkBuilder(data, stateProofIntervalForTests, uint64(totalWeight/2), parts, partcom, stateProofStrengthTargetForTests)
@@ -482,7 +482,7 @@ func TestBuildAndReady(t *testing.T) {
 	data := testMessage("hello world").IntoStateProofMessageHash()
 	var parts []basics.Participant
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), crypto.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	builder, err := MkBuilder(data, stateProofIntervalForTests, uint64(totalWeight/2), parts, partcom, stateProofStrengthTargetForTests)
@@ -634,7 +634,7 @@ func BenchmarkBuildVerify(b *testing.B) {
 	}
 
 	var sp *StateProof
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), crypto.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	if err != nil {
 		b.Error(err)
 	}

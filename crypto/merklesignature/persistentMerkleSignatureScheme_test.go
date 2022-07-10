@@ -20,11 +20,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 	"github.com/algorand/go-algorand/util/db"
 )
@@ -97,7 +97,7 @@ func TestFetchRestoreAllSecrets(t *testing.T) {
 }
 
 func createTestDB(a *require.Assertions) *db.Accessor {
-	tmpname := fmt.Sprintf("%015x", crypto.RandUint64())
+	tmpname := fmt.Sprintf("%015x", cryptbase.RandUint64())
 	store, err := db.MakeAccessor(tmpname, false, true)
 	a.NoError(err)
 	a.NotNil(store)

@@ -18,12 +18,12 @@ package agreement
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
@@ -36,7 +36,7 @@ func init() {
 }
 
 func makeTimeoutEvent() timeoutEvent {
-	return timeoutEvent{T: timeout, RandomEntropy: crypto.RandUint64()}
+	return timeoutEvent{T: timeout, RandomEntropy: cryptbase.RandUint64()}
 }
 
 func generateProposalEvents(t *testing.T, player player, accs testAccountData, f testBlockFactory, ledger Ledger) (voteBatch []event, payloadBatch []event, lowestProposal proposalValue) {
@@ -86,7 +86,7 @@ func simulateProposalVotes(t *testing.T, router *rootRouter, player *player, bat
 	}
 }
 
-func (prop proposalValue) matches(dig, encdig crypto.Digest) error {
+func (prop proposalValue) matches(dig, encdig cryptbase.Digest) error {
 	if prop.BlockDigest != dig {
 		return fmt.Errorf("proposal block digest mismatches payload: %v != %v", prop.BlockDigest, dig)
 	}
@@ -105,7 +105,7 @@ func simulateProposalPayloads(t *testing.T, router *rootRouter, player *player, 
 				continue
 			}
 			received := e.(messageEvent).Input.Proposal
-			err := expected.matches(received.Digest(), crypto.HashObj(received))
+			err := expected.matches(received.Digest(), cryptbase.HashObj(received))
 			if expected != bottom && err != nil {
 				panic("wrong payload relayed")
 			}

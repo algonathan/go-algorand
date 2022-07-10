@@ -19,10 +19,10 @@ package network
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-deadlock"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -42,7 +42,7 @@ type netPrioStubResponse struct {
 
 func (nps *netPrioStub) NewPrioChallenge() string {
 	var rand [32]byte
-	crypto.RandBytes(rand[:])
+	cryptbase.RandBytes(rand[:])
 	return base64.StdEncoding.EncodeToString(rand[:])
 }
 

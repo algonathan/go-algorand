@@ -19,6 +19,7 @@ package participation
 import (
 	"context"
 	"encoding/hex"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -186,7 +187,7 @@ func addParticipationKey(a *require.Assertions, fixture *fixtures.RestClientFixt
 	return signedTxn.Txn.KeyregTxnFields.VotePK, err
 }
 
-func prepareParticipationKey(a *require.Assertions, fixture *fixtures.RestClientFixture, acctNum, txStartRound, txEndRound, regStartRound, regEndRound uint64, genesisHash crypto.Digest, rootKeys map[int]*account.Root, regTransactions map[int]transactions.SignedTxn, c config.ConsensusParams) error {
+func prepareParticipationKey(a *require.Assertions, fixture *fixtures.RestClientFixture, acctNum, txStartRound, txEndRound, regStartRound, regEndRound uint64, genesisHash cryptbase.Digest, rootKeys map[int]*account.Root, regTransactions map[int]transactions.SignedTxn, c config.ConsensusParams) error {
 	dataDir := fixture.NodeDataDirs()[acctNum]
 
 	nc := fixture.GetNodeControllerForDataDir(dataDir)

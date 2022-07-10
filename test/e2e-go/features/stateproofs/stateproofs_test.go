@@ -18,6 +18,7 @@ package stateproofs
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -28,7 +29,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	sp "github.com/algorand/go-algorand/crypto/stateproof"
 	"github.com/algorand/go-algorand/daemon/algod/api/client"
@@ -312,7 +312,7 @@ func TestStateProofMessageCommitmentVerification(t *testing.T) {
 
 		lightBlockHeader := blk.ToLightBlockHeader()
 
-		elems := make(map[uint64]crypto.Hashable)
+		elems := make(map[uint64]cryptbase.Hashable)
 		elems[proofResp.Index] = &lightBlockHeader
 		err = merklearray.VerifyVectorCommitment(stateProofMessage.BlockHeadersCommitment, elems, singleLeafProof.ToProof())
 		r.NoError(err)

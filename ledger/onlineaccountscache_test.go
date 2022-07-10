@@ -17,12 +17,12 @@
 package ledger
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	ledgertesting "github.com/algorand/go-algorand/ledger/testing"
 	"github.com/algorand/go-algorand/protocol"
@@ -38,7 +38,7 @@ func TestOnlineAccountsCacheBasic(t *testing.T) {
 	const maxCacheSize = 10
 	oac.init(nil, maxCacheSize)
 
-	addr := basics.Address(crypto.Hash([]byte{byte(0)}))
+	addr := basics.Address(cryptbase.Hash([]byte{byte(0)}))
 
 	roundsNum := 50
 	for i := 0; i < roundsNum; i++ {
@@ -103,7 +103,7 @@ func TestOnlineAccountsCachePruneOffline(t *testing.T) {
 	const maxCacheSize = 10
 	oac.init(nil, maxCacheSize)
 
-	addr := basics.Address(crypto.Hash([]byte{byte(0)}))
+	addr := basics.Address(cryptbase.Hash([]byte{byte(0)}))
 
 	roundsNum := 50
 	for i := 0; i < roundsNum; i++ {

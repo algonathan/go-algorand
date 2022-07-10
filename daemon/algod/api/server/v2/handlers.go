@@ -21,6 +21,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"math"
 	"net/http"
@@ -83,7 +84,7 @@ type NodeInterface interface {
 	LedgerForAPI() LedgerForAPI
 	Status() (s node.StatusReport, err error)
 	GenesisID() string
-	GenesisHash() crypto.Digest
+	GenesisHash() cryptbase.Digest
 	BroadcastSignedTxGroup(txgroup []transactions.SignedTxn) error
 	GetPendingTransaction(txID transactions.Txid) (res node.TxnWithStatus, found bool)
 	GetPendingTxnsFromPool() ([]transactions.SignedTxn, error)
@@ -611,7 +612,7 @@ func (v2 *Handlers) GetProof(ctx echo.Context, round uint64, txid string, params
 		}
 
 		var tree *merklearray.Tree
-		var stibhash crypto.Digest
+		var stibhash cryptbase.Digest
 
 		switch hashtype {
 		case "sha256":

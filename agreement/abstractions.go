@@ -19,9 +19,9 @@ package agreement
 import (
 	"context"
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/account"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -156,7 +156,7 @@ type LedgerReader interface {
 	// A LedgerReader need only keep track of the digest from the most
 	// recent multiple of (config.Protocol.BalLookback/2). All other
 	// digests may be forgotten without hurting liveness.
-	LookupDigest(basics.Round) (crypto.Digest, error)
+	LookupDigest(basics.Round) (cryptbase.Digest, error)
 
 	// ConsensusParams returns the consensus parameters that are correct
 	// for the given round.

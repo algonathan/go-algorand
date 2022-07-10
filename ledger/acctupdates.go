@@ -21,6 +21,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"sort"
 	"sync"
@@ -30,7 +31,6 @@ import (
 	"github.com/algorand/go-deadlock"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -537,7 +537,7 @@ type accountUpdatesLedgerEvaluator struct {
 }
 
 // GenesisHash returns the genesis hash
-func (aul *accountUpdatesLedgerEvaluator) GenesisHash() crypto.Digest {
+func (aul *accountUpdatesLedgerEvaluator) GenesisHash() cryptbase.Digest {
 	return aul.au.ledger.GenesisHash()
 }
 

@@ -19,6 +19,7 @@ package prefetcher_test
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -42,8 +43,8 @@ type creatable struct {
 	ctype  basics.CreatableType
 }
 
-func genesisHash() crypto.Digest {
-	var res crypto.Digest
+func genesisHash() cryptbase.Digest {
+	var res cryptbase.Digest
 	res[0] = 255
 	return res
 }
@@ -153,8 +154,8 @@ func (l *prefetcherAlignmentTestLedger) GetCreatorForRound(_ basics.Round, cidx 
 	}
 	return basics.Address{}, false, nil
 }
-func (l *prefetcherAlignmentTestLedger) GenesisHash() crypto.Digest {
-	return crypto.Digest{}
+func (l *prefetcherAlignmentTestLedger) GenesisHash() cryptbase.Digest {
+	return cryptbase.Digest{}
 }
 func (l *prefetcherAlignmentTestLedger) GenesisProto() config.ConsensusParams {
 	return config.Consensus[proto]

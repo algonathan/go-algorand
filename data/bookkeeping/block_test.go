@@ -19,6 +19,7 @@ package bookkeeping
 import (
 	"bytes"
 	"encoding/hex"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math"
 	"testing"
 	"time"
@@ -27,7 +28,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/logging"
@@ -161,7 +161,7 @@ func TestMakeBlockUpgrades(t *testing.T) {
 	b.BlockHeader.GenesisID = t.Name()
 	b.CurrentProtocol = proto1
 	b.BlockHeader.GenesisID = "test"
-	crypto.RandBytes(b.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(b.BlockHeader.GenesisHash[:])
 
 	b1 := MakeBlock(b.BlockHeader)
 	err := b1.PreCheck(b.BlockHeader)
@@ -185,7 +185,7 @@ func TestMakeBlockUpgrades(t *testing.T) {
 	bd.BlockHeader.GenesisID = t.Name()
 	bd.CurrentProtocol = protoDelay
 	bd.BlockHeader.GenesisID = "test"
-	crypto.RandBytes(bd.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(bd.BlockHeader.GenesisHash[:])
 
 	bd1 := MakeBlock(bd.BlockHeader)
 	err = bd1.PreCheck(bd.BlockHeader)
@@ -228,7 +228,7 @@ func TestTime(t *testing.T) {
 	prev.BlockHeader.GenesisID = t.Name()
 	prev.CurrentProtocol = proto1
 	prev.BlockHeader.GenesisID = "test"
-	crypto.RandBytes(prev.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(prev.BlockHeader.GenesisHash[:])
 	proto := config.Consensus[prev.CurrentProtocol]
 
 	startTime := time.Now().Unix()
@@ -388,7 +388,7 @@ func TestEncodeDecodeSignedTxn(t *testing.T) {
 
 	var b Block
 	b.BlockHeader.GenesisID = "foo"
-	crypto.RandBytes(b.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(b.BlockHeader.GenesisHash[:])
 	b.CurrentProtocol = protocol.ConsensusFuture
 
 	var tx transactions.SignedTxn
@@ -409,7 +409,7 @@ func TestEncodeMalformedSignedTxn(t *testing.T) {
 	var b Block
 	b.BlockHeader.GenesisID = "foo"
 	b.BlockHeader.CurrentProtocol = protocol.ConsensusCurrentVersion
-	crypto.RandBytes(b.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(b.BlockHeader.GenesisHash[:])
 
 	var tx transactions.SignedTxn
 	tx.Txn.GenesisID = b.BlockHeader.GenesisID
@@ -423,7 +423,7 @@ func TestEncodeMalformedSignedTxn(t *testing.T) {
 	require.Error(t, err)
 
 	tx.Txn.GenesisID = b.BlockHeader.GenesisID
-	crypto.RandBytes(tx.Txn.GenesisHash[:])
+	cryptbase.RandBytes(tx.Txn.GenesisHash[:])
 	_, err = b.EncodeSignedTxn(tx, transactions.ApplyData{})
 	require.Error(t, err)
 }
@@ -434,7 +434,7 @@ func TestDecodeMalformedSignedTxn(t *testing.T) {
 	var b Block
 	b.BlockHeader.GenesisID = "foo"
 	b.BlockHeader.CurrentProtocol = protocol.ConsensusCurrentVersion
-	crypto.RandBytes(b.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(b.BlockHeader.GenesisHash[:])
 
 	var txib1 transactions.SignedTxnInBlock
 	txib1.SignedTxn.Txn.GenesisID = b.BlockHeader.GenesisID
@@ -778,7 +778,7 @@ func TestBlock_ContentsMatchHeader(t *testing.T) {
 	// Create a block without SHA256 TxnCommitments
 	var block Block
 	block.CurrentProtocol = protocol.ConsensusV32
-	crypto.RandBytes(block.BlockHeader.GenesisHash[:])
+	cryptbase.RandBytes(block.BlockHeader.GenesisHash[:])
 
 	for i := 0; i < 1024; i++ {
 		txn := transactions.Transaction{
@@ -787,12 +787,12 @@ func TestBlock_ContentsMatchHeader(t *testing.T) {
 				GenesisHash: block.BlockHeader.GenesisHash,
 			},
 			PaymentTxnFields: transactions.PaymentTxnFields{
-				Amount: basics.MicroAlgos{Raw: crypto.RandUint64()},
+				Amount: basics.MicroAlgos{Raw: cryptbase.RandUint64()},
 			},
 		}
 
-		crypto.RandBytes(txn.Sender[:])
-		crypto.RandBytes(txn.PaymentTxnFields.Receiver[:])
+		cryptbase.RandBytes(txn.Sender[:])
+		cryptbase.RandBytes(txn.PaymentTxnFields.Receiver[:])
 
 		sigtxn := transactions.SignedTxn{Txn: txn}
 		ad := transactions.ApplyData{}
@@ -817,7 +817,7 @@ func TestBlock_ContentsMatchHeader(t *testing.T) {
 	a.False(block.ContentsMatchHeader())
 
 	copy(block.BlockHeader.TxnCommitments.NativeSha512_256Commitment[:], rootSliceSHA512_256)
-	block.BlockHeader.TxnCommitments.Sha256Commitment = crypto.Digest{}
+	block.BlockHeader.TxnCommitments.Sha256Commitment = cryptbase.Digest{}
 	a.True(block.ContentsMatchHeader())
 
 	copy(block.BlockHeader.TxnCommitments.NativeSha512_256Commitment[:], rootSliceSHA512_256)
@@ -828,7 +828,7 @@ func TestBlock_ContentsMatchHeader(t *testing.T) {
 	copy(block.BlockHeader.TxnCommitments.Sha256Commitment[:], rootSliceSHA256)
 	a.False(block.ContentsMatchHeader())
 
-	block.BlockHeader.TxnCommitments.NativeSha512_256Commitment = crypto.Digest{}
+	block.BlockHeader.TxnCommitments.NativeSha512_256Commitment = cryptbase.Digest{}
 	copy(block.BlockHeader.TxnCommitments.Sha256Commitment[:], rootSliceSHA256)
 	a.False(block.ContentsMatchHeader())
 
@@ -836,8 +836,8 @@ func TestBlock_ContentsMatchHeader(t *testing.T) {
 	// Create a block with SHA256 TxnCommitments
 	block.CurrentProtocol = protocol.ConsensusFuture
 
-	block.BlockHeader.TxnCommitments.NativeSha512_256Commitment = crypto.Digest{}
-	block.BlockHeader.TxnCommitments.Sha256Commitment = crypto.Digest{}
+	block.BlockHeader.TxnCommitments.NativeSha512_256Commitment = cryptbase.Digest{}
+	block.BlockHeader.TxnCommitments.Sha256Commitment = cryptbase.Digest{}
 	a.False(block.ContentsMatchHeader())
 
 	// Now update the SHA256 header to its correct value
@@ -853,7 +853,7 @@ func TestBlock_ContentsMatchHeader(t *testing.T) {
 	copy(block.BlockHeader.TxnCommitments.Sha256Commitment[:], badDigestSlice)
 	a.False(block.ContentsMatchHeader())
 
-	block.BlockHeader.TxnCommitments.NativeSha512_256Commitment = crypto.Digest{}
+	block.BlockHeader.TxnCommitments.NativeSha512_256Commitment = cryptbase.Digest{}
 	copy(block.BlockHeader.TxnCommitments.Sha256Commitment[:], rootSliceSHA256)
 	a.False(block.ContentsMatchHeader())
 }
@@ -871,6 +871,6 @@ func TestBlockHeader_Serialization(t *testing.T) {
 	err = protocol.Decode(bytesBlkHdr, &blkHdr)
 	a.NoError(err)
 
-	a.Equal(crypto.Digest{}, blkHdr.TxnCommitments.Sha256Commitment)
-	a.NotEqual(crypto.Digest{}, blkHdr.TxnCommitments.NativeSha512_256Commitment)
+	a.Equal(cryptbase.Digest{}, blkHdr.TxnCommitments.Sha256Commitment)
+	a.NotEqual(cryptbase.Digest{}, blkHdr.TxnCommitments.NativeSha512_256Commitment)
 }

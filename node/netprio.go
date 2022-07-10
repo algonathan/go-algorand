@@ -19,6 +19,7 @@ package node
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/account"
@@ -48,7 +49,7 @@ func (npr netPrioResponse) ToBeHashed() (protocol.HashID, []byte) {
 // NewPrioChallenge implements the network.NetPrioScheme interface
 func (node *AlgorandFullNode) NewPrioChallenge() string {
 	var rand [32]byte
-	crypto.RandBytes(rand[:])
+	cryptbase.RandBytes(rand[:])
 	return base64.StdEncoding.EncodeToString(rand[:])
 }
 

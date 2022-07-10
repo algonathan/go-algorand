@@ -22,6 +22,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -33,7 +34,6 @@ import (
 	generatedV2 "github.com/algorand/go-algorand/daemon/algod/api/server/v2/generated"
 	privateV2 "github.com/algorand/go-algorand/daemon/algod/api/server/v2/generated/private"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/daemon/algod/api/spec/common"
 	v1 "github.com/algorand/go-algorand/daemon/algod/api/spec/v1"
 	"github.com/algorand/go-algorand/data/basics"
@@ -591,22 +591,22 @@ func (client RestClient) GetGoRoutines(ctx context.Context) (goRoutines string, 
 }
 
 // Compile compiles the given program and returned the compiled program
-func (client RestClient) Compile(program []byte) (compiledProgram []byte, programHash crypto.Digest, err error) {
+func (client RestClient) Compile(program []byte) (compiledProgram []byte, programHash cryptbase.Digest, err error) {
 	var compileResponse generatedV2.CompileResponse
 	err = client.submitForm(&compileResponse, "/v2/teal/compile", program, "POST", false, true)
 	if err != nil {
-		return nil, crypto.Digest{}, err
+		return nil, cryptbase.Digest{}, err
 	}
 	compiledProgram, err = base64.StdEncoding.DecodeString(compileResponse.Result)
 	if err != nil {
-		return nil, crypto.Digest{}, err
+		return nil, cryptbase.Digest{}, err
 	}
 	var progAddr basics.Address
 	progAddr, err = basics.UnmarshalChecksumAddress(compileResponse.Hash)
 	if err != nil {
-		return nil, crypto.Digest{}, err
+		return nil, cryptbase.Digest{}, err
 	}
-	programHash = crypto.Digest(progAddr)
+	programHash = cryptbase.Digest(progAddr)
 	return
 }
 
@@ -661,7 +661,7 @@ func (client RestClient) LightBlockHeaderProof(round uint64) (response generated
 }
 
 // TransactionProof gets a Merkle proof for a transaction in a block.
-func (client RestClient) TransactionProof(txid string, round uint64, hashType crypto.HashType) (response generatedV2.ProofResponse, err error) {
+func (client RestClient) TransactionProof(txid string, round uint64, hashType cryptbase.HashType) (response generatedV2.ProofResponse, err error) {
 	txid = stripTransaction(txid)
 	err = client.get(&response, fmt.Sprintf("/v2/blocks/%d/transactions/%s/proof", round, txid), proofParams{HashType: hashType.String()})
 	return

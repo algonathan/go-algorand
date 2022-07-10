@@ -20,11 +20,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-deadlock"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -67,7 +67,7 @@ type txTail struct {
 	//              dbRound
 	// roundTailHashes is planned for catchpoints in order to include it into catchpoint file,
 	// and currently disabled by enableTxTailHashes switch.
-	roundTailHashes []crypto.Digest
+	roundTailHashes []cryptbase.Digest
 
 	// blockHeaderData contains the recent (MaxTxnLife + DeeperBlockHeaderHistory + len(deltas)) block header data.
 	// The oldest entry is lowestBlockHeaderRound = database round - (MaxTxnLife + DeeperBlockHeaderHistory) + 1
@@ -89,7 +89,7 @@ func (t *txTail) loadFromDisk(l ledgerForTracker, dbRound basics.Round) error {
 	rdb := l.trackerDB().Rdb
 
 	var roundData []*txTailRound
-	var roundTailHashes []crypto.Digest
+	var roundTailHashes []cryptbase.Digest
 	var baseRound basics.Round
 	if dbRound > 0 {
 		err := rdb.Atomic(func(ctx context.Context, tx *sql.Tx) (err error) {
@@ -113,7 +113,7 @@ func (t *txTail) loadFromDisk(l ledgerForTracker, dbRound basics.Round) error {
 
 	// the roundTailHashes and blockHeaderData need a single element to start with
 	// in order to allow lookups on zero offsets when they are empty (new database)
-	roundTailHashes = append([]crypto.Digest{{}}, roundTailHashes...)
+	roundTailHashes = append([]cryptbase.Digest{{}}, roundTailHashes...)
 	blockHeaderData := make(map[basics.Round]bookkeeping.BlockHeader, len(roundData)+1)
 
 	t.lowestBlockHeaderRound = baseRound
@@ -352,9 +352,9 @@ func (t *txTail) putLV(lastValid basics.Round, id transactions.Txid) {
 	t.lastValid[lastValid][id] = struct{}{}
 }
 
-func (t *txTail) recentTailHash(offset uint64, retainSize uint64) (crypto.Digest, error) {
+func (t *txTail) recentTailHash(offset uint64, retainSize uint64) (cryptbase.Digest, error) {
 	// prepare a buffer to hash.
-	buffer := make([]byte, (retainSize)*crypto.DigestSize)
+	buffer := make([]byte, (retainSize)*cryptbase.DigestSize)
 	bufIdx := 0
 	t.tailMu.RLock()
 	lastOffset := offset + retainSize // size of interval [offset, lastOffset) is retainSize
@@ -363,10 +363,10 @@ func (t *txTail) recentTailHash(offset uint64, retainSize uint64) (crypto.Digest
 	}
 	for i := offset; i < lastOffset; i++ {
 		copy(buffer[bufIdx:], t.roundTailHashes[i][:])
-		bufIdx += crypto.DigestSize
+		bufIdx += cryptbase.DigestSize
 	}
 	t.tailMu.RUnlock()
-	return crypto.Hash(buffer), nil
+	return cryptbase.Hash(buffer), nil
 }
 
 func (t *txTail) blockHeader(rnd basics.Round) (bookkeeping.BlockHeader, bool) {

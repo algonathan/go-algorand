@@ -19,12 +19,12 @@ package network
 import (
 	"bytes"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -34,7 +34,7 @@ func TestLimitedReaderSlurper(t *testing.T) {
 	for _, arraySize := range []uint64{30000, 90000, 200000} {
 		// create a random bytes array.
 		bytesBlob := make([]byte, arraySize)
-		crypto.RandBytes(bytesBlob[:])
+		cryptbase.RandBytes(bytesBlob[:])
 		for baseBufferSize := uint64(0); baseBufferSize < uint64(len(bytesBlob)); baseBufferSize += 731 {
 			for _, maxSize := range []uint64{arraySize - 10000, arraySize, arraySize + 10000} {
 				buffer := bytes.NewBuffer(bytesBlob)
@@ -59,7 +59,7 @@ type fuzzReader struct {
 }
 
 func (f *fuzzReader) Read(b []byte) (n int, err error) {
-	s := int(crypto.RandUint64() % 19)
+	s := int(cryptbase.RandUint64() % 19)
 	if s > len(b) {
 		s = len(b)
 	}
@@ -83,7 +83,7 @@ func TestLimitedReaderSlurper_FuzzedBlippedSource(t *testing.T) {
 
 	arraySize := uint64(300000)
 	bytesBlob := make([]byte, arraySize)
-	crypto.RandBytes(bytesBlob[:])
+	cryptbase.RandBytes(bytesBlob[:])
 	for i := 0; i < 500; i++ {
 		for _, maxSize := range []uint64{arraySize - 10000, arraySize, arraySize + 10000} {
 			reader := MakeLimitedReaderSlurper(512, maxSize)
@@ -101,7 +101,7 @@ func TestLimitedReaderSlurper_FuzzedBlippedSource(t *testing.T) {
 
 func benchmarkLimitedReaderSlurper(b *testing.B, arraySize uint64) {
 	bytesBlob := make([]byte, arraySize)
-	crypto.RandBytes(bytesBlob[:])
+	cryptbase.RandBytes(bytesBlob[:])
 	readers := make([]*LimitedReaderSlurper, b.N)
 	buffers := make([]*bytes.Buffer, b.N)
 	for i := 0; i < b.N; i++ {

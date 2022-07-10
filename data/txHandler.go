@@ -20,10 +20,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io"
 	"sync"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/pools"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -56,7 +56,7 @@ type TxHandler struct {
 	txPool                *pools.TransactionPool
 	ledger                *Ledger
 	genesisID             string
-	genesisHash           crypto.Digest
+	genesisHash           cryptbase.Digest
 	txVerificationPool    execpool.BacklogPool
 	backlogQueue          chan *txBacklogMsg
 	postVerificationQueue chan *txBacklogMsg
@@ -67,7 +67,7 @@ type TxHandler struct {
 }
 
 // MakeTxHandler makes a new handler for transaction messages
-func MakeTxHandler(txPool *pools.TransactionPool, ledger *Ledger, net network.GossipNode, genesisID string, genesisHash crypto.Digest, executionPool execpool.BacklogPool) *TxHandler {
+func MakeTxHandler(txPool *pools.TransactionPool, ledger *Ledger, net network.GossipNode, genesisID string, genesisHash cryptbase.Digest, executionPool execpool.BacklogPool) *TxHandler {
 
 	if txPool == nil {
 		logging.Base().Fatal("MakeTxHandler: txPool is nil on initialization")

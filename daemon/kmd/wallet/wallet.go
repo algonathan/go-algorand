@@ -19,6 +19,7 @@ package wallet
 import (
 	"crypto/rand"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -39,24 +40,24 @@ type Wallet interface {
 
 	Metadata() (Metadata, error)
 
-	ListKeys() ([]crypto.Digest, error)
+	ListKeys() ([]cryptbase.Digest, error)
 
-	ImportKey(sk crypto.PrivateKey) (crypto.Digest, error)
-	ExportKey(pk crypto.Digest, pw []byte) (crypto.PrivateKey, error)
-	GenerateKey(displayMnemonic bool) (crypto.Digest, error)
-	DeleteKey(pk crypto.Digest, pw []byte) error
+	ImportKey(sk crypto.PrivateKey) (cryptbase.Digest, error)
+	ExportKey(pk cryptbase.Digest, pw []byte) (crypto.PrivateKey, error)
+	GenerateKey(displayMnemonic bool) (cryptbase.Digest, error)
+	DeleteKey(pk cryptbase.Digest, pw []byte) error
 
-	ImportMultisigAddr(version, threshold uint8, pks []crypto.PublicKey) (crypto.Digest, error)
-	LookupMultisigPreimage(crypto.Digest) (version, threshold uint8, pks []crypto.PublicKey, err error)
-	ListMultisigAddrs() (addrs []crypto.Digest, err error)
-	DeleteMultisigAddr(addr crypto.Digest, pw []byte) error
+	ImportMultisigAddr(version, threshold uint8, pks []crypto.PublicKey) (cryptbase.Digest, error)
+	LookupMultisigPreimage(cryptbase.Digest) (version, threshold uint8, pks []crypto.PublicKey, err error)
+	ListMultisigAddrs() (addrs []cryptbase.Digest, err error)
+	DeleteMultisigAddr(addr cryptbase.Digest, pw []byte) error
 
 	SignTransaction(tx transactions.Transaction, pk crypto.PublicKey, pw []byte) ([]byte, error)
 
-	MultisigSignTransaction(tx transactions.Transaction, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte, signer crypto.Digest) (crypto.MultisigSig, error)
+	MultisigSignTransaction(tx transactions.Transaction, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte, signer cryptbase.Digest) (crypto.MultisigSig, error)
 
-	SignProgram(program []byte, src crypto.Digest, pw []byte) ([]byte, error)
-	MultisigSignProgram(program []byte, src crypto.Digest, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte) (crypto.MultisigSig, error)
+	SignProgram(program []byte, src cryptbase.Digest, pw []byte) ([]byte, error)
+	MultisigSignProgram(program []byte, src cryptbase.Digest, pk crypto.PublicKey, partial crypto.MultisigSig, pw []byte) (crypto.MultisigSig, error)
 }
 
 // Metadata represents high-level information about a wallet, like its name, id

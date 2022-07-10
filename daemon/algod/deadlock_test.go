@@ -18,12 +18,12 @@ package algod
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 	"time"
 
 	"github.com/algorand/go-deadlock"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/logging"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -31,7 +31,7 @@ import (
 func TestDeadlockLogging(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	logFn := fmt.Sprintf("/tmp/test.%s.%d.log", t.Name(), crypto.RandUint64())
+	logFn := fmt.Sprintf("/tmp/test.%s.%d.log", t.Name(), cryptbase.RandUint64())
 	archiveFn := fmt.Sprintf("%s.archive", logFn)
 
 	l := logging.Base()
@@ -62,7 +62,7 @@ func TestDeadlockLogging(t *testing.T) {
 func TestDeadlockOnPotentialDeadlock(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	logFn := fmt.Sprintf("/tmp/test.%s.%d.log", t.Name(), crypto.RandUint64())
+	logFn := fmt.Sprintf("/tmp/test.%s.%d.log", t.Name(), cryptbase.RandUint64())
 	archiveFn := fmt.Sprintf("%s.archive", logFn)
 
 	l := logging.Base()

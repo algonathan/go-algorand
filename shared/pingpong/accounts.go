@@ -18,6 +18,7 @@ package pingpong
 
 import (
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -172,7 +173,7 @@ func (pps *WorkerState) prepareAssets(accounts map[string]*pingPongAccount, clie
 		for i := 0; i < toCreate; i++ {
 			var metaLen = 32
 			meta := make([]byte, metaLen)
-			crypto.RandBytes(meta[:])
+			cryptbase.RandBytes(meta[:])
 
 			if totalSupply < pps.cfg.MinAccountAsset { // overflow
 				fmt.Printf("Too many NumPartAccounts\n")
@@ -876,7 +877,7 @@ func generateAccounts(allAccounts map[string]*pingPongAccount, numAccounts uint3
 	var seed crypto.Seed
 
 	for accountsRequired := int(numAccounts+1) - len(allAccounts); accountsRequired > 0; accountsRequired-- {
-		crypto.RandBytes(seed[:])
+		cryptbase.RandBytes(seed[:])
 		privateKey := crypto.GenerateSignatureSecrets(seed)
 		publicKey := basics.Address(privateKey.SignatureVerifier)
 

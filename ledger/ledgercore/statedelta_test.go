@@ -17,18 +17,18 @@
 package ledgercore
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
 func randomAddress() basics.Address {
 	var addr basics.Address
-	crypto.RandBytes(addr[:])
+	cryptbase.RandBytes(addr[:])
 	return addr
 }
 

@@ -19,6 +19,7 @@ package fuzzer
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-deadlock"
 
 	//"github.com/algorand/go-algorand/agreement"
@@ -72,10 +73,10 @@ type (
 	proposalValue struct {
 		_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-		OriginalPeriod   period         `codec:"oper"`
-		OriginalProposer basics.Address `codec:"oprop"`
-		EntryDigest      crypto.Digest  `codec:"dig"`
-		EncodingDigest   crypto.Digest  `coded:"encdig"`
+		OriginalPeriod   period           `codec:"oper"`
+		OriginalProposer basics.Address   `codec:"oprop"`
+		EntryDigest      cryptbase.Digest `codec:"dig"`
+		EncodingDigest   cryptbase.Digest `coded:"encdig"`
 	}
 	// unauthenticatedBundle is a bundle which has not yet been verified.
 	unauthenticatedBundle struct {

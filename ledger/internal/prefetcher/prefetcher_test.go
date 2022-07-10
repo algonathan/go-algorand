@@ -19,12 +19,12 @@ package prefetcher_test
 import (
 	"context"
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -111,8 +111,8 @@ func (l *prefetcherTestLedger) GetCreatorForRound(_ basics.Round, cidx basics.Cr
 	}
 	return basics.Address{}, false, nil
 }
-func (l *prefetcherTestLedger) GenesisHash() crypto.Digest {
-	return crypto.Digest{}
+func (l *prefetcherTestLedger) GenesisHash() cryptbase.Digest {
+	return cryptbase.Digest{}
 }
 func (l *prefetcherTestLedger) GenesisProto() config.ConsensusParams {
 	return config.Consensus[proto]

@@ -19,8 +19,8 @@ package basics
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/protocol"
 )
@@ -82,7 +82,7 @@ func (p ParticipantsArray) Length() uint64 {
 }
 
 // Marshal Returns the hash for the given position.
-func (p ParticipantsArray) Marshal(pos uint64) (crypto.Hashable, error) {
+func (p ParticipantsArray) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	if pos >= uint64(len(p)) {
 		return nil, fmt.Errorf(ErrIndexOutOfBound, pos, len(p))
 	}

@@ -17,11 +17,11 @@
 package ledgercore
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -31,12 +31,12 @@ func TestUniqueCatchpointLabel(t *testing.T) {
 
 	uniqueSet := make(map[string]bool)
 
-	ledgerRoundBlockHashes := []crypto.Digest{}
-	balancesMerkleRoots := []crypto.Digest{}
+	ledgerRoundBlockHashes := []cryptbase.Digest{}
+	balancesMerkleRoots := []cryptbase.Digest{}
 	totals := []AccountTotals{}
 	for i := 0; i < 10; i++ {
-		ledgerRoundBlockHashes = append(ledgerRoundBlockHashes, crypto.Hash([]byte{byte(i)}))
-		balancesMerkleRoots = append(balancesMerkleRoots, crypto.Hash([]byte{byte(i), byte(i), byte(1)}))
+		ledgerRoundBlockHashes = append(ledgerRoundBlockHashes, cryptbase.Hash([]byte{byte(i)}))
+		balancesMerkleRoots = append(balancesMerkleRoots, cryptbase.Hash([]byte{byte(i), byte(i), byte(1)}))
 		totals = append(totals,
 			AccountTotals{
 				RewardsLevel: uint64(i * 500000),
@@ -60,12 +60,12 @@ func TestUniqueCatchpointLabel(t *testing.T) {
 func TestCatchpointLabelParsing(t *testing.T) {
 	partitiontest.PartitionTest(t)
 
-	ledgerRoundBlockHashes := []crypto.Digest{}
-	balancesMerkleRoots := []crypto.Digest{}
+	ledgerRoundBlockHashes := []cryptbase.Digest{}
+	balancesMerkleRoots := []cryptbase.Digest{}
 	totals := []AccountTotals{}
 	for i := 0; i < 10; i++ {
-		ledgerRoundBlockHashes = append(ledgerRoundBlockHashes, crypto.Hash([]byte{byte(i)}))
-		balancesMerkleRoots = append(balancesMerkleRoots, crypto.Hash([]byte{byte(i), byte(i), byte(1)}))
+		ledgerRoundBlockHashes = append(ledgerRoundBlockHashes, cryptbase.Hash([]byte{byte(i)}))
+		balancesMerkleRoots = append(balancesMerkleRoots, cryptbase.Hash([]byte{byte(i), byte(i), byte(1)}))
 		totals = append(totals,
 			AccountTotals{
 				RewardsLevel: uint64(i * 500000),
@@ -80,7 +80,7 @@ func TestCatchpointLabelParsing(t *testing.T) {
 					label := MakeCatchpointLabel(r, ledgerRoundHash, balancesMerkleRoot, total)
 					parsedRound, parsedHash, err := ParseCatchpointLabel(label.String())
 					require.Equal(t, r, parsedRound)
-					require.NotEqual(t, crypto.Digest{}, parsedHash)
+					require.NotEqual(t, cryptbase.Digest{}, parsedHash)
 					require.NoError(t, err)
 				}
 			}

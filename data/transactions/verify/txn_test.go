@@ -18,6 +18,7 @@ package verify
 
 import (
 	"context"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"math/rand"
 	"testing"
 	"time"
@@ -53,7 +54,7 @@ var spec = transactions.SpecialAddresses{
 
 func keypair() *crypto.SignatureSecrets {
 	var seed crypto.Seed
-	crypto.RandBytes(seed[:])
+	cryptbase.RandBytes(seed[:])
 	s := crypto.GenerateSignatureSecrets(seed)
 	return s
 }
@@ -92,7 +93,7 @@ func generateTestObjects(numTxs, numAccs int, blockRound basics.Round) ([]transa
 				Fee:         basics.MicroAlgos{Raw: f},
 				FirstValid:  basics.Round(iss),
 				LastValid:   basics.Round(exp),
-				GenesisHash: crypto.Hash([]byte{1, 2, 3, 4, 5}),
+				GenesisHash: cryptbase.Hash([]byte{1, 2, 3, 4, 5}),
 			},
 			PaymentTxnFields: transactions.PaymentTxnFields{
 				Receiver: addresses[r],
@@ -268,7 +269,7 @@ func TestPaysetGroups(t *testing.T) {
 	_, signedTxn, secrets, addrs := generateTestObjects(10000, 20, 50)
 	blkHdr := bookkeeping.BlockHeader{
 		Round:       50,
-		GenesisHash: crypto.Hash([]byte{1, 2, 3, 4, 5}),
+		GenesisHash: cryptbase.Hash([]byte{1, 2, 3, 4, 5}),
 		UpgradeState: bookkeeping.UpgradeState{
 			CurrentProtocol: protocol.ConsensusCurrentVersion,
 		},
@@ -348,7 +349,7 @@ func BenchmarkPaysetGroups(b *testing.B) {
 	_, signedTxn, secrets, addrs := generateTestObjects(b.N, 20, 50)
 	blkHdr := bookkeeping.BlockHeader{
 		Round:       50,
-		GenesisHash: crypto.Hash([]byte{1, 2, 3, 4, 5}),
+		GenesisHash: cryptbase.Hash([]byte{1, 2, 3, 4, 5}),
 		UpgradeState: bookkeeping.UpgradeState{
 			CurrentProtocol: protocol.ConsensusCurrentVersion,
 		},
@@ -386,9 +387,9 @@ func generateTransactionGroups(signedTxns []transactions.SignedTxn, secrets []*c
 		newGroup := signedTxns[i : i+txnPerGroup+1]
 		var txGroup transactions.TxGroup
 		for _, txn := range newGroup {
-			txGroup.TxGroupHashes = append(txGroup.TxGroupHashes, crypto.HashObj(txn.Txn))
+			txGroup.TxGroupHashes = append(txGroup.TxGroupHashes, cryptbase.HashObj(txn.Txn))
 		}
-		groupHash := crypto.HashObj(txGroup)
+		groupHash := cryptbase.HashObj(txGroup)
 		for j := range newGroup {
 			newGroup[j].Txn.Group = groupHash
 			newGroup[j].Sig = addrToSecret[newGroup[j].Txn.Sender].Sign(&newGroup[j].Txn)
@@ -408,7 +409,7 @@ func BenchmarkTxn(b *testing.B) {
 	blk := bookkeeping.Block{
 		BlockHeader: bookkeeping.BlockHeader{
 			Round:       50,
-			GenesisHash: crypto.Hash([]byte{1, 2, 3, 4, 5}),
+			GenesisHash: cryptbase.Hash([]byte{1, 2, 3, 4, 5}),
 			UpgradeState: bookkeeping.UpgradeState{
 				CurrentProtocol: protocol.ConsensusCurrentVersion,
 			},

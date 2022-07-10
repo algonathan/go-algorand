@@ -19,6 +19,7 @@ package rpcs
 import (
 	"context"
 	"errors"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"net/http"
 	"net/rpc"
 	"strings"
@@ -46,7 +47,7 @@ type mockPendingTxAggregate struct {
 
 func makeMockPendingTxAggregate(txCount int) mockPendingTxAggregate {
 	var secret [32]byte
-	crypto.RandBytes(secret[:])
+	cryptbase.RandBytes(secret[:])
 	sk := crypto.GenerateSignatureSecrets(crypto.Seed(secret))
 	mock := mockPendingTxAggregate{
 		txns: make([]transactions.SignedTxn, txCount),
@@ -54,7 +55,7 @@ func makeMockPendingTxAggregate(txCount int) mockPendingTxAggregate {
 
 	for i := 0; i < txCount; i++ {
 		var note [16]byte
-		crypto.RandBytes(note[:])
+		cryptbase.RandBytes(note[:])
 		tx := transactions.Transaction{
 			Type: protocol.PaymentTx,
 			Header: transactions.Header{

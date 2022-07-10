@@ -17,16 +17,16 @@
 package network
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-deadlock"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/protocol"
 )
 
 // IncomingMessage represents a message arriving from some peer in our p2p network
 type messageFilter struct {
 	deadlock.Mutex
-	buckets          []map[crypto.Digest]bool
+	buckets          []map[cryptbase.Digest]bool
 	maxBucketSize    int
 	currentTopBucket int
 	nonce            [16]byte
@@ -34,32 +34,32 @@ type messageFilter struct {
 
 func makeMessageFilter(bucketsCount, maxBucketSize int) *messageFilter {
 	mf := &messageFilter{
-		buckets:          make([]map[crypto.Digest]bool, bucketsCount),
+		buckets:          make([]map[cryptbase.Digest]bool, bucketsCount),
 		maxBucketSize:    maxBucketSize,
 		currentTopBucket: 0,
 	}
 	for i := range mf.buckets {
-		mf.buckets[i] = make(map[crypto.Digest]bool)
+		mf.buckets[i] = make(map[cryptbase.Digest]bool)
 	}
-	crypto.RandBytes(mf.nonce[:])
+	cryptbase.RandBytes(mf.nonce[:])
 	return mf
 }
 
 // CheckMessage checks if the given tag/msg already in the collection, and return true if it was there before the call.
 // Prepends our own random secret to the message to make it hard to abuse hash collisions.
 func (f *messageFilter) CheckIncomingMessage(tag protocol.Tag, msg []byte, add bool, promote bool) bool {
-	hasher := crypto.NewHash()
+	hasher := cryptbase.NewHash()
 	hasher.Write(f.nonce[:])
 	hasher.Write([]byte(tag))
 	hasher.Write(msg)
-	var digest crypto.Digest
+	var digest cryptbase.Digest
 	hasher.Sum(digest[:0])
 	return f.CheckDigest(digest, add, promote)
 }
 
 // CheckDigest checks if the given digest already in the collection, and return true if it was there before the call.
 // CheckDigest is used on outgoing messages, either given a hash from a peer notifying us of messages it doesn't need, or as we are about to send a message to see if we should send it.
-func (f *messageFilter) CheckDigest(msgHash crypto.Digest, add bool, promote bool) bool {
+func (f *messageFilter) CheckDigest(msgHash cryptbase.Digest, add bool, promote bool) bool {
 	f.Lock()
 	defer f.Unlock()
 	idx, has := f.find(msgHash)
@@ -81,22 +81,22 @@ func (f *messageFilter) CheckDigest(msgHash crypto.Digest, add bool, promote boo
 	// check to see if the current bucket reached capacity.
 	if len(f.buckets[f.currentTopBucket]) >= f.maxBucketSize {
 		f.currentTopBucket = (f.currentTopBucket + len(f.buckets) - 1) % len(f.buckets)
-		f.buckets[f.currentTopBucket] = make(map[crypto.Digest]bool)
+		f.buckets[f.currentTopBucket] = make(map[cryptbase.Digest]bool)
 	}
 
 	return has
 }
 
-func generateMessageDigest(tag protocol.Tag, msg []byte) crypto.Digest {
-	hasher := crypto.NewHash()
+func generateMessageDigest(tag protocol.Tag, msg []byte) cryptbase.Digest {
+	hasher := cryptbase.NewHash()
 	hasher.Write([]byte(tag))
 	hasher.Write(msg)
-	var digest crypto.Digest
+	var digest cryptbase.Digest
 	hasher.Sum(digest[:0])
 	return digest
 }
 
-func (f *messageFilter) find(digest crypto.Digest) (idx int, found bool) {
+func (f *messageFilter) find(digest cryptbase.Digest) (idx int, found bool) {
 	for i := len(f.buckets); i > 0; i-- {
 		bucketIdx := (f.currentTopBucket + i) % len(f.buckets)
 		if _, has := f.buckets[bucketIdx][digest]; has {

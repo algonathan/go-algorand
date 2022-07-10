@@ -30,6 +30,7 @@ package crypto
 // #include <stdint.h>
 // #include "sodium.h"
 import "C"
+import "github.com/algorand/go-algorand/crypto/cryptbase"
 
 func init() {
 	if C.sodium_init() == -1 {
@@ -107,8 +108,8 @@ func (sk VrfPrivkey) proveBytes(msg []byte) (proof VrfProof, ok bool) {
 
 // Prove constructs a VRF Proof for a given Hashable.
 // ok will be false if the private key is malformed.
-func (sk VrfPrivkey) Prove(message Hashable) (proof VrfProof, ok bool) {
-	return sk.proveBytes(HashRep(message))
+func (sk VrfPrivkey) Prove(message cryptbase.Hashable) (proof VrfProof, ok bool) {
+	return sk.proveBytes(cryptbase.HashRep(message))
 }
 
 // Hash converts a VRF proof to a VRF output without verifying the proof.
@@ -133,6 +134,6 @@ func (pk VrfPubkey) verifyBytes(proof VrfProof, msg []byte) (bool, VrfOutput) {
 // For a given public key and message, there are potentially multiple valid proofs.
 // However, given a public key and message, all valid proofs will yield the same output.
 // Moreover, the output is indistinguishable from random to anyone without the proof or the secret key.
-func (pk VrfPubkey) Verify(p VrfProof, message Hashable) (bool, VrfOutput) {
-	return pk.verifyBytes(p, HashRep(message))
+func (pk VrfPubkey) Verify(p VrfProof, message cryptbase.Hashable) (bool, VrfOutput) {
+	return pk.verifyBytes(p, cryptbase.HashRep(message))
 }

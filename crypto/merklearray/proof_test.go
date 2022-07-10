@@ -17,11 +17,11 @@
 package merklearray
 
 import (
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
 
@@ -31,10 +31,10 @@ func TestProofSerialization(t *testing.T) {
 
 	array := make(TestArray, 3)
 	for i := uint64(0); i < 3; i++ {
-		crypto.RandBytes(array[i][:])
+		cryptbase.RandBytes(array[i][:])
 	}
 
-	tree, err := Build(array, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(array, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	// creates a proof with missing child
@@ -42,25 +42,25 @@ func TestProofSerialization(t *testing.T) {
 	a.NoError(err)
 
 	data := p.GetFixedLengthHashableRepresentation()
-	a.Equal(len(data), 1+(MaxEncodedTreeDepth*crypto.Sha512_256Size))
+	a.Equal(len(data), 1+(MaxEncodedTreeDepth*cryptbase.Sha512_256Size))
 
 	// check the padded results
-	zeroDigest := make([]byte, crypto.Sha512_256Size)
+	zeroDigest := make([]byte, cryptbase.Sha512_256Size)
 	i := 0
 	proofData := data[1:]
 	for ; i < (MaxEncodedTreeDepth - 2); i++ {
-		a.Equal(zeroDigest, proofData[crypto.Sha512_256Size*i:crypto.Sha512_256Size*(i+1)])
+		a.Equal(zeroDigest, proofData[cryptbase.Sha512_256Size*i:cryptbase.Sha512_256Size*(i+1)])
 	}
 
 	// first proof digest is nil -> so the HashableRepresentation is zeros
-	a.Equal(crypto.GenericDigest(nil), p.Path[0])
-	a.Equal(zeroDigest, proofData[crypto.Sha512_256Size*i:crypto.Sha512_256Size*(i+1)])
+	a.Equal(cryptbase.GenericDigest(nil), p.Path[0])
+	a.Equal(zeroDigest, proofData[cryptbase.Sha512_256Size*i:cryptbase.Sha512_256Size*(i+1)])
 	i++
 
-	a.Equal([]byte(p.Path[1]), proofData[crypto.Sha512_256Size*i:crypto.Sha512_256Size*(i+1)])
+	a.Equal([]byte(p.Path[1]), proofData[cryptbase.Sha512_256Size*i:cryptbase.Sha512_256Size*(i+1)])
 
 	//VC
-	tree, err = BuildVectorCommitmentTree(array, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err = BuildVectorCommitmentTree(array, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	// creates a proof with missing child
@@ -68,19 +68,19 @@ func TestProofSerialization(t *testing.T) {
 	a.NoError(err)
 
 	data = p.GetFixedLengthHashableRepresentation()
-	a.Equal(len(data), 1+(MaxEncodedTreeDepth*crypto.Sha512_256Size))
+	a.Equal(len(data), 1+(MaxEncodedTreeDepth*cryptbase.Sha512_256Size))
 
 	// check the padded results
-	zeroDigest = make([]byte, crypto.Sha512_256Size)
+	zeroDigest = make([]byte, cryptbase.Sha512_256Size)
 	i = 0
 	proofData = data[1:]
 	for ; i < (MaxEncodedTreeDepth - 2); i++ {
-		a.Equal(zeroDigest, proofData[crypto.Sha512_256Size*i:crypto.Sha512_256Size*(i+1)])
+		a.Equal(zeroDigest, proofData[cryptbase.Sha512_256Size*i:cryptbase.Sha512_256Size*(i+1)])
 	}
 
-	a.Equal([]byte(p.Path[0]), proofData[crypto.Sha512_256Size*i:crypto.Sha512_256Size*(i+1)])
+	a.Equal([]byte(p.Path[0]), proofData[cryptbase.Sha512_256Size*i:cryptbase.Sha512_256Size*(i+1)])
 	i++
-	a.Equal([]byte(p.Path[1]), proofData[crypto.Sha512_256Size*i:crypto.Sha512_256Size*(i+1)])
+	a.Equal([]byte(p.Path[1]), proofData[cryptbase.Sha512_256Size*i:cryptbase.Sha512_256Size*(i+1)])
 
 }
 
@@ -90,21 +90,21 @@ func TestProofSerializationMaxTree(t *testing.T) {
 
 	array := make(TestArray, MaxNumLeavesOnEncodedTree)
 	for i := uint64(0); i < MaxNumLeavesOnEncodedTree; i++ {
-		crypto.RandBytes(array[i][:])
+		cryptbase.RandBytes(array[i][:])
 	}
 
-	tree, err := BuildVectorCommitmentTree(array, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := BuildVectorCommitmentTree(array, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	p, err := tree.ProveSingleLeaf(2)
 	a.NoError(err)
 
 	data := p.GetFixedLengthHashableRepresentation()
-	a.Equal(len(data), 1+(MaxEncodedTreeDepth*crypto.Sha512_256Size))
+	a.Equal(len(data), 1+(MaxEncodedTreeDepth*cryptbase.Sha512_256Size))
 
 	proofData := data[1:]
 	for i := 0; i < MaxEncodedTreeDepth; i++ {
-		a.Equal([]byte(p.Path[i]), proofData[crypto.Sha512_256Size*i:crypto.Sha512_256Size*(i+1)])
+		a.Equal([]byte(p.Path[i]), proofData[cryptbase.Sha512_256Size*i:cryptbase.Sha512_256Size*(i+1)])
 	}
 }
 
@@ -113,22 +113,22 @@ func TestProofSerializationOneLeafTree(t *testing.T) {
 	a := require.New(t)
 
 	array := make(TestArray, 1)
-	crypto.RandBytes(array[0][:])
+	cryptbase.RandBytes(array[0][:])
 
-	tree, err := BuildVectorCommitmentTree(array, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := BuildVectorCommitmentTree(array, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	p, err := tree.ProveSingleLeaf(0)
 	a.NoError(err)
 
 	data := p.GetFixedLengthHashableRepresentation()
-	a.Equal(len(data), 1+(MaxEncodedTreeDepth*crypto.Sha512_256Size))
+	a.Equal(len(data), 1+(MaxEncodedTreeDepth*cryptbase.Sha512_256Size))
 
-	zeroDigest := make([]byte, crypto.Sha512_256Size)
+	zeroDigest := make([]byte, cryptbase.Sha512_256Size)
 
 	proofData := data[1:]
 	for i := 0; i < MaxEncodedTreeDepth; i++ {
-		a.Equal(zeroDigest, proofData[crypto.Sha512_256Size*i:crypto.Sha512_256Size*(i+1)])
+		a.Equal(zeroDigest, proofData[cryptbase.Sha512_256Size*i:cryptbase.Sha512_256Size*(i+1)])
 	}
 
 }
@@ -139,21 +139,21 @@ func TestConcatenatedProofsMissingChild(t *testing.T) {
 
 	array := make(TestArray, 7)
 	for i := 0; i < 7; i++ {
-		crypto.RandBytes(array[i][:])
+		cryptbase.RandBytes(array[i][:])
 	}
 
-	tree, err := Build(array, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(array, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	p, err := tree.ProveSingleLeaf(6)
 	a.NoError(err)
 
-	newP := SingleLeafProof{Proof: Proof{TreeDepth: p.TreeDepth, Path: []crypto.GenericDigest{}, HashFactory: p.HashFactory}}
+	newP := SingleLeafProof{Proof: Proof{TreeDepth: p.TreeDepth, Path: []cryptbase.GenericDigest{}, HashFactory: p.HashFactory}}
 
 	computedPath := recomputePath(p)
 
 	newP.Path = computedPath
-	err = Verify(tree.Root(), map[uint64]crypto.Hashable{6: array[6]}, newP.ToProof())
+	err = Verify(tree.Root(), map[uint64]cryptbase.Hashable{6: array[6]}, newP.ToProof())
 	a.NoError(err)
 }
 
@@ -163,21 +163,21 @@ func TestConcatenatedProofsFullTree(t *testing.T) {
 
 	array := make(TestArray, 8)
 	for i := 0; i < 8; i++ {
-		crypto.RandBytes(array[i][:])
+		cryptbase.RandBytes(array[i][:])
 	}
 
-	tree, err := Build(array, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(array, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	p, err := tree.ProveSingleLeaf(6)
 	a.NoError(err)
 
-	newP := SingleLeafProof{Proof: Proof{TreeDepth: p.TreeDepth, Path: []crypto.GenericDigest{}, HashFactory: p.HashFactory}}
+	newP := SingleLeafProof{Proof: Proof{TreeDepth: p.TreeDepth, Path: []cryptbase.GenericDigest{}, HashFactory: p.HashFactory}}
 
 	computedPath := recomputePath(p)
 
 	newP.Path = computedPath
-	err = Verify(tree.Root(), map[uint64]crypto.Hashable{6: array[6]}, newP.ToProof())
+	err = Verify(tree.Root(), map[uint64]cryptbase.Hashable{6: array[6]}, newP.ToProof())
 	a.NoError(err)
 }
 
@@ -186,20 +186,20 @@ func TestConcatenatedProofsOneLeaf(t *testing.T) {
 	a := require.New(t)
 
 	array := make(TestArray, 1)
-	crypto.RandBytes(array[0][:])
+	cryptbase.RandBytes(array[0][:])
 
-	tree, err := Build(array, crypto.HashFactory{HashType: crypto.Sha512_256})
+	tree, err := Build(array, cryptbase.HashFactory{HashType: cryptbase.Sha512_256})
 	a.NoError(err)
 
 	p, err := tree.ProveSingleLeaf(0)
 	a.NoError(err)
 
-	newP := SingleLeafProof{Proof: Proof{TreeDepth: p.TreeDepth, Path: []crypto.GenericDigest{}, HashFactory: p.HashFactory}}
+	newP := SingleLeafProof{Proof: Proof{TreeDepth: p.TreeDepth, Path: []cryptbase.GenericDigest{}, HashFactory: p.HashFactory}}
 
 	computedPath := recomputePath(p)
 
 	newP.Path = computedPath
-	err = Verify(tree.Root(), map[uint64]crypto.Hashable{0: array[0]}, newP.ToProof())
+	err = Verify(tree.Root(), map[uint64]cryptbase.Hashable{0: array[0]}, newP.ToProof())
 	a.NoError(err)
 }
 
@@ -207,15 +207,15 @@ func TestProofDeserializationError(t *testing.T) {
 	partitiontest.PartitionTest(t)
 	a := require.New(t)
 
-	_, err := ProofDataToSingleLeafProof(crypto.Sha256.String(), 1, []byte{1})
+	_, err := ProofDataToSingleLeafProof(cryptbase.Sha256.String(), 1, []byte{1})
 	a.ErrorIs(err, ErrProofLengthDigestSizeMismatch)
 }
 
-func recomputePath(p *SingleLeafProof) []crypto.GenericDigest {
-	var computedPath []crypto.GenericDigest
+func recomputePath(p *SingleLeafProof) []cryptbase.GenericDigest {
+	var computedPath []cryptbase.GenericDigest
 	proofconcat := p.GetConcatenatedProof()
 	for len(proofconcat) > 0 {
-		var d crypto.Digest
+		var d cryptbase.Digest
 		copy(d[:], proofconcat)
 		computedPath = append(computedPath, d[:])
 		proofconcat = proofconcat[len(d):]

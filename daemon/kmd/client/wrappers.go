@@ -18,6 +18,7 @@ package client
 
 import (
 	"github.com/algorand/go-algorand/crypto"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/daemon/kmd/lib/kmdapi"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/protocol"
@@ -141,7 +142,7 @@ func (kcl KMDClient) DeleteMultisigAddr(walletHandle []byte, pw []byte, addr str
 }
 
 // MultisigSignTransaction wraps kmdapi.APIV1POSTMultisigTransactionSignRequest
-func (kcl KMDClient) MultisigSignTransaction(walletHandle, pw []byte, tx []byte, pk crypto.PublicKey, partial crypto.MultisigSig, msigSigner crypto.Digest) (resp kmdapi.APIV1POSTMultisigTransactionSignResponse, err error) {
+func (kcl KMDClient) MultisigSignTransaction(walletHandle, pw []byte, tx []byte, pk crypto.PublicKey, partial crypto.MultisigSig, msigSigner cryptbase.Digest) (resp kmdapi.APIV1POSTMultisigTransactionSignResponse, err error) {
 	req := kmdapi.APIV1POSTMultisigTransactionSignRequest{
 		WalletHandleToken: string(walletHandle),
 		WalletPassword:    string(pw),

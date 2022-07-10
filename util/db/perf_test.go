@@ -20,18 +20,18 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/logging"
 )
 
 func BenchmarkSQLWrites(b *testing.B) {
 	b.StopTimer()
 
-	fn := fmt.Sprintf("/tmp/%s.%d.sqlite", b.Name(), crypto.RandUint64())
+	fn := fmt.Sprintf("/tmp/%s.%d.sqlite", b.Name(), cryptbase.RandUint64())
 
 	wdb, err := MakeAccessor(fn, false, false)
 	require.NoError(b, err)
@@ -61,7 +61,7 @@ func BenchmarkSQLWrites(b *testing.B) {
 func BenchmarkSQLErasableWrites(b *testing.B) {
 	b.StopTimer()
 
-	fn := fmt.Sprintf("/tmp/%s.%d.sqlite", b.Name(), crypto.RandUint64())
+	fn := fmt.Sprintf("/tmp/%s.%d.sqlite", b.Name(), cryptbase.RandUint64())
 
 	wdb, err := MakeErasableAccessor(fn)
 	require.NoError(b, err)
@@ -90,7 +90,7 @@ func BenchmarkSQLErasableWrites(b *testing.B) {
 }
 
 func BenchmarkSQLQueryAPIs(b *testing.B) {
-	fn := fmt.Sprintf("%s.%d", b.Name(), crypto.RandUint64())
+	fn := fmt.Sprintf("%s.%d", b.Name(), cryptbase.RandUint64())
 
 	rdb, err := MakeAccessor(fn, true, true)
 	require.NoError(b, err)

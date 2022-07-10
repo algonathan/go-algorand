@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -29,7 +30,6 @@ import (
 	"time"
 
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/daemon/algod/api/client"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/logging"
@@ -329,7 +329,7 @@ func initTelemetry(genesis bookkeeping.Genesis, log logging.Logger, dataDirector
 					CommitHash:   currentVersion.CommitHash,
 					Branch:       currentVersion.Branch,
 					Channel:      currentVersion.Channel,
-					InstanceHash: crypto.Hash([]byte(dataDirectory)).String(),
+					InstanceHash: cryptbase.Hash([]byte(dataDirectory)).String(),
 				}
 
 				log.EventWithDetails(telemetryspec.HostApplicationState, telemetryspec.StartupEvent, startupDetails)

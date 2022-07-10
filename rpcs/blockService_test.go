@@ -19,6 +19,7 @@ package rpcs
 import (
 	"context"
 	"fmt"
+	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -29,7 +30,6 @@ import (
 
 	"github.com/algorand/go-algorand/agreement"
 	"github.com/algorand/go-algorand/config"
-	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
@@ -346,7 +346,7 @@ func makeLedger(t *testing.T, namePostfix string) *data.Ledger {
 
 	log := logging.TestingLog(t)
 	genBal := bookkeeping.MakeGenesisBalances(genesis, sinkAddr, poolAddr)
-	genHash := crypto.Digest{0x42}
+	genHash := cryptbase.Digest{0x42}
 	cfg := config.GetDefaultLocal()
 	const inMem = true
 
@@ -362,7 +362,7 @@ func addBlock(t *testing.T, ledger *data.Ledger) {
 	blk, err := ledger.Block(ledger.LastRound())
 	require.NoError(t, err)
 	blk.BlockHeader.Round++
-	blk.BlockHeader.TimeStamp += int64(crypto.RandUint64() % 100 * 1000)
+	blk.BlockHeader.TimeStamp += int64(cryptbase.RandUint64() % 100 * 1000)
 	blk.TxnCommitments, err = blk.PaysetCommit()
 	require.NoError(t, err)
 
