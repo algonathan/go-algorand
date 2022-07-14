@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with go-algorand.  If not, see <https://www.gnu.org/licenses/>.
 
-package basics
+package stateproof
 
 import (
 	"encoding/binary"
@@ -23,11 +23,6 @@ import (
 
 	"github.com/algorand/go-algorand/crypto/merklesignature"
 	"github.com/algorand/go-algorand/protocol"
-)
-
-const (
-	// ErrIndexOutOfBound returned when an index is out of the array's bound
-	ErrIndexOutOfBound = "pos %d past end %d"
 )
 
 // A Participant corresponds to an account whose AccountData.Status
@@ -84,7 +79,7 @@ func (p ParticipantsArray) Length() uint64 {
 // Marshal Returns the hash for the given position.
 func (p ParticipantsArray) Marshal(pos uint64) (cryptbase.Hashable, error) {
 	if pos >= uint64(len(p)) {
-		return nil, fmt.Errorf(ErrIndexOutOfBound, pos, len(p))
+		return nil, fmt.Errorf("pos %d past end %d", pos, len(p))
 	}
 
 	return p[pos], nil

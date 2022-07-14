@@ -169,7 +169,7 @@ func (s *testWorkerStubs) VotersForStateProof(r basics.Round) (*ledgercore.Voter
 
 	for i, k := range s.keysForVoters {
 		voters.AddrToPos[k.Parent] = uint64(i)
-		voters.Participants = append(voters.Participants, basics.Participant{
+		voters.Participants = append(voters.Participants, stateproof.Participant{
 			PK:     *k.StateProofSecrets.GetVerifier(),
 			Weight: 1,
 		})

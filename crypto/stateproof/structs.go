@@ -20,7 +20,6 @@ import (
 	"github.com/algorand/go-algorand/crypto/cryptbase"
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
-	"github.com/algorand/go-algorand/data/basics"
 )
 
 // MessageHash represents the message that a state proof will attest to.
@@ -61,8 +60,8 @@ type sigslotCommit struct {
 type Reveal struct {
 	_struct struct{} `codec:",omitempty,omitemptyarray"`
 
-	SigSlot sigslotCommit      `codec:"s"`
-	Part    basics.Participant `codec:"p"`
+	SigSlot sigslotCommit `codec:"s"`
+	Part    Participant   `codec:"p"`
 }
 
 // StateProof represents a proof on Algorand's state.
@@ -83,4 +82,10 @@ type StateProof struct {
 
 // SortUint64 implements sorting by uint64 keys for
 // canonical encoding of maps in msgpack format.
-type SortUint64 = basics.SortUint64
+//msgp:ignore SortUint64
+//msgp:sort uint64 SortUint64
+type SortUint64 []uint64
+
+func (a SortUint64) Len() int           { return len(a) }
+func (a SortUint64) Less(i, j int) bool { return a[i] < a[j] }
+func (a SortUint64) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

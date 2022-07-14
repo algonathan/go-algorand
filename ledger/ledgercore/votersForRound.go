@@ -55,7 +55,7 @@ type VotersForRound struct {
 	// Participants is the array of top #StateProofVotersCommitment online accounts
 	// in this round, sorted by normalized balance (to make sure heavyweight
 	// accounts are biased to the front).
-	Participants basics.ParticipantsArray
+	Participants stateproof.ParticipantsArray
 
 	// AddrToPos specifies the position of a given account address (if present)
 	// in the Participants array.  This allows adding a vote from a given account
@@ -79,8 +79,8 @@ func MakeVotersForRound() *VotersForRound {
 	return vr
 }
 
-func createStateProofParticipant(stateProofID *merklesignature.Commitment, money basics.MicroAlgos) basics.Participant {
-	var retPart basics.Participant
+func createStateProofParticipant(stateProofID *merklesignature.Commitment, money basics.MicroAlgos) stateproof.Participant {
+	var retPart stateproof.Participant
 	retPart.Weight = money.ToUint64()
 	// Some accounts might not have StateProof keys commitment. As a result,
 	// the commitment would be an array filled with zeroes: [0x0...0x0].
@@ -113,7 +113,7 @@ func (tr *VotersForRound) LoadTree(onlineTop TopOnlineAccounts, hdr bookkeeping.
 		return err
 	}
 
-	participants := make(basics.ParticipantsArray, len(top))
+	participants := make(stateproof.ParticipantsArray, len(top))
 	addrToPos := make(map[basics.Address]uint64)
 	var totalWeight basics.MicroAlgos
 

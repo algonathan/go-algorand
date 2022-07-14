@@ -1456,7 +1456,7 @@ func generateProofForTesting(
 	round uint64,
 	msg stateproofmsg.Message,
 	provenWeight uint64,
-	partArray basics.ParticipantsArray,
+	partArray stateproof.ParticipantsArray,
 	partTree *merklearray.Tree,
 	allKeys []*merklesignature.Secrets,
 	t *testing.T) *stateproof.StateProof {

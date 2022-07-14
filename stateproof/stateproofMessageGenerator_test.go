@@ -86,7 +86,7 @@ func (s *workerForStateProofMessageTests) VotersForStateProof(round basics.Round
 	for i, k := range s.w.keysForVoters {
 		partWe := uint64((len(s.w.keysForVoters) + int(round) - i) * 10000)
 		voters.AddrToPos[k.Parent] = uint64(i)
-		voters.Participants = append(voters.Participants, basics.Participant{
+		voters.Participants = append(voters.Participants, stateproof.Participant{
 			PK:     *k.StateProofSecrets.GetVerifier(),
 			Weight: partWe,
 		})

@@ -23,7 +23,6 @@ import (
 
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
-	"github.com/algorand/go-algorand/data/basics"
 )
 
 // Errors for the StateProof builder
@@ -41,7 +40,7 @@ type Builder struct {
 	round          uint64
 	sigs           []sigslot // Indexed by pos in participants
 	signedWeight   uint64    // Total weight of signatures so far
-	participants   []basics.Participant
+	participants   []Participant
 	parttree       *merklearray.Tree
 	lnProvenWeight uint64
 	provenWeight   uint64
@@ -49,7 +48,7 @@ type Builder struct {
 }
 
 // MkBuilder constructs an empty builder. After adding enough signatures and signed weight, this builder is used to create a stateproof.
-func MkBuilder(data MessageHash, round uint64, provenWeight uint64, part []basics.Participant, parttree *merklearray.Tree, strengthTarget uint64) (*Builder, error) {
+func MkBuilder(data MessageHash, round uint64, provenWeight uint64, part []Participant, parttree *merklearray.Tree, strengthTarget uint64) (*Builder, error) {
 	npart := len(part)
 	lnProvenWt, err := LnIntApproximation(provenWeight)
 	if err != nil {

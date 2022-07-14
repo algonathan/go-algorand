@@ -31,7 +31,6 @@ import (
 
 	"github.com/algorand/go-algorand/crypto/merklearray"
 	"github.com/algorand/go-algorand/crypto/merklesignature"
-	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/protocol"
 	"github.com/algorand/go-algorand/test/partitiontest"
 )
@@ -62,11 +61,11 @@ func hashBytes(hash hash.Hash, m []byte) []byte {
 	return outhash
 }
 
-func createParticipantSliceWithWeight(totalWeight, numberOfParticipant int, key *merklesignature.Verifier) []basics.Participant {
-	parts := make([]basics.Participant, 0, numberOfParticipant)
+func createParticipantSliceWithWeight(totalWeight, numberOfParticipant int, key *merklesignature.Verifier) []Participant {
+	parts := make([]Participant, 0, numberOfParticipant)
 
 	for i := 0; i < numberOfParticipant; i++ {
-		part := basics.Participant{
+		part := Participant{
 			PK:     *key,
 			Weight: uint64(totalWeight / 2 / numberOfParticipant),
 		}
@@ -103,7 +102,7 @@ func generateProofForTesting(a *require.Assertions, doLargeTest bool) paramsForT
 
 	// Share the key; we allow the same vote key to appear in multiple accounts..
 	key := generateTestSigner(0, uint64(stateProofIntervalForTests)*stateproofIntervals+1, stateProofIntervalForTests, a)
-	var parts []basics.Participant
+	var parts []Participant
 	var sigs []merklesignature.Signature
 	parts = append(parts, createParticipantSliceWithWeight(totalWeight, npartHi, key.GetVerifier())...)
 	parts = append(parts, createParticipantSliceWithWeight(totalWeight, npartLo, key.GetVerifier())...)
@@ -116,7 +115,7 @@ func generateProofForTesting(a *require.Assertions, doLargeTest bool) paramsForT
 		sigs = append(sigs, sig)
 	}
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	b, err := MkBuilder(data, stateProofIntervalForTests, uint64(totalWeight/2), parts, partcom, stateProofStrengthTargetForTests)
@@ -179,17 +178,17 @@ func TestBuildVerify(t *testing.T) {
 	a.NoError(err, "failed to verify the state proof")
 }
 
-func generateRandomParticipant(a *require.Assertions) basics.Participant {
+func generateRandomParticipant(a *require.Assertions) Participant {
 	key := generateTestSigner(0, 8, 1, a)
 
-	p := basics.Participant{
+	p := Participant{
 		PK:     *key.GetVerifier(),
 		Weight: cryptbase.RandUint64(),
 	}
 	return p
 }
 
-func calculateHashOnPartLeaf(part basics.Participant) []byte {
+func calculateHashOnPartLeaf(part Participant) []byte {
 	binaryWeight := make([]byte, 8)
 	binary.LittleEndian.PutUint64(binaryWeight, part.Weight)
 
@@ -224,13 +223,13 @@ func TestParticipationCommitmentBinaryFormat(t *testing.T) {
 
 	a := require.New(t)
 
-	var parts []basics.Participant
+	var parts []Participant
 	parts = append(parts, generateRandomParticipant(a))
 	parts = append(parts, generateRandomParticipant(a))
 	parts = append(parts, generateRandomParticipant(a))
 	parts = append(parts, generateRandomParticipant(a))
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	partCommitmentRoot := partcom.Root()
@@ -259,13 +258,13 @@ func TestSignatureCommitmentBinaryFormat(t *testing.T) {
 
 	data := testMessage("test!").IntoStateProofMessageHash()
 
-	var parts []basics.Participant
+	var parts []Participant
 	var sigs []merklesignature.Signature
 
 	for i := 0; i < numPart; i++ {
 		key := generateTestSigner(0, uint64(stateProofIntervalForTests)*8, stateProofIntervalForTests, a)
 
-		part := basics.Participant{
+		part := Participant{
 			PK:     *key.GetVerifier(),
 			Weight: uint64(totalWeight / 2 / numPart),
 		}
@@ -277,7 +276,7 @@ func TestSignatureCommitmentBinaryFormat(t *testing.T) {
 
 	}
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	b, err := MkBuilder(data, stateProofIntervalForTests, uint64(totalWeight/(2*numPart)), parts, partcom, stateProofStrengthTargetForTests)
@@ -454,11 +453,11 @@ func TestBuilder_AddRejectsInvalidSigVersion(t *testing.T) {
 	data := testMessage("hello world").IntoStateProofMessageHash()
 
 	key := generateTestSigner(0, uint64(stateProofIntervalForTests)*20+1, stateProofIntervalForTests, a)
-	var parts []basics.Participant
+	var parts []Participant
 	parts = append(parts, createParticipantSliceWithWeight(totalWeight, npartHi, key.GetVerifier())...)
 	parts = append(parts, createParticipantSliceWithWeight(totalWeight, npartLo, key.GetVerifier())...)
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	builder, err := MkBuilder(data, stateProofIntervalForTests, uint64(totalWeight/2), parts, partcom, stateProofStrengthTargetForTests)
@@ -480,9 +479,9 @@ func TestBuildAndReady(t *testing.T) {
 
 	totalWeight := 10000000
 	data := testMessage("hello world").IntoStateProofMessageHash()
-	var parts []basics.Participant
+	var parts []Participant
 
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	a.NoError(err)
 
 	builder, err := MkBuilder(data, stateProofIntervalForTests, uint64(totalWeight/2), parts, partcom, stateProofStrengthTargetForTests)
@@ -512,7 +511,7 @@ func TestErrorCases(t *testing.T) {
 	_, err := builder.Present(1)
 	a.ErrorIs(err, ErrPositionOutOfBound)
 
-	builder.participants = make([]basics.Participant, 1, 1)
+	builder.participants = make([]Participant, 1, 1)
 	builder.sigs = make([]sigslot, 1, 1)
 	err = builder.IsValid(1, merklesignature.Signature{}, false)
 	a.ErrorIs(err, ErrPositionOutOfBound)
@@ -614,12 +613,12 @@ func BenchmarkBuildVerify(b *testing.B) {
 	provenWeight := uint64(totalWeight / 2)
 	data := testMessage("hello world").IntoStateProofMessageHash()
 
-	var parts []basics.Participant
+	var parts []Participant
 	var partkeys []*merklesignature.Secrets
 	var sigs []merklesignature.Signature
 	for i := 0; i < npart; i++ {
 		signer := generateTestSigner(0, stateProofIntervalForTests+1, stateProofIntervalForTests, a)
-		part := basics.Participant{
+		part := Participant{
 			PK:     *signer.GetVerifier(),
 			Weight: uint64(totalWeight / npart),
 		}
@@ -634,7 +633,7 @@ func BenchmarkBuildVerify(b *testing.B) {
 	}
 
 	var sp *StateProof
-	partcom, err := merklearray.BuildVectorCommitmentTree(basics.ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
+	partcom, err := merklearray.BuildVectorCommitmentTree(ParticipantsArray(parts), cryptbase.HashFactory{HashType: HashType})
 	if err != nil {
 		b.Error(err)
 	}
